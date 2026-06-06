@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-arena-bg: #0A0A0F;
+  --color-arena-surface: #111118;
+  --color-arena-border: #222230;
+  --color-arena-gold: #F5A623;
+  --color-arena-green: #7ED321;
+  --color-arena-purple: #BD10E0;
+  --color-arena-blue: #4A90E2;
+  --color-arena-red: #E74C3C;
+  --color-arena-teal: #50E3C2;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}

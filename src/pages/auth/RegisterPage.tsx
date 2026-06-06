@@ -1,0 +1,125 @@
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
+
+const registerSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username too long')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers and underscores'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  referralCode: z.string().optional(),
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
+
+export function RegisterPage() {
+  const { register: registerUser } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      await registerUser(data);
+    } catch (err: unknown) {
+      const message =
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === 'string'
+          ? (err as { response: { data: { message: string } } }).response.data.message
+          : 'Registration failed. Please try again.';
+
+      setError('root', { message });
+    }
+  };
+
+  return (
+    <div className="flex min-h-svh items-center justify-center bg-arena-bg px-4">
+      <Card className="w-full max-w-sm bg-arena-surface border-arena-border">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-white">Create account</CardTitle>
+          <p className="text-white/50 text-sm">Join Arena and start competing</p>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <Input
+                {...register('email')}
+                type="email"
+                placeholder="Email"
+                autoComplete="email"
+                className="bg-arena-bg border-arena-border text-white placeholder:text-white/30"
+              />
+              {errors.email && <ErrorMessage message={errors.email.message!} className="mt-1" />}
+            </div>
+
+            <div>
+              <Input
+                {...register('username')}
+                type="text"
+                placeholder="Username"
+                autoComplete="username"
+                className="bg-arena-bg border-arena-border text-white placeholder:text-white/30"
+              />
+              {errors.username && <ErrorMessage message={errors.username.message!} className="mt-1" />}
+            </div>
+
+            <div>
+              <Input
+                {...register('password')}
+                type="password"
+                placeholder="Password"
+                autoComplete="new-password"
+                className="bg-arena-bg border-arena-border text-white placeholder:text-white/30"
+              />
+              {errors.password && <ErrorMessage message={errors.password.message!} className="mt-1" />}
+            </div>
+
+            <div>
+              <Input
+                {...register('referralCode')}
+                type="text"
+                placeholder="Referral code (optional)"
+                className="bg-arena-bg border-arena-border text-white placeholder:text-white/30"
+              />
+            </div>
+
+            {errors.root && <ErrorMessage message={errors.root.message!} />}
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-arena-gold hover:bg-arena-gold/90 text-black font-semibold"
+            >
+              {isSubmitting ? 'Creating account…' : 'Create account'}
+            </Button>
+
+            <p className="text-center text-sm text-white/50">
+              Already have an account?{' '}
+              <Link to="/login" className="text-arena-gold hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
