@@ -18,16 +18,23 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
             <div className="flex-1 min-w-0">
               <p className="text-white font-medium truncate">{tournament.title}</p>
               <p className="text-white/50 text-xs mt-0.5">
-                {tournament.playerCount ?? 0} / {tournament.maxPlayers ?? '∞'} players
+                {tournament.entryCount ?? 0} / {tournament.maxPlayers ?? '∞'} players
               </p>
             </div>
 
-            <Badge
-              className="shrink-0 text-xs font-medium text-black"
-              style={{ backgroundColor: arena.color }}
-            >
-              {arena.icon} {arena.label}
-            </Badge>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <Badge
+                className="text-xs font-medium text-black"
+                style={{ backgroundColor: arena.color }}
+              >
+                {arena.icon} {arena.label}
+              </Badge>
+              {tournament.hasJoined && (
+                <Badge className="text-xs bg-arena-gold/20 text-arena-gold border border-arena-gold/30 font-medium">
+                  ✓ Joined
+                </Badge>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-4 mt-3 text-sm">

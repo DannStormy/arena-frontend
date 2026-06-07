@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTournament } from '@/hooks/use-tournaments';
@@ -18,6 +18,10 @@ export function TournamentDetailPage() {
   const { data: tournament, isLoading, error } = useTournament(id!);
   const [hasJoined, setHasJoined] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+
+  useEffect(() => {
+    if (tournament?.hasJoined) setHasJoined(true);
+  }, [tournament?.hasJoined]);
   const [isStarting, setIsStarting] = useState(false);
 
 const handleJoin = async () => {
@@ -29,11 +33,8 @@ const handleJoin = async () => {
     setHasJoined(true);
     toast.success('Joined tournament!');
   } catch (err) {
-  console.log('err instanceof Error:', err instanceof Error);
-  console.log('err?.response:', (err as any)?.response);
-  console.log('err?.response?.data:', (err as any)?.response?.data);
-  toast.error(getErrorMessage(err, 'Failed to join tournament'));
-}finally {
+    toast.error(getErrorMessage(err, 'Failed to join tournament'));
+  } finally {
     setIsJoining(false);
   }
 };
@@ -74,7 +75,7 @@ const handleJoin = async () => {
   }
 
   const arena = ARENA_CONFIG[tournament.arena];
-  const playerCount = tournament.playerCount ?? 0;
+  const playerCount = tournament.entryCount ?? 0;
   const progressPct = tournament.maxPlayers
     ? Math.min((playerCount / tournament.maxPlayers) * 100, 100)
     : 0;
@@ -91,7 +92,7 @@ const handleJoin = async () => {
             {arena.icon} {arena.label}
           </Badge>
           <Badge variant="outline" className="text-white/70 border-arena-border capitalize">
-            {tournament.gameType.replace('_', ' ')}
+            {tournament.gameType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
           </Badge>
         </div>
 
@@ -143,6 +144,19 @@ const handleJoin = async () => {
             <span className="text-white font-semibold">₦{Number(tournament.entryFee).toLocaleString()}</span>
           </div>
         </div>
+
+        {effectivelyJoined && tournament.userEntry?.status === 'completed' && (() => {
+          const { score, totalAnswered } = tournament.userEntry!;
+          const accuracy = totalAnswered > 0 ? Math.round((score / totalAnswered) * 100) : 0;
+          return (
+            <div className="rounded-xl bg-arena-surface border border-arena-border px-4 py-3 text-sm text-white/60">
+              Your score:{' '}
+              <span className="text-white font-semibold">{score} pts</span>
+              {' · '}
+              <span className="text-arena-gold font-semibold">{accuracy}% accuracy</span>
+            </div>
+          );
+        })()}
 
         <div className="pt-2">
           {effectivelyJoined ? (

@@ -6,8 +6,7 @@ export interface LeaderboardEntry {
   username: string;
   avatarUrl: string | null;
   totalScore: number;
-  tournamentsWon: number;
-  totalEarnings: string;
+  tournamentsPlayed: number;
 }
 
 export interface LeaderboardResponse {

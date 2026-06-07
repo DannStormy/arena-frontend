@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAuth } from '@/hooks/use-auth';
 import { useBanks, type Bank } from '@/hooks/use-banks';
-import { useUpdateBankDetails, useResolveAccount } from '@/hooks/use-user';
+import { useUpdateBankDetails, useResolveAccount, useUserStats } from '@/hooks/use-user';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ export function ProfilePage() {
   const { logout } = useAuth();
   const { data: banks, isLoading: banksLoading } = useBanks();
   const updateBankDetails = useUpdateBankDetails();
+  const { data: stats } = useUserStats();
 
   const {
     register,
@@ -166,6 +167,26 @@ export function ProfilePage() {
             </button>
           </div>
         </div>
+
+        {stats && (
+          <div className="rounded-xl bg-arena-surface border border-arena-border p-4 space-y-3">
+            <p className="text-white/50 text-sm font-medium uppercase tracking-wider">Stats</p>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-white text-lg font-bold">{stats.tournamentsPlayed}</p>
+                <p className="text-white/40 text-xs mt-0.5">Tournaments</p>
+              </div>
+              <div>
+                <p className="text-white text-lg font-bold">{stats.questionsAnswered}</p>
+                <p className="text-white/40 text-xs mt-0.5">Questions</p>
+              </div>
+              <div>
+                <p className="text-arena-gold text-lg font-bold">{stats.accuracy}%</p>
+                <p className="text-white/40 text-xs mt-0.5">Accuracy</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl bg-arena-surface border border-arena-border p-4 space-y-4">
           <p className="text-white/50 text-sm font-medium uppercase tracking-wider">Bank details</p>

@@ -29,8 +29,13 @@ export interface Tournament {
   scheduledAt: string | null;
   isFunded: boolean;
   createdAt: string;
-  playerCount?: number;
+  entryCount?: number;
   hasJoined?: boolean;
+  userEntry?: {
+    score: number;
+    totalAnswered: number;
+    status: string;
+  };
 }
 
 export interface TournamentEntry {
