@@ -15,6 +15,13 @@ export const queryKeys = {
   game: {
     session: (id: string) => ['game-sessions', id] as const,
     nextQuestion: (id: string) => ['game-sessions', id, 'next-question'] as const,
+    sessionQuestions: (id: string) => ['game-sessions', id, 'questions'] as const,
+  },
+  duels: {
+    all: ['duels'] as const,
+    history: ['duels', 'history'] as const,
+    detail: (id: string) => ['duels', id] as const,
+    byCode: (code: string) => ['duels', 'code', code] as const,
   },
   admin: {
     stats: ['admin', 'stats'] as const,
@@ -22,6 +29,7 @@ export const queryKeys = {
     tournament: (id: string) => ['admin', 'tournaments', id] as const,
     tournamentEntries: (id: string) => ['admin', 'tournaments', id, 'entries'] as const,
     questions: ['admin', 'questions'] as const,
+    reportedQuestions: ['admin', 'questions', 'reported'] as const,
     flagged: ['admin', 'flagged'] as const,
     payouts: ['admin', 'payouts'] as const,
   },

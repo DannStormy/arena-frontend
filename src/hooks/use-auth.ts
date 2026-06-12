@@ -11,17 +11,16 @@ export function useAuth() {
   const navigate = useNavigate();
   const { setAuth, clearAuth } = useAuthStore();
 
-  const login = async (data: LoginRequest) => {
+  const login = async (data: LoginRequest, redirectTo?: string) => {
     const response = await api.post<AuthResponse>('/auth/login', data);
-    console.log(response, 'dfjfjf');
     setAuth(response.data.accessToken, response.data.user);
-    navigate('/');
+    navigate(redirectTo ?? '/');
   };
 
-  const register = async (data: RegisterRequest) => {
+  const register = async (data: RegisterRequest, redirectTo?: string) => {
     const response = await api.post<AuthResponse>('/auth/register', data);
     setAuth(response.data.accessToken, response.data.user);
-    navigate('/');
+    navigate(redirectTo ?? '/');
   };
 
   const logout = () => {

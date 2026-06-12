@@ -24,6 +24,13 @@ import { AdminTournamentDetailPage } from '@/pages/admin/AdminTournamentDetailPa
 import { AdminQuestionsPage } from '@/pages/admin/AdminQuestionsPage';
 import { AdminFlaggedPage } from '@/pages/admin/AdminFlaggedPage';
 import { AdminPayoutsPage } from '@/pages/admin/AdminPayoutsPage';
+import { DuelsPage } from '@/pages/duels/DuelsPage';
+import { CreateDuelPage } from '@/pages/duels/CreateDuelPage';
+import { DuelWaitingPage } from '@/pages/duels/DuelWaitingPage';
+import { JoinDuelPage } from '@/pages/duels/JoinDuelPage';
+import { DuelGamePage } from '@/pages/duels/DuelGamePage';
+import { DuelResultPage } from '@/pages/duels/DuelResultPage';
+import { ChallengePreviewPage } from '@/pages/duels/ChallengePreviewPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,10 +60,16 @@ export function App() {
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/duels" element={<DuelsPage />} />
             </Route>
 
             <Route path="/game/:sessionId" element={<GamePage />} />
             <Route path="/game/:sessionId/result" element={<GameResultPage />} />
+            <Route path="/duels/create" element={<CreateDuelPage />} />
+            <Route path="/duels/:code/join" element={<JoinDuelPage />} />
+            <Route path="/duels/:code/waiting" element={<DuelWaitingPage />} />
+            <Route path="/duels/:id/play" element={<DuelGamePage />} />
+            <Route path="/duels/:id/result" element={<DuelResultPage />} />
           </Route>
 
           <Route element={<ProtectedRoute adminOnly />}>
@@ -69,6 +82,8 @@ export function App() {
               <Route path="/admin/payouts" element={<AdminPayoutsPage />} />
             </Route>
           </Route>
+
+          <Route path="/duels/:code" element={<ChallengePreviewPage />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -1,11 +1,15 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
+import { getErrorMessage } from '@/lib/utils';
 import type {
   GameSession,
   GameQuestion,
   AnswerResult
 } from '@/types/game.types';
+
+export type ReportReason = 'wrong_answer' | 'outdated' | 'unclear';
 
 export function useGameSession(sessionId: string) {
   return useQuery({
@@ -30,6 +34,24 @@ export function useNextQuestion(sessionId: string) {
       return response.data;
     },
     enabled: !!sessionId
+  });
+}
+
+export function useSessionQuestions(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.game.sessionQuestions(sessionId ?? ''),
+    queryFn: () =>
+      api.get<GameQuestion[]>(`/game-sessions/${sessionId}/questions`).then((r) => r.data),
+    enabled: !!sessionId,
+  });
+}
+
+export function useReportQuestion() {
+  return useMutation({
+    mutationFn: ({ questionId, reason }: { questionId: string; reason: ReportReason }) =>
+      api.post(`/questions/${questionId}/report`, { reason }).then((r) => r.data),
+    onSuccess: () => toast.success("Question reported — we'll review it"),
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to submit report')),
   });
 }
 

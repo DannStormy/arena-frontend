@@ -42,6 +42,7 @@ export function useUserStats(): UseQueryResult<UserStats> {
     queryFn: () => api.get('/users/me/stats').then((r) => r.data),
     enabled: !!token,
     staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
   });
 }
 

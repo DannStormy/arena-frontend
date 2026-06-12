@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect') ?? undefined;
 
   const {
     register,
@@ -29,7 +31,7 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data);
+      await login(data, redirectTo);
     } catch (err: unknown) {
       const message =
         typeof err === 'object' &&
@@ -87,7 +89,10 @@ export function LoginPage() {
 
             <p className="text-center text-sm text-white/50">
               No account?{' '}
-              <Link to="/register" className="text-arena-gold hover:underline">
+              <Link
+                to={redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register'}
+                className="text-arena-gold hover:underline"
+              >
                 Register
               </Link>
             </p>

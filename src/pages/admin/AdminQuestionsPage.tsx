@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
 import { Trash2, Download, Upload, X, Pencil, Power } from 'lucide-react';
 import {
   useAdminQuestions,
+  useAdminReportedQuestions,
   useUpdateQuestion,
   useDeleteQuestion,
   useBulkUploadQuestions,
@@ -99,9 +100,17 @@ const EMPTY_EDIT: EditForm = { content: '', options: ['', '', '', ''], correctAn
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+const REASON_LABELS: Record<string, string> = {
+  wrong_answer: 'Wrong answer',
+  outdated: 'Outdated',
+  unclear: 'Unclear',
+};
+
 export function AdminQuestionsPage() {
+  const [tab, setTab] = useState<'questions' | 'reports'>('questions');
   const [category, setCategory] = useState('');
   const { data: questions, isLoading, error } = useAdminQuestions(category || undefined);
+  const { data: reportedQuestions, isLoading: reportsLoading } = useAdminReportedQuestions();
   const updateMutation = useUpdateQuestion();
   const deleteMutation = useDeleteQuestion();
   const bulkMutation = useBulkUploadQuestions();
@@ -138,21 +147,20 @@ export function AdminQuestionsPage() {
     setPreview([]);
     setValidationErrors([]);
 
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target!.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
-      if (rows.length === 0) {
-        setValidationErrors([{ row: 0, reason: 'File is empty or has no data rows.' }]);
-        return;
-      }
-      const { valid, errors } = validateRows(rows);
-      setValidationErrors(errors);
-      setPreview(valid);
-    };
-    reader.readAsArrayBuffer(file);
+    Papa.parse<Record<string, unknown>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.data.length === 0) {
+          setValidationErrors([{ row: 0, reason: 'File is empty or has no data rows.' }]);
+          return;
+        }
+        const { valid, errors } = validateRows(results.data);
+        setValidationErrors(errors);
+        setPreview(valid);
+      },
+    });
+
     e.target.value = '';
   };
 
@@ -232,11 +240,109 @@ export function AdminQuestionsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-white text-xl font-bold">Questions</h1>
-        <p className="text-white/40 text-sm mt-0.5">{questions?.length ?? 0} shown</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-white text-xl font-bold">Questions</h1>
+          <p className="text-white/40 text-sm mt-0.5">
+            {tab === 'questions' ? `${questions?.length ?? 0} shown` : `${reportedQuestions?.length ?? 0} reported`}
+          </p>
+        </div>
+        <div className="flex rounded-lg border border-arena-border overflow-hidden text-sm">
+          {(['questions', 'reports'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                'px-4 py-1.5 transition-colors capitalize',
+                tab === t ? 'bg-arena-gold text-black font-semibold' : 'text-white/50 hover:text-white hover:bg-white/5',
+              )}
+            >
+              {t}
+              {t === 'reports' && (reportedQuestions?.length ?? 0) > 0 && (
+                <span className="ml-1.5 rounded-full bg-arena-red/80 text-white text-xs px-1.5 py-0.5">
+                  {reportedQuestions!.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* ── Reports tab ──────────────────────────────────────────────────────── */}
+      {tab === 'reports' && (
+        <div className="space-y-3">
+          {reportsLoading && <div className="flex justify-center py-10"><LoadingSpinner size="lg" /></div>}
+          {!reportsLoading && (!reportedQuestions || reportedQuestions.length === 0) && (
+            <p className="text-white/40 text-sm text-center py-10">No reported questions.</p>
+          )}
+          {reportedQuestions && reportedQuestions.length > 0 && (
+            <div className="rounded-xl border border-arena-border overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-arena-border bg-arena-surface">
+                    <th className="text-left text-white/50 font-medium px-4 py-3">Question</th>
+                    <th className="text-left text-white/50 font-medium px-4 py-3">Reports</th>
+                    <th className="text-left text-white/50 font-medium px-4 py-3">Reasons</th>
+                    <th className="text-right text-white/50 font-medium px-4 py-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportedQuestions.map((q) => (
+                    <tr
+                      key={q.id}
+                      className={cn(
+                        'border-b border-arena-border/50 last:border-0',
+                        q.isActive === false && 'opacity-40',
+                      )}
+                    >
+                      <td className="px-4 py-3 text-white max-w-xs">
+                        <p className="truncate">{q.content}</p>
+                        <p className="text-white/40 text-xs capitalize mt-0.5">{q.category.replace(/_/g, ' ')}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full bg-arena-red/10 border border-arena-red/30 text-arena-red text-xs font-semibold px-2 py-0.5">
+                          {q.reportCount}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {q.reports.map(({ reason, count }) => (
+                            <span
+                              key={reason}
+                              className="rounded-full bg-white/5 border border-arena-border text-white/60 text-xs px-2 py-0.5"
+                            >
+                              {REASON_LABELS[reason] ?? reason} ({count})
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() =>
+                            updateMutation.mutate(
+                              { id: q.id, isActive: false },
+                              { onSuccess: () => toast.success('Question deactivated') },
+                            )
+                          }
+                          disabled={q.isActive === false || updateMutation.isPending}
+                          className={cn(
+                            'transition-colors text-xs font-medium disabled:opacity-30',
+                            q.isActive === false ? 'text-white/30 cursor-default' : 'text-arena-red/70 hover:text-arena-red',
+                          )}
+                        >
+                          {q.isActive === false ? 'Inactive' : 'Deactivate'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'questions' && <>
       {/* ── Upload section ───────────────────────────────────────────────────── */}
       <div className="rounded-xl bg-arena-surface border border-arena-border p-4 space-y-4">
         <div className="flex items-center justify-between">
@@ -260,13 +366,13 @@ export function AdminQuestionsPage() {
             {fileName ? (
               <span className="text-white">{fileName}</span>
             ) : (
-              <>Click to select a <span className="text-arena-gold">.xlsx</span> or <span className="text-arena-gold">.csv</span> file</>
+              <>Click to select a <span className="text-arena-gold">.csv</span> file</>
             )}
           </p>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            accept=".csv,text/csv"
             onChange={handleFile}
             className="hidden"
           />
@@ -409,6 +515,8 @@ export function AdminQuestionsPage() {
           </div>
         )}
       </div>
+
+      </> /* end tab === 'questions' */}
 
       {/* ── Edit dialog ──────────────────────────────────────────────────────── */}
       <Dialog open={!!editQuestion} onOpenChange={(open) => { if (!open) setEditQuestion(null); }}>

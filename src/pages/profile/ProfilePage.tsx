@@ -3,7 +3,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Copy, LogOut, ChevronsUpDown, Shield } from 'lucide-react';
+import { Copy, LogOut, ChevronsUpDown, Shield, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAuth } from '@/hooks/use-auth';
@@ -289,6 +289,14 @@ export function ProfilePage() {
             </Button>
           </form>
         </div>
+
+        <Link
+          to="/wallet"
+          className="flex items-center justify-center gap-2 w-full h-9 rounded-lg border border-arena-border text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
+        >
+          <Wallet className="h-4 w-4" />
+          Wallet
+        </Link>
 
         {user?.isAdmin && (
           <Link

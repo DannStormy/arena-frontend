@@ -11,5 +11,6 @@ export function useBanks() {
     queryKey: ['banks'],
     queryFn: () => api.get('/banks').then((r) => r.data.banks),
     staleTime: 1000 * 60 * 60,
+    refetchOnWindowFocus: false,
   });
 }

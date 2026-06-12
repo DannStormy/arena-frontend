@@ -63,6 +63,16 @@ export interface FlaggedSession {
   createdAt: string;
 }
 
+export interface ReportedQuestion {
+  id: string;
+  content: string;
+  category: string;
+  difficulty?: string;
+  isActive?: boolean;
+  reportCount: number;
+  reports: { reason: string; count: number }[];
+}
+
 export interface PendingPayout {
   id: string;
   userId: string;
@@ -219,6 +229,13 @@ export function useBulkUploadQuestions() {
       void qc.invalidateQueries({ queryKey: ['admin', 'questions'] });
     },
     onError: (err) => toast.error(getErrorMessage(err, 'Bulk upload failed')),
+  });
+}
+
+export function useAdminReportedQuestions() {
+  return useQuery<ReportedQuestion[]>({
+    queryKey: queryKeys.admin.reportedQuestions,
+    queryFn: () => api.get('/admin/questions/reported').then((r) => r.data.data ?? r.data),
   });
 }
 
