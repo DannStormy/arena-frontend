@@ -8,6 +8,8 @@ export interface User {
   bankCode?: string | null;
   bankAccountNumber?: string | null;
   bankAccountName?: string | null;
+  rank?: string;
+  level?: number;
 }
 
 export interface LoginRequest {

@@ -54,11 +54,12 @@ export function GamePage() {
       completeSession(result.finalScore ?? result.score);
       setTimeout(() => navigate(`/game/${sessionId}/result`, {
         state: {
-          finalScore: result.finalScore ?? result.score,
+          finalScore:    result.finalScore ?? result.score,
           totalAnswered: result.totalAnswered,
           totalQuestions: totalQuestionsFromState,
-          correctCount: nextCorrectCount,
-          isFlagged: result.isFlagged,
+          correctCount:  nextCorrectCount,
+          isFlagged:     result.isFlagged,
+          myProgression: result.myProgression,
         },
       }), 1200);
       return;
@@ -145,7 +146,7 @@ export function GamePage() {
           >
             {timeLeft}s
           </span>
-          <span className="text-arena-gold font-semibold">{score} pts</span>
+          <span className="text-arena-purple-bright font-semibold">{score} pts</span>
         </div>
       </div>
 

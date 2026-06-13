@@ -1,14 +1,110 @@
 @import "tailwindcss";
 
 @theme {
-  --color-arena-bg: #0A0A0F;
-  --color-arena-surface: #111118;
-  --color-arena-border: #222230;
+  /* surfaces */
+  --color-arena-bg:       #0A0A0F;
+  --color-arena-surface:  #14121C;
+  --color-arena-elev:     #1C1928;
+
+  /* borders — neutral, no purple cast */
+  --color-arena-border:   #1E1E24;
+
+  /* brand — purple, used with discipline */
+  --color-arena-purple:         #7C5CFF;
+  --color-arena-purple-bright:  #8E72FF;
+  --color-arena-purple-pressed: #6A4DE0;
+
+  /* outcome — fixed, never purple */
+  --color-arena-win:   #2DD4A7;
+  --color-arena-loss:  #FF4D5E;
+
+  /* aliases kept for existing usages */
+  --color-arena-green: #2DD4A7;
+  --color-arena-red:   #FF4D5E;
+
+  /* keep gold for prizes */
   --color-arena-gold: #F5A623;
-  --color-arena-green: #7ED321;
-  --color-arena-purple: #BD10E0;
-  --color-arena-blue: #4A90E2;
-  --color-arena-red: #E74C3C;
-  --color-arena-teal: #50E3C2;
-  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* text scale */
+  --color-arena-text-primary:   #E8E8EE;
+  --color-arena-text-secondary: #9A9AA6;
+  --color-arena-text-tertiary:  #76767F;
+
+  /* neutral opponent identity */
+  --color-arena-neutral-fill: #26262F;
+  --color-arena-neutral-fg:   #9A9AA6;
+
+  /* mode categorical — chips only */
+  --color-arena-mode-trivia:  #4F9CF0;
+  --color-arena-mode-blitz:   #F5B73D;
+  --color-arena-mode-sudden:  #FF7043;
+  --color-arena-mode-streak:  #E254A8;
+  --color-arena-mode-steal:   #3FB6C9;
+
+  /* typography */
+  --font-display: 'Chakra Petch', system-ui, sans-serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #0A0A0F;
+  color: #E8E8EE;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Chakra Petch', system-ui, sans-serif;
+}
+
+/* ── Keyframes ────────────────────────────────────────── */
+
+@keyframes slide-up {
+  0%   { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes result-reveal {
+  0%   { transform: scale(0.88); opacity: 0; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes ping-slow {
+  0%        { transform: scale(1); opacity: 0.6; }
+  75%, 100% { transform: scale(2); opacity: 0;   }
+}
+
+/* Your-turn pulse: low-amplitude, slow — only during active turn */
+@keyframes your-turn-pulse {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(124,92,255,0.55); }
+  50%      { box-shadow: 0 0 0 6px rgba(124,92,255,0);    }
+}
+
+/* ── Animation utilities ──────────────────────────────── */
+
+.animate-slide-up      { animation: slide-up      0.25s ease-out; }
+.animate-result-reveal { animation: result-reveal  0.18s ease-out; }
+.animate-shimmer       { animation: shimmer        1.5s  linear infinite; }
+.animate-ping-slow     { animation: ping-slow      2s    cubic-bezier(0,0,0.2,1) infinite; }
+.animate-your-turn     { animation: your-turn-pulse 1.5s ease-in-out infinite; }
+
+/* ── Reduced motion ───────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-result-reveal,
+  .animate-shimmer,
+  .animate-ping-slow,
+  .animate-your-turn {
+    animation: none;
+  }
 }

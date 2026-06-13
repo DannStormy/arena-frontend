@@ -43,6 +43,7 @@ export function useSessionQuestions(sessionId: string | undefined) {
     queryFn: () =>
       api.get<GameQuestion[]>(`/game-sessions/${sessionId}/questions`).then((r) => r.data),
     enabled: !!sessionId,
+    retry: false,  // endpoint may not exist on BE — stop hammering on 404
   });
 }
 

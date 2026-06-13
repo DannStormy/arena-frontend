@@ -2,6 +2,7 @@ import { Outlet, NavLink, Link } from 'react-router-dom';
 import { Home, Swords, Trophy, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth.store';
+import { useWallet } from '@/hooks/use-wallet';
 
 interface NavItemProps {
   to: string;
@@ -15,13 +16,27 @@ function NavItem({ to, icon, label }: NavItemProps) {
       to={to}
       className={({ isActive }) =>
         cn(
-          'flex flex-col items-center gap-1 px-4 py-2 text-xs transition-colors',
-          isActive ? 'text-arena-gold' : 'text-white/50 hover:text-white/80',
+          'flex flex-col items-center gap-0.5 px-4 py-2 text-xs font-medium transition-colors duration-150',
+          isActive ? 'text-arena-purple-bright' : 'text-arena-text-tertiary hover:text-white/60',
         )
       }
     >
-      {icon}
-      <span>{label}</span>
+      {({ isActive }) => (
+        <>
+          <span
+            className={cn(
+              'flex items-center justify-center rounded-xl p-1.5 transition-colors duration-150',
+              isActive ? 'bg-arena-purple/15' : '',
+            )}
+          >
+            {icon}
+          </span>
+          <span>{label}</span>
+          {isActive && (
+            <span className="mt-0.5 h-[2px] w-4 rounded-full bg-arena-purple opacity-80" />
+          )}
+        </>
+      )}
     </NavLink>
   );
 }
@@ -29,14 +44,31 @@ function NavItem({ to, icon, label }: NavItemProps) {
 export function RootLayout() {
   const user = useAuthStore((s) => s.user);
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
+  const { data: wallet } = useWallet();
+
+  const balanceDisplay = wallet?.balance != null
+    ? `₦${Number(wallet.balance).toLocaleString()}`
+    : null;
 
   return (
     <div className="flex flex-col min-h-svh bg-arena-bg">
-      <header className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-arena-surface/95 backdrop-blur-sm border-b border-arena-border safe-area-top">
-        <span className="text-arena-gold font-black text-lg tracking-tight">Arena</span>
+      <header className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-arena-surface/90 backdrop-blur-md border-b border-arena-border safe-area-top">
+        <span className="font-display font-bold text-xl tracking-tight text-arena-purple">
+          Arena
+        </span>
         <Link to="/profile" className="flex items-center gap-2.5">
-          <span className="text-white/70 text-sm">{user?.username}</span>
-          <div className="h-8 w-8 rounded-full bg-arena-gold/20 border border-arena-gold/40 flex items-center justify-center text-xs font-bold text-arena-gold">
+          {balanceDisplay && (
+            <span className="font-display font-bold text-arena-gold text-sm tabular-nums">
+              {balanceDisplay}
+            </span>
+          )}
+          <div
+            className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+            style={{
+              background: '#7C5CFF',
+              boxShadow: '0 0 0 1px rgba(142,114,255,0.4)',
+            }}
+          >
             {initials}
           </div>
         </Link>
@@ -46,7 +78,7 @@ export function RootLayout() {
         <Outlet />
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-arena-border bg-arena-surface/95 backdrop-blur-sm safe-area-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-arena-border bg-arena-surface/90 backdrop-blur-md safe-area-bottom">
         <NavItem to="/" icon={<Home className="h-5 w-5" />} label="Home" />
         <NavItem to="/duels" icon={<Swords className="h-5 w-5" />} label="Duels" />
         <NavItem to="/leaderboard" icon={<Trophy className="h-5 w-5" />} label="Leaders" />

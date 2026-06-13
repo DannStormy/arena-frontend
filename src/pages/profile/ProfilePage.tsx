@@ -9,11 +9,12 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useAuth } from '@/hooks/use-auth';
 import { useBanks, type Bank } from '@/hooks/use-banks';
 import { useUpdateBankDetails, useResolveAccount, useUserStats } from '@/hooks/use-user';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { RankBadge, getTierFromName } from '@/components/common/RankBadge';
+import { AvatarRing } from '@/components/common/AvatarRing';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
@@ -73,7 +74,6 @@ export function ProfilePage() {
   const watchedBankCode = useWatch({ control, name: 'bankCode' });
   const watchedAccountNumber = useWatch({ control, name: 'bankAccountNumber' });
 
-  // Pre-populate selectedBank display when banks load or bankCode changes (Fix 1)
   useEffect(() => {
     if (banks && watchedBankCode) {
       const found = banks.find((b) => b.code === watchedBankCode) ?? null;
@@ -132,77 +132,278 @@ export function ProfilePage() {
 
   const onSubmitBank = (data: BankFormData) => updateBankDetails.mutate(data);
 
+  // ── Derived stats ─────────────────────────────────────────────────────────────
+
+  const currentRank = user?.rank ?? stats?.seasonRank;
+  const initials    = user?.username?.slice(0, 2).toUpperCase() ?? '??';
+
+  const winRate =
+    stats?.duelsWon != null && stats?.duelsPlayed
+      ? Math.round((stats.duelsWon / stats.duelsPlayed) * 100)
+      : null;
+
+  // XP bar (used in level block only — ring has its own inline calc)
+  const xpPct =
+    stats?.level != null && stats?.xpIntoLevel != null && stats?.nextLevelAt
+      ? Math.min((stats.xpIntoLevel / stats.nextLevelAt) * 100, 100)
+      : 0;
+
+  const seasonRange = Math.max((stats?.nextRankAt ?? 0) - (stats?.seasonRankFloor ?? 0), 1);
+  const seasonPct =
+    stats?.seasonRank && stats?.seasonPoints != null
+      ? Math.min(((stats.seasonPoints - (stats.seasonRankFloor ?? 0)) / seasonRange) * 100, 100)
+      : 0;
+
+  const seasonBarColor =
+    stats?.seasonRank ? getTierFromName(stats.seasonRank).color + 'CC' : '#6B6B7A';
+
+  // All-time highest rank — may be absent if BE hasn't shipped it yet
+  const allTimeHighestRank = stats?.allTimeHighestRank ?? null;
+
+  // Next-tier label for season block
+  const nextTierName = (() => {
+    const TIERS = ['Spectator', 'Challenger', 'Gladiator', 'Champion', 'Legend'];
+    if (!stats?.seasonRank) return null;
+    const idx = TIERS.findIndex((t) => t.toLowerCase() === stats.seasonRank!.toLowerCase());
+    return idx >= 0 && idx < TIERS.length - 1 ? TIERS[idx + 1] : null;
+  })();
+
+  const hasRing = stats?.level != null && stats.xpIntoLevel != null && stats.nextLevelAt != null;
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
   return (
     <div className="flex flex-col min-h-full bg-arena-bg">
       <PageHeader title="Profile" />
 
-      <div className="px-4 space-y-5">
-        <div className="flex items-center gap-4 rounded-xl bg-arena-surface border border-arena-border p-4">
-          <Avatar className="h-14 w-14">
-            <AvatarImage src={user?.avatarUrl ?? undefined} />
-            <AvatarFallback className="bg-arena-border text-white text-lg">
-              {user?.username?.slice(0, 2).toUpperCase() ?? '??'}
-            </AvatarFallback>
-          </Avatar>
+      <div className="px-4 space-y-3 pb-6">
+        {/* ── Trophy case header ───────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-arena-border bg-arena-surface p-5 flex items-center gap-4">
+          {hasRing ? (
+            <AvatarRing
+              avatarUrl={user?.avatarUrl}
+              initials={initials}
+              xpIntoLevel={stats!.xpIntoLevel!}
+              nextLevelAt={stats!.nextLevelAt!}
+              level={stats!.level!}
+            />
+          ) : (
+            /* Fallback when BE hasn't shipped progression yet */
+            <div
+              className="h-16 w-16 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+              style={{ background: '#7C5CFF', boxShadow: '0 0 0 2px rgba(124,92,255,0.3)' }}
+            >
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="font-bold text-xl text-white">{initials}</span>
+              )}
+            </div>
+          )}
 
-          <div>
-            <p className="text-white font-semibold">{user?.username ?? '—'}</p>
-            <p className="text-white/50 text-sm">{user?.email ?? '—'}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <p className="font-display font-bold text-lg text-arena-text-primary leading-none">
+                {user?.username ?? '—'}
+              </p>
+              {currentRank && <RankBadge rank={currentRank} size="sm" />}
+            </div>
+            <p className="text-arena-text-tertiary text-xs truncate">{user?.email ?? '—'}</p>
           </div>
         </div>
 
-        <div className="rounded-xl bg-arena-surface border border-arena-border p-4 space-y-2">
-          <p className="text-white/50 text-sm font-medium uppercase tracking-wider">Referral code</p>
+        {/* ── Level block ──────────────────────────────────────────────────── */}
+        {stats?.level != null && (
+          <div className="rounded-2xl border border-arena-border bg-arena-surface p-4">
+            <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-3">
+              Level
+            </p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-display font-bold text-2xl text-arena-text-primary">
+                {stats.level}
+              </span>
+              {stats.xpIntoLevel != null && stats.nextLevelAt != null && (
+                <span className="text-arena-text-tertiary text-[11px] tabular-nums">
+                  {stats.xpIntoLevel.toLocaleString()} / {stats.nextLevelAt.toLocaleString()} XP
+                </span>
+              )}
+            </div>
+            <div className="h-[6px] rounded-full bg-arena-elev overflow-hidden">
+              <div className="h-full rounded-full bg-arena-purple" style={{ width: `${xpPct}%` }} />
+            </div>
+            {stats.lifetimeXp != null && (
+              <p className="text-arena-text-tertiary text-[10px] mt-2 tabular-nums">
+                {stats.lifetimeXp.toLocaleString()} lifetime XP
+              </p>
+            )}
+          </div>
+        )}
 
+        {/* ── Season rank block ────────────────────────────────────────────── */}
+        {stats?.seasonRank && (
+          <div className="rounded-2xl border border-arena-border bg-arena-surface p-4">
+            <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-3">
+              Season rank
+            </p>
+            <div className="flex items-center justify-between mb-2">
+              <RankBadge rank={stats.seasonRank} size="sm" />
+              {stats.seasonPoints != null && stats.nextRankAt != null && (
+                <span className="text-arena-text-tertiary text-[11px] tabular-nums">
+                  {stats.seasonPoints.toLocaleString()} / {stats.nextRankAt.toLocaleString()} pts
+                </span>
+              )}
+            </div>
+            <div className="h-[4px] rounded-full bg-arena-elev overflow-hidden">
+              <div className="h-full rounded-full" style={{ width: `${seasonPct}%`, background: seasonBarColor }} />
+            </div>
+            {nextTierName && stats.nextRankAt != null && stats.seasonPoints != null && (
+              <p className="text-arena-text-tertiary text-[10px] mt-2 tabular-nums">
+                {(stats.nextRankAt - stats.seasonPoints).toLocaleString()} pts to {nextTierName}
+              </p>
+            )}
+            {!nextTierName && <p className="text-arena-text-tertiary text-[10px] mt-2">Max rank</p>}
+          </div>
+        )}
+
+        {/* ── All-time highest rank ─────────────────────────────────────────── */}
+        {allTimeHighestRank ? (
+          <div className="rounded-2xl border border-arena-border bg-arena-surface p-4 flex items-center justify-between">
+            <div>
+              <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-1.5">
+                All-time best
+              </p>
+              <RankBadge rank={allTimeHighestRank} size="md" />
+            </div>
+            <p className="text-arena-text-tertiary text-[10px] text-right max-w-[100px]">
+              Permanent — never resets
+            </p>
+          </div>
+        ) : (
+          /* Visible only until BE ships allTimeHighestRank — comment flags the gap */
+          /* TODO(BE): allTimeHighestRank field not yet in /users/me/stats response */
+          null
+        )}
+
+        {/* ── Record ───────────────────────────────────────────────────────── */}
+        {stats && (
+          <div className="rounded-2xl border border-arena-border bg-arena-surface p-4">
+            <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-3">
+              Record
+            </p>
+
+            {stats.duelsPlayed != null ? (
+              <>
+                {/* Primary: win / loss / tie counts */}
+                <div className="grid grid-cols-3 gap-0 mb-4 pb-4 border-b border-arena-border/40">
+                  <div className="text-center border-r border-arena-border/40">
+                    <p className="font-display text-arena-win text-2xl font-bold">
+                      {stats.duelsWon ?? 0}
+                    </p>
+                    <p className="text-arena-text-tertiary text-[10px] uppercase tracking-wider mt-0.5">
+                      Wins
+                    </p>
+                  </div>
+                  <div className="text-center border-r border-arena-border/40">
+                    <p className="font-display text-arena-loss text-2xl font-bold">
+                      {stats.duelsLost ?? 0}
+                    </p>
+                    <p className="text-arena-text-tertiary text-[10px] uppercase tracking-wider mt-0.5">
+                      Losses
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-display text-arena-text-secondary text-2xl font-bold">
+                      {stats.duelsTied ?? 0}
+                    </p>
+                    <p className="text-arena-text-tertiary text-[10px] uppercase tracking-wider mt-0.5">
+                      Tied
+                    </p>
+                  </div>
+                </div>
+
+                {/* Secondary: win rate / accuracy / streak */}
+                <div className="grid grid-cols-3 gap-0">
+                  <div className="text-center border-r border-arena-border/40">
+                    <p className="font-display text-arena-text-primary text-base font-bold">
+                      {winRate != null ? `${winRate}%` : '—'}
+                    </p>
+                    <p className="text-arena-text-tertiary text-[10px] mt-0.5">Win rate</p>
+                  </div>
+                  <div className="text-center border-r border-arena-border/40">
+                    <p className="font-display text-arena-text-primary text-base font-bold">
+                      {stats.accuracy}%
+                    </p>
+                    <p className="text-arena-text-tertiary text-[10px] mt-0.5">Accuracy</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="font-display text-arena-text-primary text-base font-bold">
+                      {stats.bestWinStreak ?? stats.currentWinStreak ?? '—'}
+                    </p>
+                    <p className="text-arena-text-tertiary text-[10px] mt-0.5">Best streak</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Fallback when backend hasn't shipped duel stats yet */
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="font-display text-arena-text-primary text-xl font-bold">
+                    {stats.tournamentsPlayed}
+                  </p>
+                  <p className="text-arena-text-tertiary text-xs mt-0.5">Played</p>
+                </div>
+                <div>
+                  <p className="font-display text-arena-text-primary text-xl font-bold">
+                    {stats.questionsAnswered}
+                  </p>
+                  <p className="text-arena-text-tertiary text-xs mt-0.5">Questions</p>
+                </div>
+                <div>
+                  <p className="font-display text-arena-purple-bright text-xl font-bold">
+                    {stats.accuracy}%
+                  </p>
+                  <p className="text-arena-text-tertiary text-xs mt-0.5">Accuracy</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Referral code ─────────────────────────────────────────────────── */}
+        <div className="rounded-2xl bg-arena-surface border border-arena-border p-4">
+          <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-3">
+            Referral code
+          </p>
           <div className="flex items-center gap-3">
-            <span className="flex-1 font-mono text-arena-gold text-lg tracking-widest">
+            <span className="flex-1 font-mono text-arena-gold text-xl tracking-widest">
               {user?.referralCode ?? '—'}
             </span>
-
             <button
               onClick={copyReferral}
-              className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-xl text-arena-text-tertiary hover:text-white hover:bg-white/5 transition-colors"
             >
               <Copy className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        {stats && (
-          <div className="rounded-xl bg-arena-surface border border-arena-border p-4 space-y-3">
-            <p className="text-white/50 text-sm font-medium uppercase tracking-wider">Stats</p>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div>
-                <p className="text-white text-lg font-bold">{stats.tournamentsPlayed}</p>
-                <p className="text-white/40 text-xs mt-0.5">Tournaments</p>
-              </div>
-              <div>
-                <p className="text-white text-lg font-bold">{stats.questionsAnswered}</p>
-                <p className="text-white/40 text-xs mt-0.5">Questions</p>
-              </div>
-              <div>
-                <p className="text-arena-gold text-lg font-bold">{stats.accuracy}%</p>
-                <p className="text-white/40 text-xs mt-0.5">Accuracy</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="rounded-xl bg-arena-surface border border-arena-border p-4 space-y-4">
-          <p className="text-white/50 text-sm font-medium uppercase tracking-wider">Bank details</p>
+        {/* ── Bank details ──────────────────────────────────────────────────── */}
+        <div className="rounded-2xl bg-arena-surface border border-arena-border p-4 space-y-4">
+          <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em]">
+            Bank details
+          </p>
 
           <form onSubmit={handleSubmit(onSubmitBank)} className="space-y-3">
-            {/* Bank picker combobox */}
             <div>
               <Popover open={bankPickerOpen} onOpenChange={setBankPickerOpen}>
                 <PopoverTrigger
                   disabled={banksLoading}
-                  className="h-9 w-full flex items-center justify-between rounded-lg border border-arena-border bg-arena-bg px-2.5 text-sm text-white disabled:opacity-50 focus:outline-none focus:border-white/40"
+                  className="h-11 w-full flex items-center justify-between rounded-xl border border-arena-border bg-arena-elev px-3 text-sm text-white disabled:opacity-50 focus:outline-none focus:border-arena-purple/60"
                 >
-                  <span className={selectedBank ? 'text-white' : 'text-white/30'}>
+                  <span className={selectedBank ? 'text-white' : 'text-arena-text-tertiary'}>
                     {banksLoading ? 'Loading banks…' : (selectedBank?.name ?? 'Select bank')}
                   </span>
-                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                  <ChevronsUpDown className="h-4 w-4 opacity-40 shrink-0" />
                 </PopoverTrigger>
                 <PopoverContent className="w-[var(--available-width,320px)] p-0 bg-arena-surface border-arena-border">
                   <Command className="bg-arena-surface text-white">
@@ -235,7 +436,6 @@ export function ProfilePage() {
               )}
             </div>
 
-            {/* Account number */}
             <div>
               <Input
                 {...accountNumberRest}
@@ -248,14 +448,13 @@ export function ProfilePage() {
                 inputMode="numeric"
                 maxLength={10}
                 placeholder="Account number (10 digits)"
-                className="bg-arena-bg border-arena-border text-white placeholder:text-white/30"
+                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-arena-text-tertiary focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
               />
               {errors.bankAccountNumber && (
                 <p className="mt-1 text-xs text-arena-red">{errors.bankAccountNumber.message}</p>
               )}
             </div>
 
-            {/* Account name — auto-resolved */}
             <div>
               <div className="relative">
                 <Input
@@ -263,7 +462,7 @@ export function ProfilePage() {
                   type="text"
                   placeholder="Account name"
                   readOnly={isAccountNameLocked}
-                  className="bg-arena-bg border-arena-border text-white placeholder:text-white/30 read-only:opacity-60 read-only:cursor-default pr-8"
+                  className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-arena-text-tertiary read-only:opacity-60 read-only:cursor-default pr-8 focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
                 />
                 {resolving && (
                   <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
@@ -275,43 +474,48 @@ export function ProfilePage() {
                 <p className="mt-1 text-xs text-arena-red">
                   Account not found — check your details
                 </p>
-              ) : errors.bankAccountName && (
-                <p className="mt-1 text-xs text-arena-red">{errors.bankAccountName.message}</p>
+              ) : (
+                errors.bankAccountName && (
+                  <p className="mt-1 text-xs text-arena-red">{errors.bankAccountName.message}</p>
+                )
               )}
             </div>
 
             <Button
               type="submit"
               disabled={isSubmitting || updateBankDetails.isPending}
-              className="w-full bg-arena-gold hover:bg-arena-gold/90 text-black font-semibold"
+              className="w-full h-11 bg-arena-purple hover:bg-arena-purple-bright active:bg-arena-purple-pressed active:scale-[0.98] text-white font-semibold transition-all"
             >
               {updateBankDetails.isPending ? 'Saving…' : 'Save bank details'}
             </Button>
           </form>
         </div>
 
-        <Link
-          to="/wallet"
-          className="flex items-center justify-center gap-2 w-full h-9 rounded-lg border border-arena-border text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
-        >
-          <Wallet className="h-4 w-4" />
-          Wallet
-        </Link>
-
-        {user?.isAdmin && (
+        {/* ── Secondary links ───────────────────────────────────────────────── */}
+        <div className="space-y-2">
           <Link
-            to="/admin"
-            className="flex items-center justify-center gap-2 w-full h-9 rounded-lg border border-arena-border text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
+            to="/wallet"
+            className="flex items-center justify-center gap-2 w-full h-11 rounded-xl border border-arena-border text-arena-text-secondary hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
           >
-            <Shield className="h-4 w-4" />
-            Admin panel
+            <Wallet className="h-4 w-4" />
+            Wallet
           </Link>
-        )}
+
+          {user?.isAdmin && (
+            <Link
+              to="/admin"
+              className="flex items-center justify-center gap-2 w-full h-11 rounded-xl border border-arena-border text-arena-text-secondary hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
+            >
+              <Shield className="h-4 w-4" />
+              Admin panel
+            </Link>
+          )}
+        </div>
 
         <Button
           onClick={logout}
           variant="outline"
-          className="w-full border-arena-red/40 text-arena-red hover:bg-arena-red/10 gap-2"
+          className="w-full h-11 border-arena-red/30 text-arena-red hover:bg-arena-red/10 hover:border-arena-red/50 gap-2 transition-colors"
         >
           <LogOut className="h-4 w-4" />
           Sign out

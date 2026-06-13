@@ -15,6 +15,8 @@ export interface GameQuestion {
   difficulty: string;
 }
 
+import type { ProgressionData } from '@/types/duel.types';
+
 export interface AnswerResult {
   isCorrect: boolean;
   correctAnswer: number;
@@ -23,4 +25,5 @@ export interface AnswerResult {
   isFlagged: boolean;
   completed: boolean;
   finalScore?: number;
+  myProgression?: ProgressionData;
 }

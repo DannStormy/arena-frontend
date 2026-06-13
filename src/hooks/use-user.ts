@@ -33,6 +33,25 @@ export interface UserStats {
   correctAnswers: number;
   accuracy: number;
   totalPrizeWon: string;
+  // Duel record (optional — populated when backend exposes it)
+  duelsPlayed?: number;
+  duelsWon?: number;
+  duelsLost?: number;
+  duelsTied?: number;
+  currentWinStreak?: number;
+  bestWinStreak?: number;
+  fastestAnswerMs?: number;
+  // Progression (optional — populated when backend ships the aggregate)
+  level?: number;
+  xpIntoLevel?: number;
+  nextLevelAt?: number;
+  lifetimeXp?: number;         // cumulative XP across all time
+  seasonRank?: string;
+  seasonPoints?: number;
+  nextRankAt?: number;
+  seasonRankFloor?: number;
+  // BE gap: allTimeHighestRank persistence is on the backend punch list
+  allTimeHighestRank?: string;
 }
 
 export function useUserStats(): UseQueryResult<UserStats> {

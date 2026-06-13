@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTournaments } from '@/hooks/use-tournaments';
 import { ARENA_CONFIG } from '@/lib/arena-config';
+import { ARENA_LUCIDE_ICONS } from '@/lib/arena-icons';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -12,12 +13,12 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
 
   return (
     <Link to={`/tournaments/${tournament.id}`}>
-      <Card className="bg-arena-surface border-arena-border hover:border-white/20 transition-colors">
+      <Card className="bg-arena-surface border-arena-border hover:border-white/15 hover:bg-arena-elev transition-all">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium truncate">{tournament.title}</p>
-              <p className="text-white/50 text-xs mt-0.5">
+              <p className="text-arena-text-primary font-semibold truncate font-display">{tournament.title}</p>
+              <p className="text-arena-text-tertiary text-xs mt-0.5">
                 {tournament.entryCount ?? 0} / {tournament.maxPlayers ?? '∞'} players
               </p>
             </div>
@@ -27,10 +28,10 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
                 className="text-xs font-medium text-black"
                 style={{ backgroundColor: arena.color }}
               >
-                {arena.icon} {arena.label}
+                {arena.label}
               </Badge>
               {tournament.hasJoined && (
-                <Badge className="text-xs bg-arena-gold/20 text-arena-gold border border-arena-gold/30 font-medium">
+                <Badge className="text-xs bg-arena-purple/20 text-arena-purple-bright border border-arena-purple/30 font-medium">
                   ✓ Joined
                 </Badge>
               )}
@@ -39,9 +40,9 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
 
           <div className="flex items-center gap-4 mt-3 text-sm">
             <span className="text-arena-gold font-semibold">
-              🏆 ₦{Number(tournament.prizeFirst).toLocaleString()}
+              ₦{Number(tournament.prizeFirst).toLocaleString()}
             </span>
-            <span className="text-white/50">
+            <span className="text-arena-text-tertiary">
               Entry: ₦{Number(tournament.entryFee).toLocaleString()}
             </span>
           </div>
@@ -55,19 +56,20 @@ export function HomePage() {
   const { data: tournaments, isLoading, error } = useTournaments({ status: 'open' });
 
   const byArena = (tournaments?.data ?? []).reduce<Record<string, Tournament[]>>((acc, t) => {
-    const key = t.arena;
-    acc[key] = [...(acc[key] ?? []), t];
+    acc[t.arena] = [...(acc[t.arena] ?? []), t];
     return acc;
   }, {});
 
   return (
     <div className="min-h-full bg-arena-bg">
-      <header className="px-4 pt-safe-top pb-4 bg-arena-surface border-b border-arena-border">
-        <h1 className="text-xl font-bold text-white">Arena</h1>
-        <p className="text-white/50 text-sm">Compete. Win. Repeat.</p>
+      <header className="px-4 pt-4 pb-5 border-b border-arena-border bg-arena-surface/50">
+        <div className="mx-auto w-full max-w-[760px]">
+          <h1 className="font-display text-2xl font-bold text-arena-text-primary">Tournaments</h1>
+          <p className="text-arena-text-tertiary text-sm mt-0.5">Compete and win real prizes</p>
+        </div>
       </header>
 
-      <div className="px-4 py-4">
+      <div className="mx-auto w-full max-w-[760px] px-4 py-4">
         {isLoading && (
           <div className="flex justify-center py-12">
             <LoadingSpinner />
@@ -94,16 +96,19 @@ export function HomePage() {
           (Object.keys(ARENA_CONFIG) as TournamentArena[]).map((arenaKey) => {
             const list = byArena[arenaKey];
             if (!list || list.length === 0) return null;
-
             const arena = ARENA_CONFIG[arenaKey];
 
             return (
               <section key={arenaKey} className="mb-6">
-                <h2 className="text-white font-semibold mb-3">
-                  {arena.icon} {arena.label}
+                <h2 className="font-display font-semibold text-arena-text-secondary text-sm mb-3 flex items-center gap-2">
+                  <span className="text-arena-text-tertiary flex items-center">
+                    {ARENA_LUCIDE_ICONS[arenaKey]}
+                  </span>
+                  <span>{arena.label}</span>
                 </h2>
 
-                <div className="flex flex-col gap-3">
+                {/* 1-col on mobile, 2-col on wide screens */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {list.map((t) => (
                     <TournamentCard key={t.id} tournament={t} />
                   ))}

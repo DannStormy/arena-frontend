@@ -62,6 +62,8 @@ export interface Duel {
   questionSummary?: { questionIndex: number; challengerResult: string; opponentResult: string; questionId?: string }[];
   winnerId: string | null;
   isTie: boolean;
+  tiebreakDeltaMs?: number;
+  resolution?: string;
   expiresAt: string | null;
   createdAt: string;
 }
@@ -86,8 +88,14 @@ export interface DuelHistoryItem {
   opponentUsername?: string | null;
   challengerScore: number;
   opponentScore: number;
+  challengerMaxStreak?: number;
+  opponentMaxStreak?: number;
+  prizeWon: string;
+  suddenDeathRounds?: number;
   winnerId: string | null;
   isTie: boolean;
+  tiebreakDeltaMs?: number;
+  resolution?: string;
   createdAt: string;
 }
 
@@ -135,6 +143,23 @@ export interface StealOpportunityPayload {
   timeoutSeconds: number;
 }
 
+export interface ProgressionData {
+  xpBefore: number;
+  xpAfter: number;
+  intoLevelBefore: number;
+  intoLevelAfter: number;
+  nextLevelAt: number;
+  levelBefore: number;
+  levelAfter: number;
+  spBefore: number;
+  spAfter: number;
+  rankBefore: string;
+  rankAfter: string;
+  rankFloor: number;
+  nextRankAt: number;
+  firstDuelOfDayBonus?: number;
+}
+
 export interface DuelCompletePayload {
   winnerId: string | null;
   isTie: boolean;
@@ -144,6 +169,7 @@ export interface DuelCompletePayload {
   opponentMaxStreak?: number;
   prizeWon: string;
   suddenDeathRounds?: number;
+  myProgression?: ProgressionData;
 }
 
 export interface DuelForfeitedPayload {

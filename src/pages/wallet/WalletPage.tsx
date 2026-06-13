@@ -4,7 +4,6 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { Transaction, TransactionType } from '@/types/wallet.types';
 
@@ -21,18 +20,21 @@ function TransactionRow({ tx }: { tx: Transaction }) {
 
   return (
     <div className="flex items-center gap-3 py-3">
-      <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-medium">{TYPE_LABEL[tx.type]}</p>
-        <p className="text-white/40 text-xs">{new Date(tx.createdAt).toLocaleDateString()}</p>
-      </div>
-
-      <span
+      <div
         className={cn(
-          'text-sm font-semibold',
-          isCredit ? 'text-arena-green' : 'text-arena-red',
+          'h-8 w-8 rounded-full flex items-center justify-center text-sm shrink-0',
+          isCredit ? 'bg-arena-green/15 text-arena-green' : 'bg-arena-red/15 text-arena-red',
         )}
       >
-        {isCredit ? '+' : '-'}₦{Number(tx.amount).toLocaleString()}
+        {isCredit ? '+' : '−'}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-sm font-medium">{TYPE_LABEL[tx.type]}</p>
+        <p className="text-white/30 text-xs">{new Date(tx.createdAt).toLocaleDateString()}</p>
+      </div>
+
+      <span className={cn('text-sm font-semibold tabular-nums', isCredit ? 'text-arena-green' : 'text-arena-red')}>
+        {isCredit ? '+' : '−'}₦{Number(tx.amount).toLocaleString()}
       </span>
     </div>
   );
@@ -47,28 +49,35 @@ export function WalletPage() {
     <div className="flex flex-col min-h-full bg-arena-bg">
       <PageHeader title="Wallet" />
 
-      <div className="px-4 space-y-5">
+      <div className="px-4 space-y-5 pb-6">
         {walletLoading ? (
           <div className="flex justify-center py-8">
             <LoadingSpinner />
           </div>
         ) : (
-          <div className="rounded-xl bg-arena-surface border border-arena-border p-5 text-center">
-            <p className="text-white/50 text-sm">Balance</p>
-            <p className="text-4xl font-bold text-white mt-1">
+          <div
+            className="rounded-2xl p-5 text-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(22,22,40,1) 100%)',
+              border: '1px solid rgba(124,58,237,0.3)',
+            }}
+          >
+            <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Balance</p>
+            <p className="font-display text-5xl font-bold text-white mt-1">
               ₦{Number(wallet?.balance ?? 0).toLocaleString()}
             </p>
 
-            <div className="flex justify-center gap-8 mt-4 text-sm">
+            <div className="flex justify-center gap-8 mt-5 text-sm">
               <div>
-                <p className="text-white/40">Won</p>
-                <p className="text-arena-green font-semibold">
+                <p className="text-white/30 text-xs uppercase tracking-wider">Won</p>
+                <p className="font-display text-arena-green font-bold text-lg mt-0.5">
                   ₦{Number(wallet?.totalWon ?? 0).toLocaleString()}
                 </p>
               </div>
+              <div className="w-px bg-arena-border" />
               <div>
-                <p className="text-white/40">Spent</p>
-                <p className="text-arena-red font-semibold">
+                <p className="text-white/30 text-xs uppercase tracking-wider">Spent</p>
+                <p className="font-display text-arena-red font-bold text-lg mt-0.5">
                   ₦{Number(wallet?.totalSpent ?? 0).toLocaleString()}
                 </p>
               </div>
@@ -77,7 +86,7 @@ export function WalletPage() {
         )}
 
         <div>
-          <h2 className="text-white font-semibold mb-2">Transactions</h2>
+          <p className="text-white/30 text-xs font-semibold uppercase tracking-wider mb-3">Transactions</p>
 
           {txLoading && <LoadingSpinner className="mx-auto" />}
 
@@ -86,12 +95,9 @@ export function WalletPage() {
           )}
 
           {txPage && txPage.data.length > 0 && (
-            <div className="rounded-xl bg-arena-surface border border-arena-border px-4 divide-y divide-arena-border">
-              {txPage.data.map((tx, i) => (
-                <div key={tx.id}>
-                  <TransactionRow tx={tx} />
-                  {i < txPage.data.length - 1 && <Separator className="bg-arena-border" />}
-                </div>
+            <div className="rounded-2xl bg-arena-surface border border-arena-border px-4 divide-y divide-arena-border/50">
+              {txPage.data.map((tx) => (
+                <TransactionRow key={tx.id} tx={tx} />
               ))}
             </div>
           )}
@@ -103,7 +109,7 @@ export function WalletPage() {
                 size="sm"
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="border-arena-border text-white hover:bg-white/10"
+                className="border-arena-border text-white/60 hover:text-white hover:bg-white/5"
               >
                 Previous
               </Button>
@@ -112,7 +118,7 @@ export function WalletPage() {
                 size="sm"
                 disabled={page * txPage.pageSize >= txPage.total}
                 onClick={() => setPage((p) => p + 1)}
-                className="border-arena-border text-white hover:bg-white/10"
+                className="border-arena-border text-white/60 hover:text-white hover:bg-white/5"
               >
                 Next
               </Button>

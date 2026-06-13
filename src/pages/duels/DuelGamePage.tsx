@@ -292,7 +292,7 @@ export function DuelGamePage() {
             <div
               className={cn(
                 'h-full rounded-full transition-all duration-1000 ease-linear',
-                timerDanger ? 'bg-arena-red animate-pulse' : 'bg-arena-gold',
+                timerDanger ? 'bg-arena-red animate-pulse' : 'bg-arena-purple',
               )}
               style={{ width: `${timerPct}%` }}
             />
@@ -360,7 +360,7 @@ export function DuelGamePage() {
           {/* Steal header */}
           <div className="px-4 pt-safe-top py-5 text-center">
             <p className="text-2xl mb-1">⚡</p>
-            <p className="text-arena-gold text-lg font-black tracking-wide">STEAL OPPORTUNITY!</p>
+            <p className="text-arena-purple-bright text-lg font-black tracking-wide">STEAL OPPORTUNITY!</p>
             <p className="text-white/60 text-sm mt-1">
               Opponent got this wrong. Can you answer?
             </p>
@@ -368,7 +368,7 @@ export function DuelGamePage() {
             {/* Steal timer */}
             <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden mx-auto max-w-xs">
               <div
-                className="h-full rounded-full bg-arena-gold transition-all duration-1000 ease-linear"
+                className="h-full rounded-full bg-arena-purple transition-all duration-1000 ease-linear"
                 style={{
                   width: `${(stealTimeLeft / stealOpportunity.timeoutSeconds) * 100}%`,
                 }}
@@ -387,7 +387,7 @@ export function DuelGamePage() {
                 <button
                   key={i}
                   onClick={() => handleAnswer(i, true)}
-                  className="w-full rounded-xl border border-arena-border bg-arena-surface p-4 text-left text-sm font-medium text-white hover:border-arena-gold transition-colors"
+                  className="w-full rounded-xl border border-arena-border bg-arena-surface p-4 text-left text-sm font-medium text-white hover:border-white/25 hover:bg-arena-elev transition-colors"
                 >
                   <span className="mr-2 text-white/40">{String.fromCharCode(65 + i)}.</span>
                   {option}

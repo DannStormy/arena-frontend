@@ -5,6 +5,7 @@ import { useTournament } from '@/hooks/use-tournaments';
 import { api } from '@/lib/api';
 import { getErrorMessage } from '@/lib/utils';
 import { ARENA_CONFIG } from '@/lib/arena-config';
+import { ARENA_LUCIDE_ICONS } from '@/lib/arena-icons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -88,8 +89,9 @@ const handleJoin = async () => {
 
       <div className="px-4 pb-8 space-y-5">
         <div className="flex items-center gap-2">
-          <Badge className="text-black font-medium" style={{ backgroundColor: arena.color }}>
-            {arena.icon} {arena.label}
+          <Badge className="text-black font-medium flex items-center gap-1" style={{ backgroundColor: arena.color }}>
+            {ARENA_LUCIDE_ICONS[tournament.arena]}
+            {arena.label}
           </Badge>
           <Badge variant="outline" className="text-white/70 border-arena-border capitalize">
             {tournament.gameType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
