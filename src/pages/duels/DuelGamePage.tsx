@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Skull, Trophy, Flame } from 'lucide-react';
+import { Skull, Trophy, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ModeIcon, getModeAccent } from '@/components/common/ModeIcon';
+import { DuelHUD } from '@/components/duel/DuelHUD';
+import { CountdownBar } from '@/components/duel/CountdownBar';
+import { QuestionCard } from '@/components/duel/QuestionCard';
+import { OptionButton } from '@/components/duel/OptionButton';
 import { useDuelSocket } from '@/hooks/use-duel-socket';
 import { useDuelStore } from '@/stores/duel.store';
 import { useAuthStore } from '@/stores/auth.store';
@@ -16,7 +21,7 @@ export function DuelGamePage() {
   const location = useLocation();
   const duelFromState = location.state?.duel as Duel | undefined;
   const token = useAuthStore((s) => s.token);
-  const user = useAuthStore((s) => s.user);
+  const user  = useAuthStore((s) => s.user);
 
   const {
     mode,
@@ -36,22 +41,22 @@ export function DuelGamePage() {
   } = useDuelStore();
 
   const iAmChallenger = duelFromState?.challengerId === user?.id;
-  const myScore = iAmChallenger ? challengerScore : opponentScore;
-  const theirScore = iAmChallenger ? opponentScore : challengerScore;
+  const myScore   = iAmChallenger ? challengerScore : opponentScore;
+  const theirScore = iAmChallenger ? opponentScore  : challengerScore;
 
-  // Local UI state
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  // ── Local UI state ────────────────────────────────────────────────────────
+  const [timeLeft, setTimeLeft]           = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [stealTimeLeft, setStealTimeLeft] = useState(0);
-  const [eliminatedBy, setEliminatedBy] = useState<string | null>(null);
+  const [eliminatedBy, setEliminatedBy]   = useState<string | null>(null);
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerRef      = useRef<ReturnType<typeof setInterval> | null>(null);
   const stealTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const hasAnsweredRef = useRef(false);
-  const questionStartTimeRef = useRef(Date.now());
+  const hasAnsweredRef           = useRef(false);
+  const questionStartTimeRef     = useRef(Date.now());
 
-  // Socket connection
+  // ── Socket connection ─────────────────────────────────────────────────────
   useDuelSocket(duelId ?? null, {
     onDuelForfeited: (payload: DuelForfeitedPayload) => {
       setEliminatedBy(payload.forfeitedBy);
@@ -68,7 +73,7 @@ export function DuelGamePage() {
     },
   });
 
-  // Reset local state when a new question arrives
+  // ── Reset local state on new question ────────────────────────────────────
   useEffect(() => {
     if (!currentQuestion) return;
     setSelectedIndex(null);
@@ -76,14 +81,11 @@ export function DuelGamePage() {
     hasAnsweredRef.current = false;
     questionStartTimeRef.current = Date.now();
 
-    const timerSeconds = currentQuestion
-      ? (DUEL_MODE_CONFIG[mode ?? 'trivia']?.timerSeconds ?? null)
-      : null;
-
+    const timerSeconds = DUEL_MODE_CONFIG[mode ?? 'trivia']?.timerSeconds ?? null;
     setTimeLeft(timerSeconds);
   }, [currentQuestion, mode]);
 
-  // Countdown timer
+  // ── Countdown timer ───────────────────────────────────────────────────────
   useEffect(() => {
     if (timeLeft === null || !currentQuestion) return;
 
@@ -109,7 +111,7 @@ export function DuelGamePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestion]);
 
-  // Auto-submit on timeout
+  // ── Auto-submit on timeout ────────────────────────────────────────────────
   useEffect(() => {
     if (timeLeft === 0) {
       void handleAnswer(-1);
@@ -117,14 +119,14 @@ export function DuelGamePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft]);
 
-  // Show feedback when server confirms our answer
+  // ── Show feedback when server confirms our answer ─────────────────────────
   useEffect(() => {
     if (correctAnswer !== null && hasAnsweredRef.current) {
       setFeedbackVisible(true);
     }
   }, [correctAnswer]);
 
-  // Steal timer
+  // ── Steal timer ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!stealOpportunity) {
       if (stealTimerRef.current) {
@@ -156,6 +158,7 @@ export function DuelGamePage() {
     };
   }, [stealOpportunity]);
 
+  // ── Answer submission ─────────────────────────────────────────────────────
   const handleAnswer = (index: number, isSteal = false) => {
     if (hasAnsweredRef.current || isComplete || !currentQuestion || !duelId || !token) return;
     if (!isSteal) {
@@ -193,156 +196,137 @@ export function DuelGamePage() {
     }
   };
 
+  // ── Guards ────────────────────────────────────────────────────────────────
   if (!duelId) return <Navigate to="/duels" replace />;
 
-  // Waiting for first question
+  const isSuddenDeath = mode === 'sudden_death';
+  const isStreakMode  = mode === 'streak';
+  const timerMax      = DUEL_MODE_CONFIG[mode ?? 'trivia']?.timerSeconds ?? null;
+  const modeAccent    = getModeAccent(mode ?? 'trivia');
+  const myUsername    = user?.username ?? 'You';
+  const opponentName  = opponentUsername ?? 'Opponent';
+
+  // ── Waiting for first question ────────────────────────────────────────────
   if (!currentQuestion) {
     return (
-      <div className="flex min-h-svh flex-col items-center justify-center gap-4 bg-arena-bg">
-        <LoadingSpinner size="lg" />
-        <p className="text-white/50 text-sm">
-          {duelFromState?.mode ? DUEL_MODE_CONFIG[duelFromState.mode]?.label : 'Loading duel'}
-          …
+      <div className="flex min-h-svh flex-col items-center justify-center gap-5 bg-arena-bg">
+        <ModeIcon mode={duelFromState?.mode ?? 'trivia'} size={44} iconSize={22} />
+        <LoadingSpinner size="sm" />
+        <p className="text-white/40 text-sm">
+          {duelFromState?.mode ? DUEL_MODE_CONFIG[duelFromState.mode]?.label : 'Loading duel'}…
         </p>
       </div>
     );
   }
 
-  const isSuddenDeath = mode === 'sudden_death';
-  const isStreakMode = mode === 'streak';
-  const timerMax = DUEL_MODE_CONFIG[mode ?? 'trivia']?.timerSeconds ?? null;
-  const timerPct = timerMax && timeLeft !== null ? (timeLeft / timerMax) * 100 : 100;
-  const timerDanger = timeLeft !== null && timeLeft <= 3;
-
-  const myUsername = user?.username ?? 'You';
-  const opponentName = opponentUsername ?? 'Opponent';
-
-  // Sudden death eliminated overlay
+  // ── Sudden Death elimination overlay ─────────────────────────────────────
   if (eliminatedBy !== null) {
     const iAmEliminated = eliminatedBy === user?.id;
     return (
       <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-arena-bg">
         <div
-          className={cn(
-            'text-6xl font-black tracking-widest animate-pulse',
-            iAmEliminated ? 'text-arena-red' : 'text-arena-green',
-          )}
+          className="h-24 w-24 rounded-3xl flex items-center justify-center"
+          style={{
+            background: iAmEliminated ? 'rgba(255,77,94,0.12)' : 'rgba(45,212,167,0.12)',
+          }}
         >
           {iAmEliminated
-            ? <Skull className="h-14 w-14 mx-auto" />
-            : <Trophy className="h-14 w-14 mx-auto" />}
+            ? <Skull className="h-12 w-12 text-arena-red" />
+            : <Trophy className="h-12 w-12 text-arena-green" />}
         </div>
-        <p
-          className={cn(
-            'text-3xl font-black tracking-widest',
-            iAmEliminated ? 'text-arena-red' : 'text-arena-green',
-          )}
-        >
-          {iAmEliminated ? 'ELIMINATED' : 'YOU WIN!'}
-        </p>
-        <p className="text-white/50 text-sm">
-          {iAmEliminated ? `${opponentName} won the duel` : 'Your opponent answered wrong'}
-        </p>
+        <div className="text-center">
+          <p
+            className="font-display font-black text-4xl tracking-tight"
+            style={{ color: iAmEliminated ? '#FF4D5E' : '#2DD4A7' }}
+          >
+            {iAmEliminated ? 'ELIMINATED' : 'YOU WIN!'}
+          </p>
+          <p className="text-white/50 text-sm mt-2">
+            {iAmEliminated ? `${opponentName} won the duel` : 'Your opponent answered wrong'}
+          </p>
+        </div>
       </div>
     );
   }
 
+  // ── Main game screen ──────────────────────────────────────────────────────
   return (
     <div className="flex flex-col min-h-svh bg-arena-bg">
+
       {/* HUD */}
-      <div className="px-4 pt-safe-top pb-3 border-b border-arena-border">
-        <div className="flex items-center justify-between gap-2">
-          {/* My side */}
-          <div className="flex-1">
-            <p className="text-white/60 text-xs truncate">{myUsername}</p>
-            {isSuddenDeath ? (
-              <p className="text-arena-green text-sm font-bold">ALIVE</p>
-            ) : (
-              <p className="text-white text-xl font-bold tabular-nums">{myScore}</p>
-            )}
-            {isStreakMode && myStreak > 1 && (
-              <p className="text-arena-gold text-xs flex items-center gap-0.5"><Flame className="h-3 w-3" />{myStreak}x</p>
-            )}
-          </div>
+      <DuelHUD
+        mode={mode ?? 'trivia'}
+        modeAccent={modeAccent}
+        myUsername={myUsername}
+        myAvatarUrl={user?.avatarUrl}
+        myScore={myScore}
+        myStreak={myStreak}
+        opponentName={opponentName}
+        opponentScore={theirScore}
+        opponentStreak={opponentStreak}
+        opponentHasAnswered={opponentHasAnswered}
+        questionIndex={questionIndex}
+        totalQuestions={totalQuestions}
+        isSuddenDeath={isSuddenDeath}
+        isStreakMode={isStreakMode}
+      />
 
-          {/* Center */}
-          <div className="text-center shrink-0">
-            <p className="text-white/40 text-xs">
-              Q{questionIndex + 1}/{totalQuestions}
-            </p>
-            <p className="text-white/60 text-xs mt-0.5">
-              {DUEL_MODE_CONFIG[mode ?? 'trivia']?.icon}
-            </p>
-          </div>
+      {/* Countdown bar — display only, bound to existing timeLeft */}
+      {timerMax !== null && (
+        <CountdownBar
+          timeLeft={timeLeft}
+          timerMax={timerMax}
+          modeAccent={modeAccent}
+          isBlitz={mode === 'blitz'}
+        />
+      )}
 
-          {/* Opponent side */}
-          <div className="flex-1 text-right">
-            <p className="text-white/60 text-xs truncate">{opponentName}</p>
-            {isSuddenDeath ? (
-              <p className="text-arena-green text-sm font-bold">ALIVE</p>
-            ) : (
-              <p className="text-white text-xl font-bold tabular-nums">{theirScore}</p>
-            )}
-            {isStreakMode && opponentStreak > 1 && (
-              <p className="text-arena-gold text-xs flex items-center gap-0.5">{opponentStreak}x<Flame className="h-3 w-3" /></p>
-            )}
-          </div>
+      {/* ── Scrollable content ─────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col overflow-y-auto">
+
+        {/* Question */}
+        <div className="flex-1 px-4 pt-6 pb-4 flex flex-col justify-center">
+          <QuestionCard content={currentQuestion.content} modeAccent={modeAccent} />
         </div>
 
-        {/* Timer bar */}
-        {timerMax !== null && (
-          <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className={cn(
-                'h-full rounded-full transition-all duration-1000 ease-linear',
-                timerDanger ? 'bg-arena-red animate-pulse' : 'bg-arena-purple',
-              )}
-              style={{ width: `${timerPct}%` }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Question */}
-      <div className="flex-1 flex flex-col px-4 py-5 gap-5">
-        <p className="text-white text-xl font-medium leading-snug">{currentQuestion.content}</p>
-
         {/* Answer options */}
-        <div className="grid grid-cols-1 gap-3">
+        <div className="px-4 pb-3 space-y-2.5">
           {currentQuestion.options.map((option, i) => {
             const isSelected = selectedIndex === i;
-            const isCorrect = feedbackVisible && correctAnswer === i;
-            const isWrong = feedbackVisible && isSelected && correctAnswer !== i;
-
+            const isCorrect  = feedbackVisible && correctAnswer === i;
+            const isWrong    = feedbackVisible && isSelected && correctAnswer !== i;
             return (
-              <button
+              <OptionButton
                 key={i}
+                letter={String.fromCharCode(65 + i)}
+                label={option}
+                isSelected={isSelected}
+                isCorrect={isCorrect}
+                isWrong={isWrong}
+                isDisabled={hasAnswered || selectedIndex !== null}
                 onClick={() => handleAnswer(i)}
-                disabled={hasAnswered || selectedIndex !== null}
-                className={cn(
-                  'w-full rounded-xl border p-4 text-left text-sm font-medium transition-colors',
-                  'disabled:cursor-default',
-                  isCorrect
-                    ? 'bg-arena-green/20 border-arena-green text-white'
-                    : isWrong
-                      ? 'bg-arena-red/20 border-arena-red text-white'
-                      : isSelected
-                        ? 'bg-white/10 border-white/40 text-white'
-                        : 'bg-arena-surface border-arena-border text-white hover:border-white/30',
-                )}
-              >
-                <span className="mr-2 text-white/40">{String.fromCharCode(65 + i)}.</span>
-                {option}
-              </button>
+                modeAccent={modeAccent}
+              />
             );
           })}
         </div>
 
-        {/* Opponent status */}
-        <div className="flex justify-center">
+        {/* Opponent beat — reacts when socket fires opponentHasAnswered */}
+        <div className="px-4 pb-6 flex justify-center">
           {opponentHasAnswered ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-arena-green/10 border border-arena-green/30 px-3 py-1 text-xs text-arena-green">
-              ✓ Opponent answered
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+              style={{
+                background:   `${modeAccent}14`,
+                borderColor:  `${modeAccent}45`,
+                color:        modeAccent,
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full inline-block"
+                style={{ background: modeAccent }}
+              />
+              {opponentName} answered
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-white/40">
@@ -351,55 +335,75 @@ export function DuelGamePage() {
                 <span className="h-1 w-1 rounded-full bg-white/40 animate-bounce [animation-delay:150ms]" />
                 <span className="h-1 w-1 rounded-full bg-white/40 animate-bounce [animation-delay:300ms]" />
               </span>
-              Opponent thinking
+              {opponentName} thinking…
             </span>
           )}
         </div>
+
       </div>
 
-      {/* Steal overlay */}
+      {/* ── Steal overlay — presented dramatically when socket fires ────── */}
       {stealOpportunity && (
         <div className="absolute inset-0 z-50 flex flex-col bg-arena-bg/98">
-          {/* Steal header */}
-          <div className="px-4 pt-safe-top py-5 text-center">
-            <p className="text-2xl mb-1">⚡</p>
-            <p className="text-arena-purple-bright text-lg font-black tracking-wide">STEAL OPPORTUNITY!</p>
-            <p className="text-white/60 text-sm mt-1">
-              Opponent got this wrong. Can you answer?
+
+          {/* Header */}
+          <div className="px-4 pt-safe-top py-6 text-center">
+            <div
+              className="inline-flex items-center justify-center h-10 w-10 rounded-2xl mb-3"
+              style={{ background: `${getModeAccent('steal')}20` }}
+            >
+              <Zap className="h-5 w-5" style={{ color: getModeAccent('steal') }} />
+            </div>
+            <p
+              className="font-display font-black text-lg tracking-wide"
+              style={{ color: getModeAccent('steal') }}
+            >
+              STEAL OPPORTUNITY
+            </p>
+            <p className="text-white/50 text-sm mt-1">
+              {opponentName} got this wrong — can you answer?
             </p>
 
-            {/* Steal timer */}
-            <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden mx-auto max-w-xs">
+            {/* Steal countdown */}
+            <div className="mt-3 h-[3px] rounded-full bg-white/10 overflow-hidden mx-auto max-w-xs">
               <div
-                className="h-full rounded-full bg-arena-purple transition-all duration-1000 ease-linear"
+                className="h-full rounded-full"
                 style={{
-                  width: `${(stealTimeLeft / stealOpportunity.timeoutSeconds) * 100}%`,
+                  width:      `${(stealTimeLeft / stealOpportunity.timeoutSeconds) * 100}%`,
+                  background: getModeAccent('steal'),
+                  transition: 'width 1s linear',
                 }}
               />
             </div>
-            <p className="text-white/40 text-xs mt-1">{stealTimeLeft}s remaining</p>
+            <p className="text-white/30 text-xs mt-1 tabular-nums">{stealTimeLeft}s</p>
           </div>
 
-          <div className="flex-1 px-4 pb-6 flex flex-col justify-center gap-5">
-            <p className="text-white text-xl font-medium leading-snug">
-              {stealOpportunity.question.content}
-            </p>
-
-            <div className="grid grid-cols-1 gap-3">
+          {/* Steal question + options */}
+          <div className="flex-1 px-4 pb-6 flex flex-col justify-center gap-4">
+            <QuestionCard
+              content={stealOpportunity.question.content}
+              modeAccent={getModeAccent('steal')}
+            />
+            <div className="space-y-2.5">
               {stealOpportunity.question.options.map((option, i) => (
-                <button
+                <OptionButton
                   key={i}
+                  letter={String.fromCharCode(65 + i)}
+                  label={option}
+                  isSelected={false}
+                  isCorrect={false}
+                  isWrong={false}
+                  isDisabled={false}
                   onClick={() => handleAnswer(i, true)}
-                  className="w-full rounded-xl border border-arena-border bg-arena-surface p-4 text-left text-sm font-medium text-white hover:border-white/25 hover:bg-arena-elev transition-colors"
-                >
-                  <span className="mr-2 text-white/40">{String.fromCharCode(65 + i)}.</span>
-                  {option}
-                </button>
+                  modeAccent={getModeAccent('steal')}
+                />
               ))}
             </div>
           </div>
+
         </div>
       )}
+
     </div>
   );
 }
