@@ -43,7 +43,7 @@ export interface UserStats {
   fastestAnswerMs?: number;
   // Progression (optional — populated when backend ships the aggregate)
   level?: number;
-  xpIntoLevel?: number;
+  intoLevel?: number;
   nextLevelAt?: number;
   lifetimeXp?: number;         // cumulative XP across all time
   seasonRank?: string;

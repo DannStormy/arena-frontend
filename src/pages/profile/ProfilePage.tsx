@@ -144,8 +144,8 @@ export function ProfilePage() {
 
   // XP bar (used in level block only — ring has its own inline calc)
   const xpPct =
-    stats?.level != null && stats?.xpIntoLevel != null && stats?.nextLevelAt
-      ? Math.min((stats.xpIntoLevel / stats.nextLevelAt) * 100, 100)
+    stats?.level != null && stats?.intoLevel != null && stats?.nextLevelAt
+      ? Math.min((stats.intoLevel / stats.nextLevelAt) * 100, 100)
       : 0;
 
   const seasonRange = Math.max((stats?.nextRankAt ?? 0) - (stats?.seasonRankFloor ?? 0), 1);
@@ -168,7 +168,7 @@ export function ProfilePage() {
     return idx >= 0 && idx < TIERS.length - 1 ? TIERS[idx + 1] : null;
   })();
 
-  const hasRing = stats?.level != null && stats.xpIntoLevel != null && stats.nextLevelAt != null;
+  const hasRing = stats?.level != null && stats.intoLevel != null && stats.nextLevelAt != null;
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -183,7 +183,7 @@ export function ProfilePage() {
             <AvatarRing
               avatarUrl={user?.avatarUrl}
               initials={initials}
-              xpIntoLevel={stats!.xpIntoLevel!}
+              intoLevel={stats!.intoLevel!}
               nextLevelAt={stats!.nextLevelAt!}
               level={stats!.level!}
             />
@@ -222,9 +222,9 @@ export function ProfilePage() {
               <span className="font-display font-bold text-2xl text-arena-text-primary">
                 {stats.level}
               </span>
-              {stats.xpIntoLevel != null && stats.nextLevelAt != null && (
+              {stats.intoLevel != null && stats.nextLevelAt != null && (
                 <span className="text-arena-text-tertiary text-[11px] tabular-nums">
-                  {stats.xpIntoLevel.toLocaleString()} / {stats.nextLevelAt.toLocaleString()} XP
+                  {stats.intoLevel.toLocaleString()} / {stats.nextLevelAt.toLocaleString()} XP
                 </span>
               )}
             </div>

@@ -10,19 +10,19 @@ const CONFIG = {
 interface Props {
   avatarUrl?: string | null;
   initials: string;
-  xpIntoLevel: number;
+  intoLevel: number;
   nextLevelAt: number;
   level: number;
   size?: 'md' | 'sm';
 }
 
-export function AvatarRing({ avatarUrl, initials, xpIntoLevel, nextLevelAt, level, size = 'md' }: Props) {
+export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level, size = 'md' }: Props) {
   const c = CONFIG[size];
   const cx = c.outer / 2;
   const cy = c.outer / 2;
   const radius = cx - c.sw / 2 - 1;
   const circumference = 2 * Math.PI * radius;
-  const progress = nextLevelAt > 0 ? Math.min(xpIntoLevel / nextLevelAt, 1) : 0;
+  const progress = nextLevelAt > 0 ? Math.min(intoLevel / nextLevelAt, 1) : 0;
   const inset = (c.outer - c.inner) / 2;
   const totalHeight = c.outer + Math.floor(c.badge / 2) + 2;
 
