@@ -47,7 +47,7 @@ const handleJoin = async () => {
     try {
       const response = await api.post('/game-sessions', { tournamentId: id });
       navigate(`/game/${response.data.id}`, {
-        state: { totalQuestions: response.data.totalQuestions },
+        state: { totalQuestions: response.data.totalQuestions, tournamentId: id },
       });
     } catch (err) {
       toast.error(getErrorMessage(err, 'Failed to start game'));
