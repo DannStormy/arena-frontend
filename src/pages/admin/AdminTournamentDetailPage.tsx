@@ -50,7 +50,7 @@ export function AdminTournamentDetailPage() {
           <div>
             <h1 className="text-white text-xl font-bold">{tournament.title}</h1>
             <p className="text-white/40 text-sm mt-0.5">
-              {arena ? `${arena.icon} ${arena.label}` : tournament.arena} · {tournament.gameType.replace('_', ' ')}
+              {arena ? arena.label : tournament.arena} · {tournament.gameType.replace('_', ' ')}
             </p>
           </div>
           <span

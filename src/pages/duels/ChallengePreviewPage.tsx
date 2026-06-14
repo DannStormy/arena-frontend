@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Swords, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Particles } from '@/components/common/Particles';
+import { ModeIcon } from '@/components/common/ModeIcon';
+import { ArenaIcon } from '@/lib/arena-icons';
 import { useDuelByCode, useAcceptDuel } from '@/hooks/use-duels';
 import { useAuthStore } from '@/stores/auth.store';
 import { DUEL_MODE_CONFIG } from '@/types/duel.types';
@@ -59,7 +62,7 @@ export function ChallengePreviewPage() {
       <div className="relative flex min-h-svh flex-col items-center justify-center gap-4 bg-arena-bg px-4">
         <Particles />
         <div className="relative z-10 text-center space-y-3">
-          <p className="text-5xl">⚔️</p>
+          <Swords className="h-14 w-14 text-arena-text-tertiary" />
           <p className="text-white font-display font-bold text-xl">Challenge not found</p>
           <p className="text-white/50 text-sm">
             This duel code may have expired or doesn't exist.
@@ -84,7 +87,7 @@ export function ChallengePreviewPage() {
       <div className="relative flex min-h-svh flex-col items-center justify-center gap-4 bg-arena-bg px-4">
         <Particles />
         <div className="relative z-10 text-center space-y-3">
-          <p className="text-5xl">⏱️</p>
+          <Clock className="h-14 w-14 text-arena-text-tertiary" />
           <p className="text-white font-display font-bold text-xl">Can't join</p>
           <p className="text-white/50 text-sm text-center">{msg}</p>
           <button
@@ -110,8 +113,8 @@ export function ChallengePreviewPage() {
       <div className="relative z-10 flex flex-col flex-1">
         {/* Header */}
         <div className="flex flex-col items-center justify-center py-10 gap-3 animate-slide-up">
-          <div className="h-20 w-20 rounded-full bg-arena-purple/20 ring-2 ring-arena-purple/40 flex items-center justify-center text-4xl">
-            {modeConfig.icon}
+          <div className="h-20 w-20 rounded-full bg-arena-purple/20 ring-2 ring-arena-purple/40 flex items-center justify-center">
+            <ModeIcon mode={duel.mode} size={44} iconSize={22} />
           </div>
           <div className="text-center mt-2">
             <p className="text-white font-display text-2xl font-bold">
@@ -126,7 +129,7 @@ export function ChallengePreviewPage() {
           <div className="rounded-2xl border border-arena-border bg-arena-surface/80 p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{arenaConfig?.icon}</span>
+                <ArenaIcon arena={duel.arena} size={18} />
                 <div>
                   <p className="text-white font-semibold font-display">{modeConfig.label}</p>
                   <p className="text-white/40 text-xs">{arenaConfig?.label}</p>

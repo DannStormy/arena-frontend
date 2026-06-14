@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CreditCard } from 'lucide-react';
 import { useWallet, useTransactions } from '@/hooks/use-wallet';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -91,7 +92,7 @@ export function WalletPage() {
           {txLoading && <LoadingSpinner className="mx-auto" />}
 
           {!txLoading && txPage && txPage.data.length === 0 && (
-            <EmptyState title="No transactions yet" icon="💳" />
+            <EmptyState title="No transactions yet" icon={<CreditCard />} />
           )}
 
           {txPage && txPage.data.length > 0 && (

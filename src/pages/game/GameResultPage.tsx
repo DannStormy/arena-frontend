@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Flag, Share2 } from 'lucide-react';
+import { Flag, Share2, AlertTriangle } from 'lucide-react';
 import { useGameStore } from '@/stores/game.store';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -31,7 +31,7 @@ export function GameResultPage() {
   const [reportingQuestion, setReportingQuestion] = useState<GameQuestion | null>(null);
 
   const handleShare = async () => {
-    const text = `I scored ${finalScore ?? 0} points in Arena! 🎯 Can you beat me?`;
+    const text = `I scored ${finalScore ?? 0} points in Arena! Can you beat me?`;
     if (navigator.share) {
       await navigator.share({ text, url: window.location.origin });
     } else {
@@ -74,8 +74,9 @@ export function GameResultPage() {
 
           {isFlagged && (
             <div className="rounded-xl bg-arena-red/10 border border-arena-red/30 p-3">
-              <p className="text-arena-red text-xs font-medium">
-                ⚠️ Your session was flagged for review. Results may be adjusted.
+              <p className="text-arena-red text-xs font-medium flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                Your session was flagged for review. Results may be adjusted.
               </p>
             </div>
           )}

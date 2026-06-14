@@ -5,36 +5,31 @@ export type DuelStatus = 'pending' | 'active' | 'completed' | 'cancelled' | 'sud
 
 export const DUEL_MODE_CONFIG: Record<
   DuelMode,
-  { label: string; description: string; icon: string; timerSeconds: number | null }
+  { label: string; description: string; timerSeconds: number | null }
 > = {
   trivia: {
     label: 'Trivia Duel',
     description: 'Answer 10 questions. Best score wins.',
-    icon: '🧠',
     timerSeconds: 10,
   },
   sudden_death: {
     label: 'Sudden Death',
     description: "One wrong answer and you're out.",
-    icon: '💀',
     timerSeconds: null,
   },
   blitz: {
     label: 'Blitz',
     description: '5 questions. 5 seconds each. No mercy.',
-    icon: '⚡',
     timerSeconds: 5,
   },
   streak: {
     label: 'Streak',
     description: 'Chain correct answers for multiplier points.',
-    icon: '🔥',
     timerSeconds: 10,
   },
   steal: {
     label: 'Steal Mode',
     description: 'Wrong answers can be stolen by your opponent.',
-    icon: '🎯',
     timerSeconds: 10,
   },
 };

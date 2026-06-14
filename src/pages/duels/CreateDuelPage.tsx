@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Copy, Share2 } from 'lucide-react';
+import { ArrowLeft, Copy, Share2, Link2, Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { ModeIcon } from '@/components/common/ModeIcon';
+import { ArenaIcon } from '@/lib/arena-icons';
 import { DUEL_MODE_CONFIG, type DuelMode, type Duel } from '@/types/duel.types';
 import { useCreateDuel, useMatchmake } from '@/hooks/use-duels';
 import { ARENA_CONFIG } from '@/lib/arena-config';
@@ -198,7 +200,7 @@ export function CreateDuelPage() {
                     : 'border-arena-border bg-arena-surface hover:border-white/15 hover:bg-arena-elev',
                 )}
               >
-                <span className="text-3xl shrink-0">{config.icon}</span>
+                <ModeIcon mode={mode} size={36} iconSize={18} />
                 <div className="flex-1">
                   <p className="text-white font-semibold font-display">{config.label}</p>
                   <p className="text-white/50 text-sm mt-0.5">{config.description}</p>
@@ -225,7 +227,7 @@ export function CreateDuelPage() {
                     : 'border-arena-border bg-arena-surface hover:border-white/15 hover:bg-arena-elev',
                 )}
               >
-                <span className="text-3xl">{config.icon}</span>
+                <ArenaIcon arena={arena} size={28} />
                 <p className="text-white text-sm font-medium text-center leading-tight font-display">
                   {config.label}
                 </p>
@@ -267,7 +269,7 @@ export function CreateDuelPage() {
               disabled={createDuel.isPending}
               className="w-full flex flex-col items-start gap-2 rounded-2xl border border-arena-border bg-arena-surface p-5 text-left hover:border-white/15 hover:bg-arena-elev transition-all"
             >
-              <span className="text-2xl">🔗</span>
+              <Link2 className="h-6 w-6 text-arena-purple-bright" />
               <p className="text-white font-semibold font-display">Challenge a friend</p>
               <p className="text-white/50 text-sm">
                 Get a shareable code to send to a specific person.
@@ -279,7 +281,7 @@ export function CreateDuelPage() {
               disabled={matchmake.isPending}
               className="w-full flex flex-col items-start gap-2 rounded-2xl border border-arena-border bg-arena-surface p-5 text-left hover:border-white/15 hover:bg-arena-elev transition-all"
             >
-              <span className="text-2xl">🎲</span>
+              <Shuffle className="h-6 w-6 text-arena-gold" />
               <p className="text-white font-semibold font-display">Find a random opponent</p>
               <p className="text-white/50 text-sm">
                 We'll match you with someone at the same stake level.

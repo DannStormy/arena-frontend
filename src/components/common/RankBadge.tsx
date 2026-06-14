@@ -18,11 +18,15 @@ export function getTierFromScore(score: number): TierConfig {
   return RANK_TIERS.find((t) => score >= t.minScore) ?? RANK_TIERS[RANK_TIERS.length - 1];
 }
 
+// Non-canonical strings (legacy BE values, placeholder tiers) fall through to Spectator.
+// If the BE sends a value like "Bronze" or "Iron", that is a BE data bug — log it.
 export function getTierFromName(name: string): TierConfig {
-  return (
-    RANK_TIERS.find((t) => t.name.toLowerCase() === name.toLowerCase()) ??
-    RANK_TIERS[RANK_TIERS.length - 1]
-  );
+  const match = RANK_TIERS.find((t) => t.name.toLowerCase() === name.toLowerCase());
+  if (!match) {
+    const known = RANK_TIERS.map((t) => t.name).join(', ');
+    console.warn(`[RankBadge] Unknown rank "${name}" — falling back to Spectator. Known tiers: ${known}`);
+  }
+  return match ?? RANK_TIERS[RANK_TIERS.length - 1];
 }
 
 const SIZE_STYLES = {
@@ -41,6 +45,8 @@ export function RankBadge({
   size?: 'xs' | 'sm' | 'md';
 }) {
   const tier = rank ? getTierFromName(rank) : getTierFromScore(score ?? 0);
+  // Always display the canonical tier name, never raw BE strings like "Bronze"
+  const displayName = tier.name;
   const s = SIZE_STYLES[size];
 
   return (
@@ -60,7 +66,7 @@ export function RankBadge({
         whiteSpace:    'nowrap',
       }}
     >
-      {rank ?? tier.name}
+      {displayName}
     </span>
   );
 }

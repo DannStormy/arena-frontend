@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { AlertTriangle, LayoutGrid, Check } from 'lucide-react';
 import { useTournaments } from '@/hooks/use-tournaments';
 import { ARENA_CONFIG } from '@/lib/arena-config';
 import { ARENA_LUCIDE_ICONS } from '@/lib/arena-icons';
@@ -31,8 +32,8 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
                 {arena.label}
               </Badge>
               {tournament.hasJoined && (
-                <Badge className="text-xs bg-arena-purple/20 text-arena-purple-bright border border-arena-purple/30 font-medium">
-                  ✓ Joined
+                <Badge className="text-xs bg-arena-purple/20 text-arena-purple-bright border border-arena-purple/30 font-medium flex items-center gap-1">
+                  <Check size={10} />Joined
                 </Badge>
               )}
             </div>
@@ -80,15 +81,15 @@ export function HomePage() {
           <EmptyState
             title="Couldn't load tournaments"
             description="Pull to refresh or try again later"
-            icon="⚠️"
+            icon={<AlertTriangle />}
           />
         )}
 
         {!isLoading && !error && Object.keys(byArena).length === 0 && (
           <EmptyState
             title="No open tournaments"
-            description="Check back soon for new competitions"
-            icon="🏟️"
+            description="New tournaments drop soon — sharpen up in a duel"
+            icon={<LayoutGrid />}
           />
         )}
 

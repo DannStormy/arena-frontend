@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { Trophy } from 'lucide-react';
 import { useTournamentLeaderboard, useTournament } from '@/hooks/use-tournaments';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -21,7 +22,7 @@ export function TournamentLeaderboardPage() {
       )}
 
       {!isLoading && (!entries || entries.length === 0) && (
-        <EmptyState title="No results yet" description="Scores appear once the tournament ends" icon="🏆" />
+        <EmptyState title="No results yet" description="Scores appear once the tournament ends" icon={<Trophy />} />
       )}
 
       {!isLoading && entries && entries.length > 0 && (
@@ -31,8 +32,11 @@ export function TournamentLeaderboardPage() {
               key={entry.userId}
               className="flex items-center gap-3 rounded-xl bg-arena-surface border border-arena-border p-3"
             >
-              <span className="w-6 text-center text-sm font-bold text-white/40">
-                {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
+              <span
+                className="w-6 text-center text-sm font-bold font-display tabular-nums"
+                style={{ color: entry.rank === 1 ? '#F5A623' : entry.rank === 2 ? 'rgba(255,255,255,0.55)' : entry.rank === 3 ? '#C9774A' : '#76767F' }}
+              >
+                {entry.rank <= 3 ? entry.rank : `#${entry.rank}`}
               </span>
 
               <Avatar className="h-8 w-8">

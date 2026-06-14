@@ -1,13 +1,22 @@
 @import "tailwindcss";
 
+/* ── Purple discipline rule ────────────────────────────────────────────────────
+   Purple = brand identity + "you" + live action + primary CTA + focus rings.
+   Purple must NOT appear on: card borders, passive hover states, dividers,
+   generic chrome, outcome colors, or decorative icons.
+   Wins → arena-win (#2DD4A7). Losses → arena-loss (#FF4D5E). Never purple.
+   ─────────────────────────────────────────────────────────────────────────── */
+
 @theme {
   /* surfaces */
   --color-arena-bg:       #0A0A0F;
   --color-arena-surface:  #14121C;
   --color-arena-elev:     #1C1928;
 
-  /* borders — neutral, no purple cast */
-  --color-arena-border:   #1E1E24;
+  /* borders — neutral, no purple cast; emphasis for interactive/selected; focus for brand inputs */
+  --color-arena-border:         #1E1E24;
+  --color-arena-border-emphasis: rgba(255,255,255,0.14);
+  --color-arena-border-focus:    rgba(124,92,255,0.55);
 
   /* brand — purple, used with discipline */
   --color-arena-purple:         #7C5CFF;

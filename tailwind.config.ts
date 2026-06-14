@@ -10,7 +10,9 @@ const config: Config = {
           bg:      '#0A0A0F',
           surface: '#14121C',
           elev:    '#1C1928',
-          border:  '#1E1E24',
+          border:             '#1E1E24',
+          'border-emphasis':  'rgba(255,255,255,0.14)',
+          'border-focus':     'rgba(124,92,255,0.55)',
 
           // brand — purple, used with discipline
           purple:         '#7C5CFF',

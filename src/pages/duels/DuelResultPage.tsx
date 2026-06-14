@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Flag, Trophy, XCircle, Equal } from 'lucide-react';
+import { Flag, Trophy, XCircle, Equal, Zap, ChevronUp, ChevronDown, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -137,7 +137,7 @@ export function DuelResultPage() {
 
   const handleShare = async () => {
     const outcome = iWon ? 'won' : isTie ? 'tied' : 'lost';
-    const text = `I just ${outcome} a duel on Arena! ⚔️ ${myScore} vs ${theirScore}`;
+    const text = `I just ${outcome} a duel on Arena! ${myScore} vs ${theirScore}`;
     if (navigator.share) {
       await navigator.share({ title: 'Arena Duel', text });
     } else {
@@ -158,8 +158,9 @@ export function DuelResultPage() {
             {outcomeLabel}
           </p>
           {suddenDeathRounds > 0 && !isTie && (
-            <p className="text-arena-purple-bright text-sm font-medium">
-              ⚡ Decided in sudden death
+            <p className="text-arena-purple-bright text-sm font-medium flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5" />
+              Decided in sudden death
             </p>
           )}
           {tiebreakLine && (
@@ -259,7 +260,7 @@ export function DuelResultPage() {
                 className="w-full flex items-center justify-between px-4 py-3 text-sm text-arena-text-secondary hover:text-arena-text-primary transition-colors"
               >
                 <span className="font-medium">Question breakdown</span>
-                <span className="text-xs">{showBreakdown ? '▲' : '▼'}</span>
+                {showBreakdown ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
               {showBreakdown && (
                 <div className="border-t border-arena-border">
@@ -281,11 +282,11 @@ export function DuelResultPage() {
                           <span className="text-arena-text-tertiary w-8 font-mono text-xs">
                             Q{q.questionIndex + 1}
                           </span>
-                          <span className={myResult    === 'correct' ? 'text-arena-win font-bold'  : 'text-arena-loss font-bold'}>
-                            {myResult    === 'correct' ? '✓' : '✗'}
+                          <span className={myResult    === 'correct' ? 'text-arena-win' : 'text-arena-loss'}>
+                            {myResult    === 'correct' ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
                           </span>
-                          <span className={theirResult === 'correct' ? 'text-arena-win font-bold'  : 'text-arena-loss font-bold'}>
-                            {theirResult === 'correct' ? '✓' : '✗'}
+                          <span className={theirResult === 'correct' ? 'text-arena-win' : 'text-arena-loss'}>
+                            {theirResult === 'correct' ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
                           </span>
                           {q.questionId ? (
                             <button

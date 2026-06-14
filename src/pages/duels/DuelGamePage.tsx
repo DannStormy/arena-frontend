@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Skull, Trophy, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useDuelSocket } from '@/hooks/use-duel-socket';
@@ -227,7 +228,9 @@ export function DuelGamePage() {
             iAmEliminated ? 'text-arena-red' : 'text-arena-green',
           )}
         >
-          {iAmEliminated ? '💀' : '🏆'}
+          {iAmEliminated
+            ? <Skull className="h-14 w-14 mx-auto" />
+            : <Trophy className="h-14 w-14 mx-auto" />}
         </div>
         <p
           className={cn(
@@ -258,7 +261,7 @@ export function DuelGamePage() {
               <p className="text-white text-xl font-bold tabular-nums">{myScore}</p>
             )}
             {isStreakMode && myStreak > 1 && (
-              <p className="text-arena-gold text-xs">🔥 {myStreak}x</p>
+              <p className="text-arena-gold text-xs flex items-center gap-0.5"><Flame className="h-3 w-3" />{myStreak}x</p>
             )}
           </div>
 
@@ -281,7 +284,7 @@ export function DuelGamePage() {
               <p className="text-white text-xl font-bold tabular-nums">{theirScore}</p>
             )}
             {isStreakMode && opponentStreak > 1 && (
-              <p className="text-arena-gold text-xs">{opponentStreak}x 🔥</p>
+              <p className="text-arena-gold text-xs flex items-center gap-0.5">{opponentStreak}x<Flame className="h-3 w-3" /></p>
             )}
           </div>
         </div>

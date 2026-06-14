@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Brain, Zap, Skull, Flame, ArrowLeftRight } from 'lucide-react';
+import { Plus, Swords } from 'lucide-react';
 import { ARENA_LUCIDE_ICONS } from '@/lib/arena-icons';
+import { ModeIcon } from '@/components/common/ModeIcon';
 import { PageHeader } from '@/components/common/PageHeader';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -13,27 +14,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import { ARENA_CONFIG } from '@/lib/arena-config';
 import { cn } from '@/lib/utils';
 
-// Mode chip: categorical color + lucide icon, chips only
-const MODE_CHIP_CONFIG: Record<string, { icon: React.ReactNode; accent: string }> = {
-  trivia:       { icon: <Brain size={13} />,          accent: '#4F9CF0' },
-  blitz:        { icon: <Zap size={13} />,            accent: '#F5B73D' },
-  sudden_death: { icon: <Skull size={13} />,          accent: '#FF7043' },
-  streak:       { icon: <Flame size={13} />,          accent: '#E254A8' },
-  steal:        { icon: <ArrowLeftRight size={13} />, accent: '#3FB6C9' },
-};
-
-function ModeChip({ mode }: { mode: string }) {
-  const cfg = MODE_CHIP_CONFIG[mode];
-  if (!cfg) return null;
-  return (
-    <div
-      className="flex items-center justify-center h-[26px] w-[26px] shrink-0"
-      style={{ background: `${cfg.accent}1F`, borderRadius: '7px' }}
-    >
-      <span style={{ color: cfg.accent, display: 'flex' }}>{cfg.icon}</span>
-    </div>
-  );
-}
 
 // "You" = brand purple fill; opponent = neutral fill with outcome ring on you
 function MatchAvatar({
@@ -157,7 +137,7 @@ function MatchCard({ item, myId, onClick }: MatchCardProps) {
         {/* Row 1: mode chip + label | outcome badge */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ModeChip mode={item.mode} />
+            <ModeIcon mode={item.mode} size={26} iconSize={13} />
             <span className="font-sans font-medium text-[11px] tracking-[0.09em] uppercase text-arena-text-secondary">
               {modeConfig.label}
             </span>
@@ -369,7 +349,7 @@ export function DuelsPage() {
             </div>
           ) : !history?.data?.length ? (
             <EmptyState
-              icon="⚔️"
+              icon={<Swords />}
               title="No duels yet"
               description="Challenge someone to get started"
             />

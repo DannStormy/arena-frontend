@@ -3,6 +3,7 @@ import { Home, Swords, Trophy, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth.store';
 import { useWallet } from '@/hooks/use-wallet';
+import { Logo } from '@/components/common/Logo';
 
 interface NavItemProps {
   to: string;
@@ -53,9 +54,7 @@ export function RootLayout() {
   return (
     <div className="flex flex-col min-h-svh bg-arena-bg">
       <header className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-arena-surface/90 backdrop-blur-md border-b border-arena-border safe-area-top">
-        <span className="font-display font-bold text-xl tracking-tight text-arena-purple">
-          Arena
-        </span>
+        <Logo variant="full" />
         <Link to="/profile" className="flex items-center gap-2.5">
           {balanceDisplay && (
             <span className="font-display font-bold text-arena-gold text-sm tabular-nums">

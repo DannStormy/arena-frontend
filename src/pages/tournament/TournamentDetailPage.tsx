@@ -103,20 +103,20 @@ const handleJoin = async () => {
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-arena-gold font-medium">🥇 1st place</span>
+              <span className="text-arena-gold font-medium">1st place</span>
               <span className="text-white font-semibold">₦{Number(tournament.prizeFirst).toLocaleString()}</span>
             </div>
 
             {tournament.prizeSecond && (
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">🥈 2nd place</span>
+                <span className="text-white/60">2nd place</span>
                 <span className="text-white">₦{Number(tournament.prizeSecond).toLocaleString()}</span>
               </div>
             )}
 
             {tournament.prizeThird && (
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">🥉 3rd place</span>
+                <span className="text-white/60">3rd place</span>
                 <span className="text-white">₦{Number(tournament.prizeThird).toLocaleString()}</span>
               </div>
             )}

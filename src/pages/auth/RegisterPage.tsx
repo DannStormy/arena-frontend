@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { Particles } from '@/components/common/Particles';
+import { Logo } from '@/components/common/Logo';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -56,9 +57,9 @@ export function RegisterPage() {
       <Particles />
       <div className="relative z-10 w-full max-w-sm animate-slide-up">
         <div className="mb-8 text-center">
-          <h1 className="font-display text-4xl font-bold mb-2 text-arena-purple">
-            Arena
-          </h1>
+          <div className="flex justify-center mb-2">
+            <Logo variant="full" className="text-2xl" />
+          </div>
           <p className="text-white/50 text-sm">Join the competition. Win real prizes.</p>
         </div>
 

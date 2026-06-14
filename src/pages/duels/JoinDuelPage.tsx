@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Skull, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
+import { ModeIcon } from '@/components/common/ModeIcon';
+import { ArenaIcon } from '@/lib/arena-icons';
 import { useDuelByCode, useAcceptDuel } from '@/hooks/use-duels';
 import { DUEL_MODE_CONFIG } from '@/types/duel.types';
 import { ARENA_CONFIG } from '@/lib/arena-config';
@@ -35,7 +37,7 @@ export function JoinDuelPage() {
     return (
       <div className="flex min-h-svh flex-col items-center justify-center bg-arena-bg px-4">
         <EmptyState
-          icon="💀"
+          icon={<Skull />}
           title="Challenge not found"
           description="This duel code may have expired or already been used."
         />
@@ -56,7 +58,7 @@ export function JoinDuelPage() {
         : 'This challenge has expired or been cancelled.';
     return (
       <div className="flex min-h-svh flex-col items-center justify-center bg-arena-bg px-4">
-        <EmptyState icon="⏱️" title="Can't join" description={message} />
+        <EmptyState icon={<Clock />} title="Can't join" description={message} />
         <Button
           onClick={() => navigate('/duels')}
           className="mt-6 bg-arena-gold hover:bg-arena-gold/90 text-black font-semibold"
@@ -102,14 +104,14 @@ export function JoinDuelPage() {
           <div className="flex items-center justify-between px-4 py-3">
             <span className="text-white/50 text-sm">Mode</span>
             <div className="flex items-center gap-2">
-              <span>{modeConfig.icon}</span>
+              <ModeIcon mode={duel.mode} size={20} iconSize={11} />
               <span className="text-white text-sm font-medium">{modeConfig.label}</span>
             </div>
           </div>
           <div className="flex items-center justify-between px-4 py-3">
             <span className="text-white/50 text-sm">Arena</span>
             <div className="flex items-center gap-2">
-              <span>{arenaConfig?.icon}</span>
+              <ArenaIcon arena={duel.arena} size={13} />
               <span className="text-white text-sm font-medium">{arenaConfig?.label}</span>
             </div>
           </div>

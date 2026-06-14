@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Copy, Share2, X } from 'lucide-react';
+import { Copy, Share2, X, User } from 'lucide-react';
+import { ModeIcon } from '@/components/common/ModeIcon';
+import { ArenaIcon } from '@/lib/arena-icons';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -93,11 +95,11 @@ export function DuelWaitingPage() {
       {/* Header */}
       <div className="flex items-center justify-between py-4 border-b border-arena-border">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">{modeConfig.icon}</span>
+          <ModeIcon mode={activeDuel.mode} size={28} iconSize={14} />
           <div>
             <p className="text-white font-semibold font-display">{modeConfig.label}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-sm">{arenaConfig?.icon}</span>
+              <ArenaIcon arena={activeDuel.arena} size={13} />
               <p className="text-white/40 text-xs">{arenaConfig?.label}</p>
             </div>
           </div>
@@ -144,7 +146,7 @@ export function DuelWaitingPage() {
             <span className="absolute inline-flex h-20 w-20 rounded-full bg-arena-purple/20 animate-ping-slow" />
             <span className="absolute inline-flex h-16 w-16 rounded-full bg-arena-purple/10 animate-ping-slow [animation-delay:0.5s]" />
             <div className="relative h-14 w-14 rounded-full bg-arena-elev ring-2 ring-arena-purple/40 flex items-center justify-center">
-              <span className="text-2xl">👤</span>
+              <User className="h-6 w-6 text-arena-text-tertiary" />
             </div>
           </div>
           <div className="flex items-center gap-2">
