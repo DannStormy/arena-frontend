@@ -1,6 +1,9 @@
 // AvatarRing — SVG level-progress ring wrapping the "you" avatar.
 // Purple track + arc; level badge pinned at bottom of the ring.
-// Size 'md' = 88px outer (profile). Size 'sm' = 44px outer (future header use).
+// Size 'md' = 88px outer (profile, home hero). Size 'sm' = 44px outer (header).
+// animated=true: arc fills from empty on mount once (~600ms). Respects prefers-reduced-motion.
+
+import { useState, useEffect } from 'react';
 
 const CONFIG = {
   md: { outer: 88, inner: 72, sw: 3,   initFontSize: '20px', badge: 20, badgeFontSize: '10px' },
@@ -14,9 +17,10 @@ interface Props {
   nextLevelAt: number;
   level: number;
   size?: 'md' | 'sm';
+  animated?: boolean;
 }
 
-export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level, size = 'md' }: Props) {
+export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level, size = 'md', animated = false }: Props) {
   const c = CONFIG[size];
   const cx = c.outer / 2;
   const cy = c.outer / 2;
@@ -25,6 +29,21 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
   const progress = nextLevelAt > 0 ? Math.min(intoLevel / nextLevelAt, 1) : 0;
   const inset = (c.outer - c.inner) / 2;
   const totalHeight = c.outer + Math.floor(c.badge / 2) + 2;
+
+  const reduced =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Animate arc from empty → final on mount. Skip if not animated or reduced-motion.
+  const [swept, setSwept] = useState(false);
+  useEffect(() => {
+    if (!animated || reduced) return;
+    const id = setTimeout(() => setSwept(true), 80);
+    return () => clearTimeout(id);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const finalOffset = circumference * (1 - progress);
+  const arcOffset   = animated && !reduced && !swept ? circumference : finalOffset;
 
   return (
     <div
@@ -46,7 +65,7 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
           strokeWidth={c.sw}
         />
         {/* Progress arc — starts at 12 o'clock */}
-        {progress > 0 && (
+        {(progress > 0 || (animated && !reduced)) && (
           <circle
             cx={cx} cy={cy} r={radius}
             fill="none"
@@ -54,8 +73,9 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
             strokeWidth={c.sw}
             strokeLinecap="round"
             strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - progress)}
+            strokeDashoffset={arcOffset}
             transform={`rotate(-90 ${cx} ${cy})`}
+            style={animated && !reduced ? { transition: 'stroke-dashoffset 0.6s ease-out' } : undefined}
           />
         )}
       </svg>
@@ -84,13 +104,13 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
       <div
         className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full font-display font-bold"
         style={{
-          bottom:      0,
-          width:       c.badge,
-          height:      c.badge,
-          fontSize:    c.badgeFontSize,
-          background:  '#0A0A0F',
-          border:      '1px solid rgba(124,92,255,0.6)',
-          color:       '#8E72FF',
+          bottom:        0,
+          width:         c.badge,
+          height:        c.badge,
+          fontSize:      c.badgeFontSize,
+          background:    '#0A0A0F',
+          border:        '1px solid rgba(124,92,255,0.6)',
+          color:         '#8E72FF',
           letterSpacing: '0.02em',
         }}
       >
