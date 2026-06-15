@@ -169,7 +169,7 @@ export function GamePage() {
         modeAccent={modeAccent}
         score={score}
         timeLeft={timeLeft}
-        questionIndex={totalAnswered}
+        questionIndex={Math.min(totalAnswered, Math.max(tq - 1, 0))}
         totalQuestions={tq}
         myRank={myRank}
         totalFinished={totalFinished}

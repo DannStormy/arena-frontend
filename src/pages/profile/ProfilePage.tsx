@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { RankBadge, getTierFromName } from '@/components/common/RankBadge';
+import { RankBadge, getTierFromName, isKnownTier } from '@/components/common/RankBadge';
 import { AvatarRing } from '@/components/common/AvatarRing';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -155,7 +155,9 @@ export function ProfilePage() {
       : 0;
 
   const seasonBarColor =
-    stats?.seasonRank ? getTierFromName(stats.seasonRank).color + 'CC' : '#6B6B7A';
+    stats?.seasonRank && isKnownTier(stats.seasonRank)
+      ? getTierFromName(stats.seasonRank).color + 'CC'
+      : '#6B6B7A';
 
   // All-time highest rank — may be absent if BE hasn't shipped it yet
   const allTimeHighestRank = stats?.allTimeHighestRank ?? null;
@@ -206,7 +208,7 @@ export function ProfilePage() {
               <p className="font-display font-bold text-lg text-arena-text-primary leading-none">
                 {user?.username ?? '—'}
               </p>
-              {currentRank && <RankBadge rank={currentRank} size="sm" />}
+              {currentRank && isKnownTier(currentRank) && <RankBadge rank={currentRank} size="sm" />}
             </div>
             <p className="text-arena-text-tertiary text-xs truncate">{user?.email ?? '—'}</p>
           </div>
@@ -246,7 +248,7 @@ export function ProfilePage() {
               Season rank
             </p>
             <div className="flex items-center justify-between mb-2">
-              <RankBadge rank={stats.seasonRank} size="sm" />
+              {isKnownTier(stats.seasonRank) && <RankBadge rank={stats.seasonRank} size="sm" />}
               {stats.seasonPoints != null && stats.nextRankAt != null && (
                 <span className="text-arena-text-tertiary text-[11px] tabular-nums">
                   {stats.seasonPoints.toLocaleString()} / {stats.nextRankAt.toLocaleString()} pts
@@ -272,7 +274,7 @@ export function ProfilePage() {
               <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-1.5">
                 All-time best
               </p>
-              <RankBadge rank={allTimeHighestRank} size="md" />
+              {isKnownTier(allTimeHighestRank) && <RankBadge rank={allTimeHighestRank} size="md" />}
             </div>
             <p className="text-arena-text-tertiary text-[10px] text-right max-w-[100px]">
               Permanent — never resets

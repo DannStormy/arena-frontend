@@ -18,15 +18,17 @@ export function getTierFromScore(score: number): TierConfig {
   return RANK_TIERS.find((t) => score >= t.minScore) ?? RANK_TIERS[RANK_TIERS.length - 1];
 }
 
-// Non-canonical strings (legacy BE values, placeholder tiers) fall through to Spectator.
-// If the BE sends a value like "Bronze" or "Iron", that is a BE data bug — log it.
+// Non-canonical strings (legacy BE values, tournament medal labels) fall through to Spectator.
 export function getTierFromName(name: string): TierConfig {
-  const match = RANK_TIERS.find((t) => t.name.toLowerCase() === name.toLowerCase());
-  if (!match) {
-    const known = RANK_TIERS.map((t) => t.name).join(', ');
-    console.warn(`[RankBadge] Unknown rank "${name}" — falling back to Spectator. Known tiers: ${known}`);
-  }
-  return match ?? RANK_TIERS[RANK_TIERS.length - 1];
+  return RANK_TIERS.find((t) => t.name.toLowerCase() === name.toLowerCase())
+    ?? RANK_TIERS[RANK_TIERS.length - 1];
+}
+
+// Returns true only for the 5 canonical season tier names.
+// Use this to guard RankBadge calls so non-tier strings (e.g. BE "Bronze" placement labels)
+// are handled at the call site rather than silently falling through to Spectator.
+export function isKnownTier(name: string): boolean {
+  return RANK_TIERS.some((t) => t.name.toLowerCase() === name.toLowerCase());
 }
 
 const SIZE_STYLES = {

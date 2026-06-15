@@ -12,7 +12,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageContainer } from '@/components/common/PageContainer';
 import { AvatarRing } from '@/components/common/AvatarRing';
-import { RankBadge } from '@/components/common/RankBadge';
+import { RankBadge, isKnownTier } from '@/components/common/RankBadge';
 import { RankBar } from '@/components/common/RankBar';
 import { cn } from '@/lib/utils';
 import type { Tournament, TournamentArena } from '@/types/tournament.types';
@@ -107,7 +107,7 @@ export function HomePage() {
   const greeting    = getGreeting();
 
   const hasRing    = !!(stats?.level != null && stats.intoLevel != null && stats.nextLevelAt);
-  const hasRankBar = !!(stats?.seasonRank && stats.seasonPoints != null && stats.nextRankAt != null);
+  const hasRankBar = !!(stats?.seasonRank && isKnownTier(stats.seasonRank) && stats.seasonPoints != null && stats.nextRankAt != null);
 
   // Daily nudge: derive from history timestamps whether user has completed a game today.
   // TODO(BE): firstGameToday flag would be timezone-robust; derive locally for now.
@@ -164,7 +164,7 @@ export function HomePage() {
                 <p className="font-display font-bold text-xl text-arena-text-primary truncate leading-none">
                   {user?.username ?? '—'}
                 </p>
-                {currentRank && <RankBadge rank={currentRank} size="sm" />}
+                {currentRank && isKnownTier(currentRank) && <RankBadge rank={currentRank} size="sm" />}
               </div>
               {hasRankBar && (
                 <RankBar
