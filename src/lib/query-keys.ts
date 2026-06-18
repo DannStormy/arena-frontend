@@ -20,6 +20,7 @@ export const queryKeys = {
   duels: {
     all: ['duels'] as const,
     history: ['duels', 'history'] as const,
+    historyInfinite: ['duels', 'history', 'infinite'] as const,
     detail: (id: string) => ['duels', id] as const,
     byCode: (code: string) => ['duels', 'code', code] as const,
   },

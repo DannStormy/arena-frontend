@@ -14,6 +14,9 @@ export function useWallet() {
       return response.data;
     },
     enabled: !!token,
+    // RootLayout + WalletPage both subscribe; staleTime prevents extra fetches
+    // from Strict Mode double-mounts and window-focus events.
+    staleTime: 30 * 1000,
   });
 }
 

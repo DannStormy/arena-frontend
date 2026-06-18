@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
@@ -71,5 +71,23 @@ export function useDuelHistory() {
     queryKey: queryKeys.duels.history,
     queryFn: () => api.get<PaginatedResponse<DuelHistoryItem>>('/duels/history').then((r) => r.data),
     enabled: !!token,
+  });
+}
+
+export function useDuelHistoryInfinite() {
+  const token = useAuthStore((s) => s.token);
+  return useInfiniteQuery({
+    queryKey: queryKeys.duels.historyInfinite,
+    queryFn: ({ pageParam }: { pageParam: number }) =>
+      api
+        .get<PaginatedResponse<DuelHistoryItem>>(`/duels/history?page=${pageParam}&limit=20`)
+        .then((r) => r.data),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+    enabled: !!token,
+    // Prevent staleTime:0 default from re-fetching page 1 on every Strict Mode
+    // double-mount and window-focus event during a session.
+    staleTime: 2 * 60 * 1000,
   });
 }

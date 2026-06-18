@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { Particles } from '@/components/common/Particles';
 import { Logo } from '@/components/common/Logo';
@@ -71,9 +72,8 @@ export function LoginPage() {
             </div>
 
             <div>
-              <Input
+              <PasswordInput
                 {...register('password')}
-                type="password"
                 placeholder="Password"
                 autoComplete="current-password"
                 className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
