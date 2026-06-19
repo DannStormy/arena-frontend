@@ -70,6 +70,60 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Chakra Petch', system-ui, sans-serif;
 }
 
+/* ── Ember theme — scoped to .duels-ember ────────────────
+   Mirror of src/lib/ember.ts — keep values in sync.
+   Applied to the duels page root; not global.
+   ──────────────────────────────────────────────────────── */
+.duels-ember {
+  --ember-base:            #08080D;
+  --ember-surface:         #120F0C;
+  --ember-surface-raised:  #1C1610;
+  --ember-accent:          #E8893B;
+  --ember-accent-deep:     #C2541E;
+  --ember-accent-bright:   #F0B05A;
+  --ember-win:             #F0B05A;
+  --ember-loss:            #9D3D2A;
+  --ember-border:          #221810;
+  --ember-text-primary:    #F0E8DC;
+  --ember-text-secondary:  #A89A87;
+  --ember-text-tertiary:   #7A6E60;
+}
+
+/* ── Esports grammar tokens ───────────────────────────── */
+
+/* Clip-corner family — same 45° chamfer language, size scales with element role.
+   Card: top-right + bottom-left (two-corner machined panel).
+   Row/chip/avatar: top-right only (hierarchy signal — louder = more corners). */
+.clip-card    { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
+.clip-row     { clip-path: polygon(0 0, calc(100% - 8px)  0, 100% 8px,  100% 100%, 0 100%); }
+.clip-chip    { clip-path: polygon(0 0, calc(100% - 5px)  0, 100% 5px,  100% 100%, 0 100%); }
+.clip-chip-sm { clip-path: polygon(0 0, calc(100% - 4px)  0, 100% 4px,  100% 100%, 0 100%); }
+.clip-avatar  { clip-path: polygon(0 0, calc(100% - 5px)  0, 100% 5px,  100% 100%, 5px 100%, 0 calc(100% - 5px)); }
+
+/* Hero card bracket ticks — L-marks at top-left + bottom-right (intact corners)
+   framing the panel in the HUD targeting-reticle language. */
+.hero-card-surface::before,
+.hero-card-surface::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  z-index: 2;
+  pointer-events: none;
+}
+.hero-card-surface::before {
+  top: 10px;
+  left: 10px;
+  border-top:  1.5px solid rgba(232,137,59,0.50);
+  border-left: 1.5px solid rgba(232,137,59,0.50);
+}
+.hero-card-surface::after {
+  bottom: 10px;
+  right:  10px;
+  border-bottom: 1.5px solid rgba(232,137,59,0.50);
+  border-right:  1.5px solid rgba(232,137,59,0.50);
+}
+
 /* ── Keyframes ────────────────────────────────────────── */
 
 @keyframes slide-up {
@@ -122,21 +176,205 @@ h1, h2, h3, h4, h5, h6 {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+/* Hero glow: slow breathing pulse — ambient, never distracting */
+@keyframes hero-glow-breathe {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1;   }
+}
+
+/* Room-light: large blurred layer behind the hero card — NOT on the card itself */
+@keyframes ember-breathe {
+  0%, 100% { opacity: 0.82; }
+  50%       { opacity: 1;   }
+}
+
+/* Ambient position drift for room-light companion layer — 21s, independent of 7s breathe */
+@keyframes ember-drift {
+  0%, 100% { transform: translate(0px,   0px);  }
+  25%       { transform: translate(6px,  -4px); }
+  50%       { transform: translate(-4px,  6px); }
+  75%       { transform: translate(5px,   3px); }
+}
+
+/* Winner avatar glow pulse — 4s, offset from 7s room-light so they never sync.
+   Uses filter: drop-shadow() instead of box-shadow because clip-avatar applies
+   clip-path, which clips external box-shadows to nothing. drop-shadow renders
+   AFTER clip-path and follows the polygon outline. */
+@keyframes winner-glow-pulse {
+  0%, 100% { filter: drop-shadow(0 4px 12px rgba(232,137,59,0.45)); }
+  50%       { filter: drop-shadow(0 4px 12px rgba(232,137,59,0.82)); }
+}
+
+/* VS slash energy travel — highlight gradient sweeps along the divider */
+@keyframes slash-energy {
+  0%   { background-position: -100% 0; }
+  100% { background-position:  220% 0; }
+}
+
+.hero-room-light {
+  position: absolute;
+  inset: -80px -40px -100px -40px;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(26px);
+  background:
+    radial-gradient(40% 38% at 64% 40%, rgba(232,137,59,0.22), transparent 72%),
+    radial-gradient(60% 55% at 50% 78%, rgba(232,137,59,0.10), transparent 75%);
+  animation: ember-breathe 7s ease-in-out infinite;
+}
+
+/* Companion drift layer — independent 21s cycle, adds live-coals feel to room-light */
+.hero-room-drift {
+  position: absolute;
+  inset: -80px -40px -100px -40px;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(32px);
+  opacity: 0.7;
+  background: radial-gradient(32% 28% at 35% 60%, rgba(232,137,59,0.10), transparent 72%);
+  animation: ember-drift 21s ease-in-out infinite;
+}
+
 /* ── Animation utilities ──────────────────────────────── */
 
-.animate-slide-up      { animation: slide-up      0.25s ease-out; }
-.animate-result-reveal { animation: result-reveal  0.18s ease-out; }
-.animate-shimmer       { animation: shimmer        1.5s  linear infinite; }
-.animate-ping-slow     { animation: ping-slow      2s    cubic-bezier(0,0,0.2,1) infinite; }
-.animate-your-turn     { animation: your-turn-pulse 1.5s ease-in-out infinite; }
-.animate-card-rise     { animation: card-rise        0.3s  ease-out forwards; }
+.animate-slide-up      { animation: slide-up        0.25s ease-out; }
+.animate-result-reveal { animation: result-reveal    0.18s ease-out; }
+.animate-shimmer       { animation: shimmer          1.5s  linear infinite; }
+.animate-ping-slow     { animation: ping-slow        2s    cubic-bezier(0,0,0.2,1) infinite; }
+.animate-your-turn     { animation: your-turn-pulse  1.5s  ease-in-out infinite; }
+.animate-card-rise     { animation: card-rise        320ms ease-out forwards; }
 .animate-sd-pulse      { animation: sd-border-pulse  2s    ease-in-out infinite; }
 .animate-hero-shimmer  { animation: hero-won-shimmer 0.7s  ease-out; background-size: 200% 100%; }
 .animate-blitz-streak  { animation: blitz-streak     0.45s ease-out forwards; }
+.animate-hero-breathe  { animation: hero-glow-breathe 4s   ease-in-out infinite; }
+.animate-winner-glow   { animation: winner-glow-pulse 4s   ease-in-out 1.3s infinite; }
+.animate-slash-energy  { animation: slash-energy      6s   linear 2s infinite; }
+
+/* ── VS slash divider ────────────────────────────────── */
+
+.vs-slash-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(232,137,59,0.08) 0%,
+    rgba(232,137,59,0.08) 30%,
+    rgba(232,137,59,0.15) 50%,
+    rgba(232,137,59,0.08) 70%,
+    rgba(232,137,59,0.08) 100%
+  );
+  background-size: 200% 100%;
+  transform: skewX(-20deg);
+  margin: 0 12px;
+}
+
+/* ── Duel action buttons ────────────────────────────── */
+
+/* Wrapper: stacking context so glow lives at z-index -1 behind the clipped button */
+.duel-btn-wrap {
+  position: relative;
+  flex: 1;
+  isolation: isolate;
+}
+
+/* Primary glow halo — on wrapper ::before, NOT clipped by button's clip-path */
+.duel-btn-wrap.is-primary::before {
+  content: '';
+  position: absolute;
+  inset: -14px -6px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 20px;
+  background: radial-gradient(ellipse 90% 65% at 50% 105%, rgba(232,137,59,0), transparent 70%);
+  filter: blur(14px);
+  transition: background 190ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.duel-btn-wrap.is-primary:hover::before {
+  background: radial-gradient(ellipse 90% 65% at 50% 105%, rgba(232,137,59,0.55), transparent 70%);
+}
+.duel-btn-wrap.is-primary:active::before {
+  background: radial-gradient(ellipse 80% 55% at 50% 105%, rgba(232,137,59,0.40), transparent 65%);
+  transition: background 85ms ease-in;
+}
+
+/* Primary — ember fill, loud, clipped top-right corner */
+.duel-btn-primary {
+  position: relative;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #F0E8DC;
+  background: linear-gradient(150deg, #E8893B 0%, #C2541E 100%);
+  border: none;
+  cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  transform: translateY(0);
+  transition: transform 140ms cubic-bezier(0.2, 0.7, 0.3, 1), filter 140ms ease;
+  user-select: none;
+}
+.duel-btn-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  transition: transform 190ms cubic-bezier(0.2, 0.7, 0.3, 1), filter 190ms ease;
+}
+.duel-btn-primary:active {
+  transform: translateY(-1px);
+  filter: brightness(1.18);
+  transition: transform 85ms ease-in, filter 85ms ease-in;
+}
+
+/* HUD corner tick — top-left bracket fades in on hover (clip only cuts top-right, safe here) */
+.duel-btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid rgba(255,255,255,0.50);
+  border-left: 1.5px solid rgba(255,255,255,0.50);
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+.duel-btn-primary:hover::after {
+  opacity: 1;
+}
+
+/* Secondary — outline/low-tint, always quieter than primary in every state */
+.duel-btn-secondary {
+  position: relative;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #A89A87;
+  background: rgba(240,232,220,0.04);
+  border: 1px solid #221810;
+  cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  transform: translateY(0);
+  transition: transform 140ms cubic-bezier(0.2, 0.7, 0.3, 1), background 140ms ease, filter 140ms ease;
+  user-select: none;
+}
+.duel-btn-secondary:hover {
+  transform: translateY(-1px);
+  background: rgba(240,232,220,0.07);
+  filter: brightness(1.04);
+  transition: transform 190ms cubic-bezier(0.2, 0.7, 0.3, 1), background 190ms ease, filter 190ms ease;
+}
+.duel-btn-secondary:active {
+  transform: translateY(0);
+  filter: brightness(1.10);
+  transition: transform 85ms ease-in, filter 85ms ease-in;
+}
 
 /* ── Reduced motion ───────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
+  /* Disable all looping and entry animations */
   .animate-slide-up,
   .animate-result-reveal,
   .animate-shimmer,
@@ -145,7 +383,32 @@ h1, h2, h3, h4, h5, h6 {
   .animate-card-rise,
   .animate-sd-pulse,
   .animate-hero-shimmer,
-  .animate-blitz-streak {
+  .animate-blitz-streak,
+  .animate-hero-breathe,
+  .animate-winner-glow,
+  .animate-slash-energy,
+  .hero-room-light,
+  .hero-room-drift {
     animation: none;
+  }
+
+  /* Buttons: instant state changes (color/filter still active), no movement or glow */
+  .duel-btn-primary,
+  .duel-btn-secondary {
+    transition: none;
+  }
+  .duel-btn-primary:hover,
+  .duel-btn-primary:active {
+    transform: translateY(0);
+  }
+  .duel-btn-secondary:hover,
+  .duel-btn-secondary:active {
+    transform: translateY(0);
+  }
+  .duel-btn-wrap.is-primary::before {
+    display: none;
+  }
+  .duel-btn-primary::after {
+    display: none;
   }
 }

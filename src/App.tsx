@@ -24,6 +24,7 @@ import { AdminTournamentDetailPage } from '@/pages/admin/AdminTournamentDetailPa
 import { AdminQuestionsPage } from '@/pages/admin/AdminQuestionsPage';
 import { AdminFlaggedPage } from '@/pages/admin/AdminFlaggedPage';
 import { AdminPayoutsPage } from '@/pages/admin/AdminPayoutsPage';
+import { AdminProgressionConfigPage } from '@/pages/admin/AdminProgressionConfigPage';
 import { DuelsPage } from '@/pages/duels/DuelsPage';
 import { CreateDuelPage } from '@/pages/duels/CreateDuelPage';
 import { DuelWaitingPage } from '@/pages/duels/DuelWaitingPage';
@@ -80,6 +81,7 @@ export function App() {
               <Route path="/admin/questions" element={<AdminQuestionsPage />} />
               <Route path="/admin/flagged" element={<AdminFlaggedPage />} />
               <Route path="/admin/payouts" element={<AdminPayoutsPage />} />
+              <Route path="/admin/progression" element={<AdminProgressionConfigPage />} />
             </Route>
           </Route>
 

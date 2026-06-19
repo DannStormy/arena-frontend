@@ -33,5 +33,9 @@ export const queryKeys = {
     reportedQuestions: ['admin', 'questions', 'reported'] as const,
     flagged: ['admin', 'flagged'] as const,
     payouts: ['admin', 'payouts'] as const,
+    progressionConfig: ['admin', 'progression', 'config'] as const,
+    progressionConfigVersionsBase: ['admin', 'progression', 'versions'] as const,
+    progressionConfigVersions: (page: number, limit: number) =>
+      ['admin', 'progression', 'versions', page, limit] as const,
   },
 };

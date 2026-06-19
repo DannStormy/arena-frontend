@@ -4,12 +4,11 @@ import {
   Plus, Swords, ChevronDown, Flame, TrendingDown, Zap, Skull, Flag,
 } from 'lucide-react';
 import { ARENA_LUCIDE_ICONS } from '@/lib/arena-icons';
-import { getModeAccent, ModeIcon, ModeIconInline } from '@/components/common/ModeIcon';
+import { ModeIcon, ModeIconInline } from '@/components/common/ModeIcon';
+import { EMBER, getEmberModeAccent } from '@/lib/ember';
 import { PageHeader } from '@/components/common/PageHeader';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { DUEL_MODE_CONFIG, type DuelHistoryItem } from '@/types/duel.types';
 import { useDuelHistoryInfinite } from '@/hooks/use-duels';
 import { useAuthStore } from '@/stores/auth.store';
@@ -43,7 +42,6 @@ function useCountUp(target: number, duration = 400): number {
   return value;
 }
 
-// Fades + rises a child in when it enters the viewport; stagger via delay.
 function FadeRise({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -88,8 +86,8 @@ function deriveCard(item: DuelHistoryItem, myId: string | undefined) {
     (amChallenger ? item.opponentId      : item.challengerId)?.slice(0, 8) ??
     'Opponent';
 
-  const scoresEqual      = myScore === theirScore;
-  const myScoreIsWinner  = !scoresEqual && item.winnerId === myId;
+  const scoresEqual        = myScore === theirScore;
+  const myScoreIsWinner    = !scoresEqual && item.winnerId === myId;
   const theirScoreIsWinner = !scoresEqual && item.winnerId !== null && item.winnerId !== myId;
 
   const outcome: 'win' | 'loss' | 'tie' | null = item.isTie
@@ -102,6 +100,66 @@ function deriveCard(item: DuelHistoryItem, myId: string | undefined) {
   const isLive = item.status === 'pending' || item.status === 'active';
 
   return { myScore, theirScore, myName, opponentName, scoresEqual, myScoreIsWinner, theirScoreIsWinner, outcome, isFree, isLive };
+}
+
+// ── Inter-game streak ──────────────────────────────────────────────────────────
+
+function computeStreak(
+  items: DuelHistoryItem[],
+  myId: string | undefined,
+): { streakLen: number; streakType: 'W' | 'L' | null } {
+  const completed = items.filter((i) => i.status === 'completed');
+  if (!completed.length || !myId) return { streakLen: 0, streakType: null };
+
+  let streakType: 'W' | 'L' | null = null;
+  let streakLen = 0;
+
+  for (const item of completed) {
+    if (item.isTie) break;
+    const o: 'W' | 'L' = item.winnerId === myId ? 'W' : 'L';
+    if (streakType === null) {
+      streakType = o;
+      streakLen = 1;
+    } else if (o === streakType) {
+      streakLen++;
+    } else {
+      break;
+    }
+  }
+
+  return { streakLen, streakType };
+}
+
+// ── Contextual reaction line ───────────────────────────────────────────────────
+
+function getReactionLine({
+  outcome,
+  resolution,
+  margin,
+  streakLen,
+  streakType,
+}: {
+  outcome: 'win' | 'loss' | 'tie' | null;
+  resolution?: string;
+  margin: number;
+  streakLen: number;
+  streakType: 'W' | 'L' | null;
+}): string | null {
+  if (!outcome || outcome === 'tie') return null;
+
+  // 1. Streak
+  if (outcome === 'win' && streakLen >= 3 && streakType === 'W') return 'Still unbeaten.';
+
+  // 2. Resolution
+  if (resolution === 'sudden_death') return outcome === 'win' ? 'Clutch.' : 'Heartbreaker.';
+  if (resolution === 'speed_tiebreak') return outcome === 'win' ? 'Too quick for them.' : 'Pipped at the line.';
+
+  // 3. Margin
+  if (outcome === 'loss' && margin <= 1) return 'So close.';
+  if (outcome === 'win'  && margin >= 4) return 'Not even close.';
+
+  // 4. Fallback
+  return outcome === 'win' ? 'Nice one.' : "Next one's yours.";
 }
 
 // ── Resolution tag ─────────────────────────────────────────────────────────────
@@ -133,11 +191,11 @@ function ResolutionTag({
 
   return (
     <span
-      className="inline-flex items-center gap-1 px-1.5 py-px rounded text-[9px] font-semibold uppercase tracking-wider shrink-0"
+      className="inline-flex items-center gap-1 px-1.5 py-px clip-chip text-[9px] font-semibold uppercase tracking-wider shrink-0"
       style={{
-        background: 'rgba(255,255,255,0.06)',
-        color: 'rgba(255,255,255,0.40)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(240,232,220,0.06)',
+        color: EMBER.textTertiary,
+        border: '1px solid rgba(240,232,220,0.08)',
       }}
     >
       {icon}
@@ -151,7 +209,6 @@ function ResolutionTag({
 const BADGE_BASE: React.CSSProperties = {
   display: 'inline-block',
   padding: '4px 10px',
-  borderRadius: '4px',
   fontSize: '11px',
   fontWeight: 700,
   letterSpacing: '1px',
@@ -180,8 +237,8 @@ function OutcomeBadge({
 
   if (isLive) {
     return (
-      <span className="flex items-center gap-1.5 font-display" style={{ ...base, background: 'rgba(124,92,255,0.15)', border: '1px solid rgba(142,114,255,0.4)', color: '#8E72FF' }}>
-        <span className="h-1.5 w-1.5 rounded-full animate-pulse shrink-0" style={{ background: '#8E72FF' }} />
+      <span className="flex items-center gap-1.5 font-display clip-chip" style={{ ...base, background: 'rgba(232,137,59,0.15)', border: `1px solid ${EMBER.accent}55`, color: EMBER.accent }}>
+        <span className="h-1.5 w-1.5 rounded-full animate-pulse shrink-0" style={{ background: EMBER.accent }} />
         LIVE
       </span>
     );
@@ -189,14 +246,14 @@ function OutcomeBadge({
   if (outcome === 'win') {
     return (
       <span
-        className={`font-display${shimmer ? ' animate-hero-shimmer' : ''}`}
+        className={`font-display clip-chip${shimmer ? ' animate-hero-shimmer' : ''}`}
         style={{
           ...base,
           background: shimmer
-            ? 'linear-gradient(90deg, rgba(45,212,167,0.10), rgba(45,212,167,0.30), rgba(45,212,167,0.10))'
-            : 'rgba(45,212,167,0.12)',
-          border: '1px solid #2DD4A7',
-          color: '#2DD4A7',
+            ? `linear-gradient(90deg, ${EMBER.winBg}, rgba(240,176,90,0.32), ${EMBER.winBg})`
+            : EMBER.winBg,
+          border: `1px solid ${EMBER.winBorder}`,
+          color: EMBER.win,
         }}
       >
         WON
@@ -205,14 +262,28 @@ function OutcomeBadge({
   }
   if (outcome === 'loss') {
     return (
-      <span className="font-display" style={{ ...base, background: 'rgba(255,77,94,0.12)', border: '1px solid #FF4D5E', color: '#FF4D5E' }}>
+      <span
+        className="font-display clip-chip"
+        style={{
+          display: 'inline-block',
+          background: 'rgba(138,51,36,0.18)',
+          boxShadow: 'inset 0 0 0 1px rgba(138,51,36,0.5)',
+          color: '#d98a6f',
+          padding: size === 'sm' ? '2px 6px' : '5px 11px',
+          fontSize: size === 'sm' ? '9px' : '10.5px',
+          fontWeight: 700,
+          letterSpacing: size === 'sm' ? '0.8px' : '1.6px',
+          lineHeight: 1,
+          textTransform: 'uppercase',
+        }}
+      >
         LOST
       </span>
     );
   }
   if (outcome === 'tie') {
     return (
-      <span className="font-display" style={{ ...base, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.45)' }}>
+      <span className="font-display clip-chip" style={{ ...base, background: 'rgba(240,232,220,0.06)', border: '1px solid rgba(240,232,220,0.15)', color: 'rgba(240,232,220,0.45)' }}>
         TIE
       </span>
     );
@@ -226,67 +297,67 @@ function PayoutNode({ item, outcome }: { item: DuelHistoryItem; outcome: 'win' |
   const isFree = parseFloat(item.stake || '0') === 0;
   if (isFree) {
     return (
-      <span className="px-1.5 py-px rounded text-[9px] font-semibold uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.05)', color: '#5E5E6B', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <span className="px-1.5 py-px rounded text-[9px] font-semibold uppercase tracking-wider" style={{ background: 'rgba(240,232,220,0.05)', color: EMBER.textTertiary, border: '1px solid rgba(240,232,220,0.07)' }}>
         Free play
       </span>
     );
   }
   if (outcome === 'win') {
-    return <span className="text-[11px] font-semibold leading-none" style={{ color: '#2DD4A7' }}>+₦{item.prizeWon ?? item.stake}</span>;
+    return <span className="text-[11px] font-semibold leading-none" style={{ color: EMBER.win }}>+₦{item.prizeWon ?? item.stake}</span>;
   }
   if (outcome === 'loss') {
-    return <span className="text-[11px] font-semibold leading-none" style={{ color: '#FF4D5E' }}>−₦{item.stake}</span>;
+    return <span className="text-[11px] font-semibold leading-none" style={{ color: EMBER.loss }}>−₦{item.stake}</span>;
   }
-  return <span className="text-[11px] leading-none" style={{ color: '#76767F' }}>₦{item.stake}</span>;
+  return <span className="text-[11px] leading-none" style={{ color: EMBER.textTertiary }}>₦{item.stake}</span>;
 }
 
-// ── Hero card — VS staged ──────────────────────────────────────────────────────
+// ── Hero avatar ────────────────────────────────────────────────────────────────
 
 function HeroVsAvatar({
   name,
-  isMe,
   isWinner,
   isNeutral,
-  modeAccent,
 }: {
   name: string;
-  isMe: boolean;
   isWinner: boolean;
   isNeutral: boolean;
-  modeAccent: string;
 }) {
-  const initials  = name.slice(0, 2).toUpperCase();
-  const avatarBg  = isMe ? '#7C5CFF' : '#26262F';
-  const avatarFg  = isMe ? '#FFFFFF' : '#9A9AA6';
-  const innerBg   = isMe ? '#4A36C8' : '#1C1928';
+  const initials = name.slice(0, 2).toUpperCase();
 
   if (isWinner && !isNeutral) {
     return (
-      <div style={{ padding: 2, background: `linear-gradient(135deg, #7C3AED, ${modeAccent})`, borderRadius: '50%', boxShadow: `0 0 22px ${modeAccent}50` }}>
-        <div className="h-12 w-12 rounded-full flex items-center justify-center text-sm font-bold select-none" style={{ background: innerBg, color: avatarFg }}>
-          {initials}
-        </div>
+      <div
+        className="h-12 w-12 flex items-center justify-center text-sm font-bold select-none animate-winner-glow clip-avatar"
+        style={{
+          background: 'linear-gradient(150deg, #E8893B, #C2541E)',
+          color: '#F8FAFC',
+        }}
+      >
+        {initials}
       </div>
     );
   }
 
   return (
     <div
-      className="h-12 w-12 rounded-full flex items-center justify-center text-sm font-bold shrink-0 select-none"
-      style={{ background: avatarBg, color: avatarFg, boxShadow: isNeutral ? '0 0 0 2px rgba(255,255,255,0.12)' : undefined }}
+      className="h-12 w-12 flex items-center justify-center text-sm font-bold shrink-0 select-none clip-avatar"
+      style={{
+        background: 'linear-gradient(150deg, #3a342c, #26221d)',
+        color: EMBER.textTertiary,
+      }}
     >
       {initials}
     </div>
   );
 }
 
+// ── Hero score column ──────────────────────────────────────────────────────────
+
 function HeroScoreColumn({
   name,
   score,
-  isMe,
   isWinner,
   isNeutral,
-  modeAccent,
 }: {
   name: string;
   score: number;
@@ -295,30 +366,53 @@ function HeroScoreColumn({
   isNeutral: boolean;
   modeAccent: string;
 }) {
-  const displayed = useCountUp(score, 400);
-  const colOpacity = !isNeutral && !isWinner ? 0.42 : 1;
-  const scoreStyle: React.CSSProperties = isNeutral
-    ? { fontWeight: 700, color: 'rgba(255,255,255,0.52)' }
+  const displayed = useCountUp(score, 500);
+  const colOpacity = !isNeutral && !isWinner ? 0.46 : 1;
+  const scoreColor = isNeutral
+    ? 'rgba(240,232,220,0.52)'
     : isWinner
-      ? { fontWeight: 800, color: '#F5F5F7' }
-      : { fontWeight: 400, color: 'rgba(255,255,255,0.40)' };
+      ? '#F8FAFC'
+      : 'rgba(240,232,220,0.40)';
 
   return (
-    <div className="flex flex-col items-center gap-1" style={{ opacity: colOpacity, transition: 'opacity 0.3s ease' }}>
-      <HeroVsAvatar name={name} isMe={isMe} isWinner={isWinner} isNeutral={isNeutral} modeAccent={modeAccent} />
-      <span className="text-[11px] text-arena-text-tertiary font-medium max-w-[90px] truncate text-center leading-none">
+    <div className="flex flex-col items-center" style={{ gap: 9, opacity: colOpacity, transition: 'opacity 0.3s ease' }}>
+      <HeroVsAvatar name={name} isWinner={isWinner} isNeutral={isNeutral} />
+      <span className="text-[11px] font-medium max-w-[90px] truncate text-center leading-none" style={{ color: EMBER.textTertiary }}>
         {name}
       </span>
-      <span className="font-display text-[52px] leading-none tabular-nums" style={scoreStyle}>
+      <span
+        className="font-display leading-none"
+        style={{
+          fontSize: 64,
+          fontWeight: 700,
+          letterSpacing: '-2px',
+          fontFeatureSettings: '"tnum"',
+          color: scoreColor,
+        }}
+      >
         {displayed}
       </span>
     </div>
   );
 }
 
-function HeroCard({ item, myId, onClick }: { item: DuelHistoryItem; myId: string | undefined; onClick: () => void }) {
+// ── Hero card ─────────────────────────────────────────────────────────────────
+
+function HeroCard({
+  item,
+  myId,
+  onClick,
+  streakLen,
+  streakType,
+}: {
+  item: DuelHistoryItem;
+  myId: string | undefined;
+  onClick: () => void;
+  streakLen: number;
+  streakType: 'W' | 'L' | null;
+}) {
   const { myScore, theirScore, myName, opponentName, myScoreIsWinner, theirScoreIsWinner, scoresEqual, outcome, isLive } = deriveCard(item, myId);
-  const modeAccent = getModeAccent(item.mode);
+  const modeAccent = getEmberModeAccent(item.mode);
   const modeConfig = DUEL_MODE_CONFIG[item.mode];
   const arena      = ARENA_CONFIG[item.arena];
   const reduced    = useReducedMotion();
@@ -326,99 +420,115 @@ function HeroCard({ item, myId, onClick }: { item: DuelHistoryItem; myId: string
   const isSD       = item.mode === 'sudden_death';
   const isBlitz    = item.mode === 'blitz';
 
+  const margin = Math.abs(myScore - theirScore);
+  const reactionLine = getReactionLine({ outcome, resolution: item.resolution, margin, streakLen, streakType });
+
   return (
     <div
       onClick={onClick}
-      className="relative rounded-2xl cursor-pointer overflow-hidden transition-all hover:brightness-[1.06] active:scale-[0.99]"
-      style={{
-        background: `linear-gradient(135deg, ${modeAccent}2E 0%, ${modeAccent}0C 36%, transparent 60%), #14121C`,
-        border: `0.5px solid ${modeAccent}55`,
-      }}
+      className="relative cursor-pointer transition-[filter,transform] hover:brightness-[1.06] active:scale-[0.99]"
     >
-      {/* 3px mode-accent left bar */}
-      <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: modeAccent }} />
-
-      {/* Sudden Death: animated inset border pulse */}
-      {isSD && !reduced && (
-        <div className="absolute inset-0 rounded-[inherit] pointer-events-none animate-sd-pulse" />
-      )}
-
-      {/* Blitz: diagonal amber streak, one-time draw-in */}
-      {isBlitz && (
-        <div className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
-          <div
-            className={reduced ? '' : 'animate-blitz-streak'}
-            style={{
-              position: 'absolute',
-              top: -50,
-              right: -40,
-              width: 160,
-              height: 240,
-              background: `linear-gradient(140deg, transparent 20%, ${modeAccent}12 45%, ${modeAccent}1E 55%, transparent 74%)`,
-              transform: 'rotate(-4deg)',
-            }}
-          />
-        </div>
-      )}
-
-      {/* Soft mode glow — absolute behind content, outside card overflow */}
+      {/* Card surface — z-index 1 sits above the room-light (which lives in the page wrapper) */}
       <div
-        className="absolute inset-x-0 bottom-0 h-1 blur-2xl pointer-events-none"
-        style={{ background: `${modeAccent}30` }}
-      />
+        className="relative overflow-hidden hero-card-surface clip-card"
+        style={{
+          zIndex: 1,
+          background:
+            'radial-gradient(120% 90% at 72% 8%, rgba(232,137,59,0.07), transparent 58%), #120F0C',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+          padding: '30px 24px 26px',
+        }}
+      >
+        {/* 3px mode-accent left bar */}
+        <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: modeAccent }} />
 
-      <div className="pl-5 pr-4 pt-3 pb-3 flex flex-col gap-2">
-        {/* Row 1: mode label | outcome badge */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ModeIcon mode={item.mode} size={24} iconSize={12} />
-            <span className="font-sans font-semibold text-[11px] tracking-[0.1em] uppercase" style={{ color: modeAccent }}>
-              {modeConfig.label}
-            </span>
+        {/* Sudden Death: pulsing inset glow */}
+        {isSD && !reduced && (
+          <div className="absolute inset-0 rounded-[inherit] pointer-events-none animate-sd-pulse" />
+        )}
+
+        {/* Blitz: diagonal warm-amber streak, one-time draw-in */}
+        {isBlitz && (
+          <div className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
+            <div
+              className={reduced ? '' : 'animate-blitz-streak'}
+              style={{
+                position: 'absolute',
+                top: -50,
+                right: -40,
+                width: 160,
+                height: 240,
+                background: `linear-gradient(140deg, transparent 20%, ${modeAccent}10 45%, ${modeAccent}1C 55%, transparent 74%)`,
+                transform: 'rotate(-4deg)',
+              }}
+            />
           </div>
-          <OutcomeBadge outcome={outcome} isLive={isLive} shimmer={outcome === 'win' && !reduced} />
-        </div>
+        )}
 
-        {/* Row 2: VS layout */}
-        <div className="grid items-center gap-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
-          {/* Me — left */}
-          <div className="flex justify-center">
-            <HeroScoreColumn name={myName} score={myScore} isMe isWinner={myScoreIsWinner} isNeutral={scoresEqual} modeAccent={modeAccent} />
+        <div className="flex flex-col gap-3">
+          {/* Row 1: mode label | outcome badge */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ModeIcon mode={item.mode} size={24} iconSize={12} accent={modeAccent} clip />
+              <span className="font-display font-bold text-[11px] tracking-[0.12em] uppercase" style={{ color: modeAccent }}>
+                {modeConfig.label}
+              </span>
+            </div>
+            <OutcomeBadge outcome={outcome} isLive={isLive} shimmer={outcome === 'win' && !reduced} />
           </div>
 
-          {/* VS divider */}
-          <div className="flex flex-col items-center gap-1 self-center">
-            <div className="w-px h-5" style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.14), transparent)' }} />
-            <span className="font-display text-[13px] font-bold select-none" style={{ color: 'rgba(255,255,255,0.28)', display: 'block', transform: 'skewX(-8deg)' }}>
-              VS
-            </span>
-            <div className="w-px h-5" style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.14), transparent)' }} />
+          {/* Row 2: VS layout */}
+          <div className="grid items-center" style={{ gridTemplateColumns: '1fr auto 1fr', margin: '16px 0' }}>
+            <div className="flex justify-center">
+              <HeroScoreColumn name={myName} score={myScore} isMe isWinner={myScoreIsWinner} isNeutral={scoresEqual} modeAccent={modeAccent} />
+            </div>
+
+            <div className="flex items-center justify-center self-center px-3">
+              <span
+                className="font-display font-bold italic select-none"
+                style={{ fontSize: 25, color: EMBER.vsInk, transform: 'skewX(-9deg)', display: 'inline-block' }}
+              >
+                VS
+              </span>
+            </div>
+
+            <div className="flex justify-center">
+              <HeroScoreColumn name={opponentName} score={theirScore} isMe={false} isWinner={theirScoreIsWinner} isNeutral={scoresEqual} modeAccent={modeAccent} />
+            </div>
           </div>
 
-          {/* Opponent — right */}
-          <div className="flex justify-center">
-            <HeroScoreColumn name={opponentName} score={theirScore} isMe={false} isWinner={theirScoreIsWinner} isNeutral={scoresEqual} modeAccent={modeAccent} />
-          </div>
-        </div>
-
-        {/* Row 3: meta */}
-        <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-arena-text-tertiary flex items-center" style={{ fontSize: 11 }}>
-            {ARENA_LUCIDE_ICONS[item.arena] ?? null}
-          </span>
-          <span className="text-arena-text-tertiary text-[11px] leading-none ml-0.5">
-            {arena?.label ?? item.arena}
-          </span>
-          <span className="text-white/20 text-[11px] mx-0.5">·</span>
-          <span className="text-arena-text-tertiary text-[11px] leading-none">{date}</span>
-          <span className="text-white/20 text-[11px] mx-0.5">·</span>
-          <PayoutNode item={item} outcome={outcome} />
-          {item.resolution && item.resolution !== 'score' && (
-            <>
-              <span className="text-white/20 text-[11px] mx-0.5">·</span>
-              <ResolutionTag resolution={item.resolution} outcome={outcome} />
-            </>
+          {/* Reaction line — the card's voice */}
+          {reactionLine && (
+            <p
+              className="text-center font-sans italic text-[12px] leading-none"
+              style={{ color: 'rgba(240,232,220,0.44)' }}
+            >
+              {reactionLine}
+            </p>
           )}
+
+          {/* Diagonal slash divider — full card width, anchored to panel edges */}
+          <div className="vs-slash-line animate-slash-energy" style={{ marginLeft: '-24px', marginRight: '-24px' }} />
+
+          {/* Row 3: meta */}
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="flex items-center" style={{ fontSize: 11, color: EMBER.textTertiary }}>
+              {ARENA_LUCIDE_ICONS[item.arena] ?? null}
+            </span>
+            <span className="text-[11px] leading-none ml-0.5" style={{ color: EMBER.textTertiary }}>
+              {arena?.label ?? item.arena}
+            </span>
+            <span className="text-[11px] mx-0.5" style={{ color: 'rgba(240,232,220,0.18)' }}>·</span>
+            <span className="text-[11px] leading-none" style={{ color: EMBER.textTertiary }}>{date}</span>
+            <span className="text-[11px] mx-0.5" style={{ color: 'rgba(240,232,220,0.18)' }}>·</span>
+            <PayoutNode item={item} outcome={outcome} />
+            {item.resolution && item.resolution !== 'score' && (
+              <>
+                <span className="text-[11px] mx-0.5" style={{ color: 'rgba(240,232,220,0.18)' }}>·</span>
+                <ResolutionTag resolution={item.resolution} outcome={outcome} />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -429,66 +539,82 @@ function HeroCard({ item, myId, onClick }: { item: DuelHistoryItem; myId: string
 
 function CompressedRow({ item, myId, onClick }: { item: DuelHistoryItem; myId: string | undefined; onClick: () => void }) {
   const { myScore, theirScore, opponentName, myScoreIsWinner, theirScoreIsWinner, scoresEqual, outcome, isLive } = deriveCard(item, myId);
-  const modeAccent = getModeAccent(item.mode);
+  const modeAccent = getEmberModeAccent(item.mode);
   const modeConfig = DUEL_MODE_CONFIG[item.mode];
 
   const outcomeBarColor =
-    outcome === 'win'  ? '#2DD4A7' :
-    outcome === 'loss' ? '#FF4D5E' :
-    isLive             ? '#7C5CFF' : 'transparent';
+    outcome === 'win'  ? EMBER.accentBright :
+    outcome === 'loss' ? EMBER.loss         :
+    isLive             ? EMBER.accent       : 'transparent';
 
-  // Smaller score weights for compact display
   const myScoreStyle: React.CSSProperties = myScoreIsWinner
-    ? { fontWeight: 700, color: '#F5F5F7' }
+    ? { fontWeight: 700, color: EMBER.textPrimary }
     : theirScoreIsWinner
-      ? { fontWeight: 400, color: '#FFFFFF', opacity: 0.35 }
-      : { fontWeight: 600, color: 'rgba(255,255,255,0.50)' };
+      ? { fontWeight: 400, color: EMBER.textPrimary, opacity: 0.35 }
+      : { fontWeight: 600, color: 'rgba(240,232,220,0.50)' };
 
   const theirScoreStyle: React.CSSProperties = theirScoreIsWinner
-    ? { fontWeight: 700, color: '#F5F5F7' }
+    ? { fontWeight: 700, color: EMBER.textPrimary }
     : myScoreIsWinner
-      ? { fontWeight: 400, color: '#FFFFFF', opacity: 0.35 }
-      : { fontWeight: 600, color: 'rgba(255,255,255,0.50)' };
+      ? { fontWeight: 400, color: EMBER.textPrimary, opacity: 0.35 }
+      : { fontWeight: 600, color: 'rgba(240,232,220,0.50)' };
 
   return (
     <div
       onClick={onClick}
-      className="relative rounded-xl border border-arena-border bg-arena-surface cursor-pointer overflow-hidden transition-all hover:bg-arena-elev active:scale-[0.99] flex items-center"
-      style={{ height: 44 }}
+      className="relative clip-row cursor-pointer overflow-hidden active:scale-[0.99] flex flex-col transition-[filter] hover:brightness-[1.08]"
+      style={{
+        minHeight: 44,
+        background: EMBER.surface,
+      }}
     >
-      {/* Left outcome bar */}
       <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: outcomeBarColor }} />
 
-      <div className="pl-4 pr-3 flex items-center gap-2 w-full">
-        {/* Left: mode + opponent */}
+      {/* Main row */}
+      <div className="pl-4 pr-3 flex items-center gap-2 w-full min-h-[44px]">
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          <ModeIconInline mode={item.mode} size={12} />
+          <ModeIconInline mode={item.mode} size={12} accent={modeAccent} />
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] shrink-0" style={{ color: modeAccent }}>
             {modeConfig.label}
           </span>
-          <span className="text-arena-text-tertiary text-[10px] truncate min-w-0">
+          <span className="text-[10px] truncate min-w-0" style={{ color: EMBER.textTertiary }}>
             vs {opponentName}
           </span>
         </div>
 
-        {/* Right: opponent–me score | badge | resolution */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="font-display text-[17px] leading-none tabular-nums" style={theirScoreStyle}>
-            {theirScore}
-          </span>
-          <span className="text-white/25 text-xs select-none">–</span>
-          <span className="font-display text-[17px] leading-none tabular-nums" style={myScoreStyle}>
-            {myScore}
-          </span>
-          <OutcomeBadge outcome={outcome} isLive={isLive} size="sm" />
-          <ResolutionTag resolution={item.resolution} outcome={outcome} />
+        {/* Score + badge — 2-col fixed grid; tag moved to second line */}
+        <div
+          className="grid shrink-0 items-center"
+          style={{ gridTemplateColumns: '60px 40px', columnGap: '4px' }}
+        >
+          {/* Score — 60px, right-aligned, tabular nums */}
+          <div className="flex items-center justify-end gap-[3px]">
+            <span className="font-display text-[17px] leading-none tabular-nums" style={theirScoreStyle}>
+              {theirScore}
+            </span>
+            <span className="text-xs select-none" style={{ color: 'rgba(240,232,220,0.22)' }}>–</span>
+            <span className="font-display text-[17px] leading-none tabular-nums" style={myScoreStyle}>
+              {myScore}
+            </span>
+          </div>
+          {/* Badge — 40px */}
+          <div className="flex justify-center">
+            <OutcomeBadge outcome={outcome} isLive={isLive} size="sm" />
+          </div>
         </div>
       </div>
+
+      {/* Second line: resolution tag — right-aligned, full text, no overflow clip */}
+      {item.resolution && item.resolution !== 'score' && (
+        <div className="pl-4 pr-3 pb-1.5 flex justify-end">
+          <ResolutionTag resolution={item.resolution} outcome={outcome} />
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Form strip (unchanged) ─────────────────────────────────────────────────────
+// ── Form strip ─────────────────────────────────────────────────────────────────
 
 function FormStrip({ items, myId }: { items: DuelHistoryItem[]; myId: string | undefined }) {
   const completed = items.filter((i) => i.status === 'completed');
@@ -519,11 +645,11 @@ function FormStrip({ items, myId }: { items: DuelHistoryItem[]; myId: string | u
         {outcomes.map((o, i) => (
           <span
             key={i}
-            className="h-[20px] w-[20px] rounded-[5px] flex items-center justify-center text-[9px] font-bold font-display"
+            className="h-[20px] w-[20px] clip-chip-sm flex items-center justify-center text-[9px] font-bold font-display"
             style={{
-              background: o === 'W' ? 'rgba(45,212,167,0.14)' : o === 'L' ? 'rgba(255,77,94,0.14)' : 'rgba(255,255,255,0.06)',
-              color:      o === 'W' ? '#2DD4A7'               : o === 'L' ? '#FF4D5E'               : 'rgba(255,255,255,0.35)',
-              border:    `1px solid ${o === 'W' ? 'rgba(45,212,167,0.25)' : o === 'L' ? 'rgba(255,77,94,0.25)' : 'rgba(255,255,255,0.08)'}`,
+              background: o === 'W' ? EMBER.winBg  : o === 'L' ? EMBER.lossBg  : 'rgba(240,232,220,0.06)',
+              color:      o === 'W' ? EMBER.win     : o === 'L' ? EMBER.loss    : 'rgba(240,232,220,0.35)',
+              border: `1px solid ${o === 'W' ? EMBER.winBorder : o === 'L' ? EMBER.lossBorder : 'rgba(240,232,220,0.08)'}`,
             }}
           >
             {o}
@@ -531,7 +657,11 @@ function FormStrip({ items, myId }: { items: DuelHistoryItem[]; myId: string | u
         ))}
       </div>
       {showPill && (
-        <span className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: streakType === 'W' ? '#2DD4A7' : '#FF4D5E' }}>
+        <span
+          className="flex items-center gap-1 text-[11px] font-semibold"
+          style={{ color: streakType === 'W' ? EMBER.accentBright : EMBER.loss }}
+        >
+          {/* Flame icon is literally fire — it belongs here */}
           {streakType === 'W' ? <Flame className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
           {streakLen}-{streakType === 'W' ? 'win' : 'loss'} streak
         </span>
@@ -543,16 +673,19 @@ function FormStrip({ items, myId }: { items: DuelHistoryItem[]; myId: string | u
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export function DuelsPage() {
-  const navigate = useNavigate();
-  const [code, setCode]           = useState('');
-  const [showCodeInput, setShow]  = useState(false);
-  const myId       = useAuthStore((s) => s.user?.id);
+  const navigate    = useNavigate();
+  const [code, setCode]          = useState('');
+  const [showCodeInput, setShow] = useState(false);
+  const myId        = useAuthStore((s) => s.user?.id);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useDuelHistoryInfinite();
-  const items       = data?.pages.flatMap((p) => p.data) ?? [];
-  const heroItem    = items[0];
+  const items        = data?.pages.flatMap((p) => p.data) ?? [];
+  const heroItem     = items[0];
   const archiveItems = items.slice(1);
+
+  const { streakLen, streakType } = computeStreak(items, myId);
+  const heroCard = heroItem ? deriveCard(heroItem, myId) : null;
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -566,19 +699,21 @@ export function DuelsPage() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const go = (item: DuelHistoryItem) => {
-    if (item.status === 'active')  navigate(`/duels/${item.id}/play`);
+    if (item.status === 'active')       navigate(`/duels/${item.id}/play`);
     else if (item.status === 'pending') navigate(`/duels/${item.code}/waiting`);
-    else navigate(`/duels/${item.id}/result`);
+    else                                navigate(`/duels/${item.id}/result`);
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-arena-bg">
+    // .duels-ember scopes the CSS custom properties defined in index.css
+    <div className="duels-ember flex flex-col min-h-full" style={{ background: EMBER.base }}>
       <PageHeader
         title="Duels"
         action={
           <Link
             to="/duels/create"
-            className="flex items-center gap-1.5 rounded-xl bg-arena-purple hover:bg-arena-purple-bright px-3 py-1.5 text-sm font-semibold text-white transition-colors"
+            className="flex items-center gap-1.5 clip-chip px-3 py-1.5 text-sm font-semibold transition-[filter] hover:brightness-110"
+            style={{ background: 'rgba(232,137,59,0.08)', color: EMBER.accent, border: '1px solid rgba(232,137,59,0.22)' }}
           >
             <Plus className="h-4 w-4" />
             New duel
@@ -592,28 +727,45 @@ export function DuelsPage() {
           {!showCodeInput ? (
             <button
               onClick={() => setShow(true)}
-              className="flex items-center gap-1 text-[12px] font-medium text-arena-text-tertiary hover:text-arena-text-secondary transition-colors"
+              className="flex items-center gap-1 text-[12px] font-medium transition-colors"
+              style={{ color: EMBER.textTertiary }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = EMBER.textSecondary)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = EMBER.textTertiary)}
             >
               <ChevronDown className="h-3.5 w-3.5" />
               Have a code?
             </button>
           ) : (
             <div className="flex gap-2">
-              <Input
+              <input
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="Enter duel code"
                 maxLength={8}
                 autoFocus
-                className="bg-arena-surface border-arena-border text-white placeholder:text-white/30 font-mono tracking-wider focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
+                className="flex-1 rounded-xl px-3 py-2 text-sm font-mono tracking-wider outline-none transition-colors"
+                style={{
+                  background: EMBER.surface,
+                  border: `1px solid ${EMBER.border}`,
+                  color: EMBER.textPrimary,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = EMBER.accent;
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(232,137,59,0.15)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = EMBER.border;
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
-              <Button
+              <button
                 onClick={() => { const t = code.trim().toUpperCase(); if (t) navigate(`/duels/${t}`); }}
                 disabled={!code.trim()}
-                className="bg-arena-purple hover:bg-arena-purple-bright text-white font-semibold shrink-0 transition-colors"
+                className="rounded-xl px-4 py-2 text-sm font-semibold shrink-0 transition-[filter] hover:brightness-110 disabled:opacity-40"
+                style={{ background: EMBER.accentDeep, color: EMBER.textPrimary }}
               >
                 Join
-              </Button>
+              </button>
             </div>
           )}
         </div>
@@ -629,23 +781,60 @@ export function DuelsPage() {
               {/* Latest result — hero */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-white/30 text-[10px] font-semibold uppercase tracking-[0.14em]">Latest result</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em]" style={{ color: EMBER.textTertiary }}>
+                    Latest result
+                  </p>
                   <FormStrip items={items} myId={myId} />
                 </div>
-                {/* Soft glow behind hero */}
+
+                {/* Hero wrapper — room-light sits here as z-0, card renders at z-1 */}
                 <div className="relative">
-                  <div
-                    className="absolute inset-x-6 -bottom-3 h-6 blur-2xl rounded-full pointer-events-none"
-                    style={{ background: `${getModeAccent(heroItem.mode)}28` }}
+                  <div className="hero-room-light" />
+                  <div className="hero-room-drift" />
+                  <HeroCard
+                    item={heroItem}
+                    myId={myId}
+                    onClick={() => go(heroItem)}
+                    streakLen={streakLen}
+                    streakType={streakType}
                   />
-                  <HeroCard item={heroItem} myId={myId} onClick={() => go(heroItem)} />
                 </div>
+
+                {/* Run it back — only for completed duels */}
+                {heroCard && !heroCard.isLive && heroItem.status === 'completed' && (
+                  <div className="flex gap-2 mt-2.5">
+                    {/*
+                      Rematch navigates to create with mode prefilled.
+                      Note: opponent-prefill (challenge-by-username) needs a BE endpoint
+                      (POST /duels with { mode, opponentId }) — not yet available.
+                      The user shares the generated code with their opponent manually.
+                    */}
+                    <div className="duel-btn-wrap is-primary">
+                      <button
+                        onClick={() => navigate('/duels/create', { state: { mode: heroItem.mode } })}
+                        className="duel-btn-primary"
+                      >
+                        Rematch {heroCard.opponentName}
+                      </button>
+                    </div>
+                    <div className="duel-btn-wrap">
+                      <button
+                        onClick={() => navigate('/duels/create')}
+                        className="duel-btn-secondary"
+                      >
+                        New duel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Earlier — compressed archive */}
               {archiveItems.length > 0 && (
                 <div>
-                  <p className="text-white/30 text-[10px] font-semibold uppercase tracking-[0.14em] mb-2">Earlier</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] mb-2" style={{ color: EMBER.textTertiary }}>
+                    Earlier
+                  </p>
                   <div className="space-y-1.5">
                     {archiveItems.map((item, idx) => (
                       <FadeRise key={item.id} delay={Math.min(idx, 8) * 40}>
@@ -661,7 +850,9 @@ export function DuelsPage() {
                 {isFetchingNextPage ? (
                   <LoadingSpinner />
                 ) : !hasNextPage ? (
-                  <span className="text-[11px] text-white/20 font-medium tracking-wider uppercase">All caught up</span>
+                  <span className="text-[11px] font-medium tracking-wider uppercase" style={{ color: 'rgba(240,232,220,0.18)' }}>
+                    All caught up
+                  </span>
                 ) : null}
               </div>
             </>

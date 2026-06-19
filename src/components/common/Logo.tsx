@@ -19,7 +19,7 @@ function Mark({ size = 28 }: { size?: number }) {
       {/* Shield shape — geometric, arena-themed, readable at any size */}
       <path
         d="M12 2L3 6v6c0 5.25 3.75 9.65 9 11.15C17.25 21.65 21 17.25 21 12V6L12 2z"
-        fill="#7C5CFF"
+        fill="#E8893B"
       />
       <path
         d="M9 12l2 2 4-4"
@@ -44,7 +44,7 @@ export function Logo({ variant = 'full', className }: LogoProps) {
   return (
     <span className={`inline-flex items-center gap-1.5 ${className ?? ''}`} aria-label={BRAND_NAME}>
       <Mark size={22} />
-      <span className="font-display font-bold text-arena-purple leading-none tracking-tight">
+      <span className="font-display font-bold leading-none tracking-tight" style={{ color: '#E8893B' }}>
         {BRAND_NAME}
       </span>
     </span>

@@ -279,6 +279,64 @@ export function useAdminPayouts() {
   });
 }
 
+// ── Progression Config Types ──────────────────────────────────────────────────
+
+export type ProgressionValues = Record<string, number | number[] | Record<string, number>>;
+
+export interface ProgressionConfig {
+  id: string;
+  values: ProgressionValues;
+  effectiveFrom: string;
+  changedBy: string;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface ProgressionConfigVersionsResponse {
+  data: ProgressionConfig[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// ── Progression Config Hooks ──────────────────────────────────────────────────
+
+export function useProgressionConfig() {
+  return useQuery<ProgressionConfig>({
+    queryKey: queryKeys.admin.progressionConfig,
+    queryFn: () => api.get('/progression/admin/config').then((r) => r.data),
+  });
+}
+
+export function useProgressionConfigVersions(page: number, limit: number) {
+  return useQuery<ProgressionConfigVersionsResponse>({
+    queryKey: queryKeys.admin.progressionConfigVersions(page, limit),
+    queryFn: () =>
+      api
+        .get('/progression/admin/config/versions', { params: { page, limit } })
+        .then((r) => r.data),
+  });
+}
+
+export function useCreateProgressionConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      values,
+      notes,
+    }: {
+      values: Record<string, unknown>;
+      notes: string;
+    }) => api.post('/progression/admin/config', { values, notes }).then((r) => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.admin.progressionConfig });
+      void qc.invalidateQueries({ queryKey: queryKeys.admin.progressionConfigVersionsBase });
+      toast.success('Config saved — taking effect in ~30s');
+    },
+  });
+}
+
 export function useTriggerPayout() {
   const qc = useQueryClient();
   return useMutation({

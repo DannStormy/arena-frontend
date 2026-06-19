@@ -18,23 +18,22 @@ function NavItem({ to, icon, label }: NavItemProps) {
       className={({ isActive }) =>
         cn(
           'flex flex-col items-center gap-0.5 px-4 py-2 text-xs font-medium transition-colors duration-150',
-          isActive ? 'text-arena-purple-bright' : 'text-arena-text-tertiary hover:text-white/60',
+          isActive ? '' : 'text-arena-text-tertiary hover:text-white/60',
         )
       }
+      style={({ isActive }) => (isActive ? { color: '#F0B05A' } : undefined)}
     >
       {({ isActive }) => (
         <>
           <span
-            className={cn(
-              'flex items-center justify-center rounded-xl p-1.5 transition-colors duration-150',
-              isActive ? 'bg-arena-purple/15' : '',
-            )}
+            className="flex items-center justify-center rounded-xl p-1.5 transition-colors duration-150"
+            style={isActive ? { background: 'rgba(232,137,59,0.12)' } : undefined}
           >
             {icon}
           </span>
           <span>{label}</span>
           {isActive && (
-            <span className="mt-0.5 h-[2px] w-4 rounded-full bg-arena-purple opacity-80" />
+            <span className="mt-0.5 h-[2px] w-4 rounded-full" style={{ background: '#E8893B', opacity: 0.85 }} />
           )}
         </>
       )}
@@ -62,11 +61,8 @@ export function RootLayout() {
             </span>
           )}
           <div
-            className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-            style={{
-              background: '#7C5CFF',
-              boxShadow: '0 0 0 1px rgba(142,114,255,0.4)',
-            }}
+            className="h-8 w-8 clip-avatar flex items-center justify-center text-xs font-bold text-white"
+            style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
           >
             {initials}
           </div>

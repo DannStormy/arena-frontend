@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Trophy, BookOpen, Flag, Banknote, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Trophy, BookOpen, Flag, Banknote, TrendingUp, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarLinkProps {
@@ -43,6 +43,7 @@ export function AdminLayout() {
           <SidebarLink to="/admin/questions" icon={<BookOpen className="h-4 w-4" />} label="Questions" />
           <SidebarLink to="/admin/flagged" icon={<Flag className="h-4 w-4" />} label="Flagged Sessions" />
           <SidebarLink to="/admin/payouts" icon={<Banknote className="h-4 w-4" />} label="Payouts" />
+          <SidebarLink to="/admin/progression" icon={<TrendingUp className="h-4 w-4" />} label="Progression" />
         </nav>
 
         <div className="px-3 py-4 border-t border-arena-border">
