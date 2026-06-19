@@ -2,11 +2,11 @@ import { Brain, Zap, Skull, Flame, ArrowLeftRight } from 'lucide-react';
 import type { DuelMode } from '@/types/duel.types';
 
 const MODE_CONFIG: Record<DuelMode, { icon: React.ReactNode; accent: string }> = {
-  trivia:       { icon: <Brain />,           accent: '#4F9CF0' },
-  blitz:        { icon: <Zap />,             accent: '#F5B73D' },
-  sudden_death: { icon: <Skull />,           accent: '#FF7043' },
-  streak:       { icon: <Flame />,           accent: '#E254A8' },
-  steal:        { icon: <ArrowLeftRight />,  accent: '#3FB6C9' },
+  trivia:       { icon: <Brain />,           accent: '#E8893B' }, // ember — base mode
+  blitz:        { icon: <Zap />,             accent: '#F5B73D' }, // amber — burns faster
+  sudden_death: { icon: <Skull />,           accent: '#FF7043' }, // crimson — elimination
+  streak:       { icon: <Flame />,           accent: '#E254A8' }, // pink — chain energy
+  steal:        { icon: <ArrowLeftRight />,  accent: '#C08050' }, // copper — metallic warmth
 };
 
 interface ModeIconProps {

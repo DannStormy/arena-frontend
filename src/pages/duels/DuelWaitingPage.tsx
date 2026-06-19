@@ -3,8 +3,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Copy, Share2, X, User } from 'lucide-react';
 import { ModeIcon } from '@/components/common/ModeIcon';
 import { ArenaIcon } from '@/lib/arena-icons';
+import { EMBER } from '@/lib/ember';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useDuelSocket } from '@/hooks/use-duel-socket';
 import { useDuelByCode } from '@/hooks/use-duels';
@@ -12,9 +12,9 @@ import { DUEL_MODE_CONFIG, type Duel, type DuelReadyPayload } from '@/types/duel
 import { ARENA_CONFIG } from '@/lib/arena-config';
 
 export function DuelWaitingPage() {
-  const { code } = useParams<{ code: string }>();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { code }     = useParams<{ code: string }>();
+  const navigate     = useNavigate();
+  const location     = useLocation();
   const duelFromState = location.state?.duel as Duel | undefined;
 
   const [activeDuel, setActiveDuel] = useState<Duel | undefined>(duelFromState);
@@ -32,9 +32,7 @@ export function DuelWaitingPage() {
   useDuelSocket(activeDuel?.id ?? null, {
     onDuelReady: (payload: DuelReadyPayload) => {
       if (activeDuel) goToGame(activeDuel);
-      else {
-        navigate(`/duels/${payload.duelId}/play`);
-      }
+      else navigate(`/duels/${payload.duelId}/play`);
     },
   });
 
@@ -44,16 +42,12 @@ export function DuelWaitingPage() {
   });
 
   useEffect(() => {
-    if (!activeDuel && duelFromQuery) {
-      setActiveDuel(duelFromQuery);
-    }
+    if (!activeDuel && duelFromQuery) setActiveDuel(duelFromQuery);
   }, [activeDuel, duelFromQuery]);
 
   // Polling fallback: if socket missed the event, detect via REST
   useEffect(() => {
-    if (duelFromQuery?.status === 'active' && !navigating) {
-      goToGame(duelFromQuery);
-    }
+    if (duelFromQuery?.status === 'active' && !navigating) goToGame(duelFromQuery);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duelFromQuery?.status]);
 
@@ -65,74 +59,100 @@ export function DuelWaitingPage() {
 
   const handleShare = async () => {
     if (!activeDuel?.code) return;
-    const url = `${window.location.origin}/duels/${activeDuel.code}`;
+    const url  = `${window.location.origin}/duels/${activeDuel.code}`;
     const text = `I'm challenging you to a duel on Arena! Use code ${activeDuel.code} or tap: ${url}`;
-    if (navigator.share) {
-      await navigator.share({ title: 'Arena Duel Challenge', text });
-    } else {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copied!');
-    }
+    if (navigator.share) await navigator.share({ title: 'Arena Duel Challenge', text });
+    else { await navigator.clipboard.writeText(url); toast.success('Link copied!'); }
   };
 
-  const handleCancel = () => {
-    navigate('/duels');
-  };
+  const handleCancel = () => navigate('/duels');
 
   if (!activeDuel) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-arena-bg">
+      <div className="flex min-h-svh items-center justify-center" style={{ background: EMBER.base }}>
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
-  const modeConfig = DUEL_MODE_CONFIG[activeDuel.mode];
+  const modeConfig  = DUEL_MODE_CONFIG[activeDuel.mode];
   const arenaConfig = ARENA_CONFIG[activeDuel.arena];
 
   return (
-    <div className="flex flex-col min-h-svh bg-arena-bg px-4 pt-safe-top">
-      {/* Header */}
-      <div className="flex items-center justify-between py-4 border-b border-arena-border">
+    <div
+      className="flex flex-col min-h-svh px-4 pt-safe-top"
+      style={{ background: EMBER.base }}
+    >
+      {/* ── Header ────────────────────────────────────────────────────────── */}
+      <div
+        className="flex items-center justify-between py-4"
+        style={{ borderBottom: `1px solid ${EMBER.border}` }}
+      >
         <div className="flex items-center gap-3">
-          <ModeIcon mode={activeDuel.mode} size={28} iconSize={14} />
+          <ModeIcon mode={activeDuel.mode} size={28} iconSize={14} clip />
           <div>
-            <p className="text-white font-semibold font-display">{modeConfig.label}</p>
+            <p className="font-display font-semibold" style={{ color: EMBER.textPrimary }}>
+              {modeConfig.label}
+            </p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <ArenaIcon arena={activeDuel.arena} size={13} />
-              <p className="text-white/40 text-xs">{arenaConfig?.label}</p>
+              <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+                {arenaConfig?.label}
+              </p>
             </div>
           </div>
         </div>
         <button
           onClick={handleCancel}
-          className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition-colors"
+          className="p-2 transition-colors"
+          style={{ color: EMBER.textTertiary }}
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Main content */}
+      {/* ── Main content ──────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col items-center justify-center gap-8">
-        {/* Duel code */}
-        <div className="rounded-2xl border border-arena-border bg-arena-surface p-6 w-full text-center space-y-3">
-          <p className="text-white/40 text-xs uppercase tracking-wider">Duel code</p>
-          <p className="font-mono text-4xl font-bold text-arena-gold tracking-widest">
+
+        {/* Duel code card */}
+        <div className="clip-card p-6 w-full text-center space-y-3" style={{ background: EMBER.surface }}>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.09em]"
+            style={{ color: EMBER.textTertiary }}
+          >
+            Duel code
+          </p>
+          <p
+            className="font-display font-black text-4xl tabular-nums tracking-widest"
+            style={{ color: EMBER.accentBright }}
+          >
             {activeDuel.code}
           </p>
-          <p className="text-white/40 text-sm">Share with your opponent to start</p>
+          <p className="text-sm" style={{ color: EMBER.textTertiary }}>
+            Share with your opponent to start
+          </p>
 
           <div className="flex gap-2 justify-center pt-1">
             <button
               onClick={handleCopyCode}
-              className="flex items-center gap-1.5 rounded-xl border border-arena-border px-3 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+              className="clip-chip flex items-center gap-1.5 px-3 py-2 text-xs transition-colors"
+              style={{
+                color:      EMBER.textSecondary,
+                background: 'rgba(255,255,255,0.05)',
+                boxShadow:  'inset 0 0 0 1px rgba(255,255,255,0.10)',
+              }}
             >
               <Copy className="h-3.5 w-3.5" />
               Copy
             </button>
             <button
               onClick={handleShare}
-              className="flex items-center gap-1.5 rounded-xl border border-arena-border px-3 py-2 text-xs text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+              className="clip-chip flex items-center gap-1.5 px-3 py-2 text-xs transition-colors"
+              style={{
+                color:      EMBER.textSecondary,
+                background: 'rgba(255,255,255,0.05)',
+                boxShadow:  'inset 0 0 0 1px rgba(255,255,255,0.10)',
+              }}
             >
               <Share2 className="h-3.5 w-3.5" />
               Share
@@ -143,37 +163,64 @@ export function DuelWaitingPage() {
         {/* Waiting animation */}
         <div className="flex flex-col items-center gap-5">
           <div className="relative flex items-center justify-center">
-            <span className="absolute inline-flex h-20 w-20 rounded-full bg-arena-purple/20 animate-ping-slow" />
-            <span className="absolute inline-flex h-16 w-16 rounded-full bg-arena-purple/10 animate-ping-slow [animation-delay:0.5s]" />
-            <div className="relative h-14 w-14 rounded-full bg-arena-elev ring-2 ring-arena-purple/40 flex items-center justify-center">
-              <User className="h-6 w-6 text-arena-text-tertiary" />
+            <span
+              className="absolute inline-flex h-20 w-20 rounded-full animate-ping-slow"
+              style={{ background: 'rgba(232,137,59,0.18)' }}
+            />
+            <span
+              className="absolute inline-flex h-16 w-16 rounded-full animate-ping-slow [animation-delay:0.5s]"
+              style={{ background: 'rgba(232,137,59,0.10)' }}
+            />
+            <div
+              className="relative h-14 w-14 rounded-full flex items-center justify-center"
+              style={{
+                background: EMBER.surface,
+                boxShadow:  'inset 0 0 0 2px rgba(232,137,59,0.40)',
+              }}
+            >
+              <User className="h-6 w-6" style={{ color: EMBER.textTertiary }} />
             </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <p className="text-white/60 text-sm">Waiting for opponent</p>
+            <p className="text-sm" style={{ color: EMBER.textSecondary }}>
+              Waiting for opponent
+            </p>
             <span className="inline-flex gap-0.5">
-              <span className="h-1 w-1 rounded-full bg-arena-purple-bright/60 animate-bounce [animation-delay:0ms]" />
-              <span className="h-1 w-1 rounded-full bg-arena-purple-bright/60 animate-bounce [animation-delay:150ms]" />
-              <span className="h-1 w-1 rounded-full bg-arena-purple-bright/60 animate-bounce [animation-delay:300ms]" />
+              {[0, 150, 300].map((delay) => (
+                <span
+                  key={delay}
+                  className="h-1 w-1 rounded-full animate-bounce"
+                  style={{ background: 'rgba(232,137,59,0.60)', animationDelay: `${delay}ms` }}
+                />
+              ))}
             </span>
           </div>
+
           {activeDuel.stake !== '0' && (
-            <div className="rounded-full bg-arena-gold/10 border border-arena-gold/30 px-4 py-1.5">
-              <p className="text-arena-gold text-sm font-semibold">₦{activeDuel.stake} stake</p>
-            </div>
+            <span
+              className="clip-chip inline-block px-4 py-1.5 font-display font-semibold text-sm"
+              style={{
+                background: 'rgba(232,137,59,0.12)',
+                color:      EMBER.accent,
+                boxShadow:  'inset 0 0 0 1px rgba(232,137,59,0.35)',
+              }}
+            >
+              ₦{activeDuel.stake} stake
+            </span>
           )}
         </div>
       </div>
 
-      {/* Cancel */}
+      {/* ── Cancel ────────────────────────────────────────────────────────── */}
       <div className="pb-safe-bottom pb-6">
-        <Button
+        <button
           onClick={handleCancel}
-          variant="outline"
-          className="w-full border-arena-border text-white/40 hover:text-white hover:border-arena-border/60"
+          className="duel-btn-secondary"
+          style={{ padding: '12px 16px', fontSize: 13 }}
         >
           Cancel
-        </Button>
+        </button>
       </div>
     </div>
   );

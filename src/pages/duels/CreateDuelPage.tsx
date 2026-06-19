@@ -2,27 +2,26 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Copy, Share2, Link2, Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { ModeIcon } from '@/components/common/ModeIcon';
+import { ModeIcon, getModeAccent } from '@/components/common/ModeIcon';
 import { ArenaIcon } from '@/lib/arena-icons';
+import { EMBER } from '@/lib/ember';
 import { DUEL_MODE_CONFIG, type DuelMode, type Duel } from '@/types/duel.types';
 import { useCreateDuel, useMatchmake } from '@/hooks/use-duels';
 import { ARENA_CONFIG } from '@/lib/arena-config';
 import type { TournamentArena } from '@/types/tournament.types';
-import { cn } from '@/lib/utils';
 
 type Step = 1 | 2 | 3 | 4;
 
 const STAKES = [
-  { label: 'Free', value: 0 },
-  { label: '₦100', value: 100 },
-  { label: '₦200', value: 200 },
-  { label: '₦500', value: 500 },
+  { label: 'Free',   value: 0    },
+  { label: '₦100',  value: 100  },
+  { label: '₦200',  value: 200  },
+  { label: '₦500',  value: 500  },
   { label: '₦1,000', value: 1000 },
 ];
 
 const ARENAS = Object.entries(ARENA_CONFIG) as [TournamentArena, (typeof ARENA_CONFIG)[TournamentArena]][];
-const MODES = Object.entries(DUEL_MODE_CONFIG) as [DuelMode, (typeof DUEL_MODE_CONFIG)[DuelMode]][];
+const MODES  = Object.entries(DUEL_MODE_CONFIG) as [DuelMode, (typeof DUEL_MODE_CONFIG)[DuelMode]][];
 
 const STEP_TITLES: Record<Step, string> = {
   1: 'Choose mode',
@@ -31,19 +30,27 @@ const STEP_TITLES: Record<Step, string> = {
   4: 'Challenge type',
 };
 
-export function CreateDuelPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const stateMode = location.state?.mode as DuelMode | undefined;
+// ── Ember selection styles ────────────────────────────────────────────────────
 
-  const [step, setStep] = useState<Step>(stateMode ? 2 : 1);
-  const [selectedMode, setSelectedMode] = useState<DuelMode | null>(stateMode ?? null);
+function selectionStyle(selected: boolean): React.CSSProperties {
+  return selected
+    ? { background: 'rgba(232,137,59,0.10)', boxShadow: 'inset 0 0 0 1.5px rgba(232,137,59,0.75)' }
+    : { background: EMBER.surface };
+}
+
+export function CreateDuelPage() {
+  const navigate   = useNavigate();
+  const location   = useLocation();
+  const stateMode  = location.state?.mode as DuelMode | undefined;
+
+  const [step, setStep]               = useState<Step>(stateMode ? 2 : 1);
+  const [selectedMode, setSelectedMode]   = useState<DuelMode | null>(stateMode ?? null);
   const [selectedArena, setSelectedArena] = useState<TournamentArena | null>(null);
   const [selectedStake, setSelectedStake] = useState(0);
-  const [createdDuel, setCreatedDuel] = useState<Duel | null>(null);
+  const [createdDuel, setCreatedDuel]     = useState<Duel | null>(null);
 
   const createDuel = useCreateDuel();
-  const matchmake = useMatchmake();
+  const matchmake  = useMatchmake();
 
   useEffect(() => {
     if (stateMode) {
@@ -53,32 +60,18 @@ export function CreateDuelPage() {
   }, [stateMode]);
 
   const handleBack = () => {
-    if (step === 1) {
-      navigate(-1);
-    } else {
-      setStep((prev) => (prev - 1) as Step);
-    }
+    if (step === 1) navigate(-1);
+    else setStep((prev) => (prev - 1) as Step);
   };
 
-  const handleModeSelect = (mode: DuelMode) => {
-    setSelectedMode(mode);
-    setStep(2);
-  };
-
-  const handleArenaSelect = (arena: TournamentArena) => {
-    setSelectedArena(arena);
-    setStep(3);
-  };
+  const handleModeSelect  = (mode: DuelMode) => { setSelectedMode(mode);  setStep(2); };
+  const handleArenaSelect = (arena: TournamentArena) => { setSelectedArena(arena); setStep(3); };
 
   const handleCreatePrivate = () => {
     if (!selectedMode || !selectedArena) return;
     createDuel.mutate(
       { mode: selectedMode, arena: selectedArena, stake: selectedStake },
-      {
-        onSuccess: (duel) => {
-          setCreatedDuel(duel);
-        },
-      },
+      { onSuccess: (duel) => setCreatedDuel(duel) },
     );
   };
 
@@ -86,23 +79,15 @@ export function CreateDuelPage() {
     if (!selectedMode || !selectedArena) return;
     matchmake.mutate(
       { mode: selectedMode, arena: selectedArena, stake: selectedStake },
-      {
-        onSuccess: (duel) => {
-          navigate(`/duels/${duel.code}/waiting`, { state: { duel } });
-        },
-      },
+      { onSuccess: (duel) => navigate(`/duels/${duel.code}/waiting`, { state: { duel } }) },
     );
   };
 
   const handleShare = async (duel: Duel) => {
-    const url = `${window.location.origin}/duels/${duel.code}`;
+    const url  = `${window.location.origin}/duels/${duel.code}`;
     const text = `I'm challenging you to a duel on Arena! Use code ${duel.code} or tap: ${url}`;
-    if (navigator.share) {
-      await navigator.share({ title: 'Arena Duel Challenge', text });
-    } else {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copied!');
-    }
+    if (navigator.share) await navigator.share({ title: 'Arena Duel Challenge', text });
+    else { await navigator.clipboard.writeText(url); toast.success('Link copied!'); }
   };
 
   const handleCopyCode = async (code: string) => {
@@ -115,55 +100,92 @@ export function CreateDuelPage() {
     navigate(`/duels/${createdDuel.code}/waiting`, { state: { duel: createdDuel } });
   };
 
+  const pageTitle = createdDuel ? 'Your duel code' : STEP_TITLES[step];
+
   return (
-    <div className="flex flex-col min-h-svh bg-arena-bg">
-      <header className="flex items-center gap-3 px-4 py-4 pt-safe-top border-b border-arena-border">
+    <div className="flex flex-col min-h-svh" style={{ background: EMBER.base }}>
+
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <header
+        className="flex items-center gap-3 px-4 py-4 pt-safe-top"
+        style={{ borderBottom: `1px solid ${EMBER.border}` }}
+      >
         <button
           onClick={handleBack}
-          className="p-1.5 -ml-1.5 text-white/50 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+          className="p-1.5 -ml-1.5 transition-colors"
+          style={{ color: EMBER.textTertiary }}
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 font-display text-lg font-semibold text-white">{STEP_TITLES[step]}</h1>
+        <h1 className="flex-1 font-display text-lg font-semibold" style={{ color: EMBER.textPrimary }}>
+          {pageTitle}
+        </h1>
       </header>
 
-      {/* Step indicator */}
+      {/* ── Progress dots ───────────────────────────────────────────────────── */}
       {!createdDuel && (
         <div className="flex justify-center gap-2 py-4">
           {([1, 2, 3, 4] as Step[]).map((s) => (
             <div
               key={s}
-              className={cn(
-                'h-1 rounded-full transition-all',
-                s < step ? 'w-6 bg-arena-purple/60' : s === step ? 'w-8 bg-arena-purple-bright' : 'w-6 bg-white/10',
-              )}
+              className="h-1 rounded-full transition-all duration-300"
+              style={{
+                width:      s === step ? 32 : 24,
+                background: s < step
+                  ? 'rgba(232,137,59,0.45)'
+                  : s === step
+                  ? EMBER.accent
+                  : 'rgba(255,255,255,0.10)',
+              }}
             />
           ))}
         </div>
       )}
 
+      {/* ── Content ─────────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto px-4 pb-6">
-        {/* Created duel — show code */}
+
+        {/* ── Duel code (after private duel created) ──────────────────────── */}
         {createdDuel ? (
-          <div className="space-y-5 pt-4 animate-slide-up">
-            <div className="rounded-2xl border border-arena-border bg-arena-surface p-6 text-center space-y-4">
-              <p className="text-white/40 text-xs uppercase tracking-wider">Your duel code</p>
-              <p className="font-mono text-5xl font-bold text-arena-gold tracking-widest">
+          <div className="space-y-4 pt-4 animate-slide-up">
+            <div className="clip-card p-6 text-center space-y-4" style={{ background: EMBER.surface }}>
+              <p
+                className="text-[10px] font-semibold uppercase tracking-[0.09em]"
+                style={{ color: EMBER.textTertiary }}
+              >
+                Your duel code
+              </p>
+              <p
+                className="font-display font-black text-5xl tabular-nums tracking-widest"
+                style={{ color: EMBER.accentBright }}
+              >
                 {createdDuel.code}
               </p>
-              <p className="text-white/50 text-sm">Share this with your opponent</p>
+              <p className="text-sm" style={{ color: EMBER.textTertiary }}>
+                Share this with your opponent
+              </p>
 
               <div className="flex gap-3 justify-center pt-2">
                 <button
                   onClick={() => handleCopyCode(createdDuel.code)}
-                  className="flex items-center gap-2 rounded-xl border border-arena-border px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                  className="clip-chip flex items-center gap-2 px-4 py-2 text-sm transition-colors"
+                  style={{
+                    color:      EMBER.textSecondary,
+                    background: 'rgba(255,255,255,0.05)',
+                    boxShadow:  'inset 0 0 0 1px rgba(255,255,255,0.10)',
+                  }}
                 >
                   <Copy className="h-4 w-4" />
                   Copy code
                 </button>
                 <button
                   onClick={() => handleShare(createdDuel)}
-                  className="flex items-center gap-2 rounded-xl border border-arena-border px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                  className="clip-chip flex items-center gap-2 px-4 py-2 text-sm transition-colors"
+                  style={{
+                    color:      EMBER.textSecondary,
+                    background: 'rgba(255,255,255,0.05)',
+                    boxShadow:  'inset 0 0 0 1px rgba(255,255,255,0.10)',
+                  }}
                 >
                   <Share2 className="h-4 w-4" />
                   Share link
@@ -171,107 +193,132 @@ export function CreateDuelPage() {
               </div>
             </div>
 
-            <Button
-              onClick={handleGoWaiting}
-              className="w-full h-12 bg-arena-purple hover:bg-arena-purple-bright text-white font-semibold transition-colors"
-            >
-              Wait for opponent
-            </Button>
+            {/* Wait for opponent — ember primary, leak-fixed */}
+            <div className="duel-btn-wrap is-primary">
+              <button
+                onClick={handleGoWaiting}
+                className="duel-btn-primary"
+                style={{ padding: '14px 16px', fontSize: 14 }}
+              >
+                Wait for opponent
+              </button>
+            </div>
 
             <button
               onClick={handleMatchmake}
               disabled={matchmake.isPending}
-              className="w-full text-sm text-white/40 hover:text-white/70 transition-colors"
+              className="w-full text-sm transition-colors disabled:opacity-50"
+              style={{ color: EMBER.accent }}
             >
               Or find a random opponent instead
             </button>
           </div>
+
         ) : step === 1 ? (
-          /* Mode selection */
+          /* ── Mode selection ─────────────────────────────────────────────── */
           <div className="grid grid-cols-1 gap-3">
-            {MODES.map(([mode, config]) => (
-              <button
-                key={mode}
-                onClick={() => handleModeSelect(mode)}
-                className={cn(
-                  'flex items-center gap-4 rounded-2xl border p-4 text-left transition-all',
-                  selectedMode === mode
-                    ? 'border-arena-purple bg-arena-purple/10 ring-1 ring-arena-purple/30'
-                    : 'border-arena-border bg-arena-surface hover:border-white/15 hover:bg-arena-elev',
-                )}
-              >
-                <ModeIcon mode={mode} size={36} iconSize={18} />
-                <div className="flex-1">
-                  <p className="text-white font-semibold font-display">{config.label}</p>
-                  <p className="text-white/50 text-sm mt-0.5">{config.description}</p>
-                </div>
-                {config.timerSeconds !== null && (
-                  <span className="shrink-0 rounded-full bg-arena-purple/10 border border-arena-purple/20 px-2 py-0.5 text-xs text-arena-purple-bright">
-                    {config.timerSeconds}s
-                  </span>
-                )}
-              </button>
-            ))}
+            {MODES.map(([mode, config]) => {
+              const accent = getModeAccent(mode);
+              return (
+                <button
+                  key={mode}
+                  onClick={() => handleModeSelect(mode)}
+                  className="clip-card flex items-center gap-4 p-4 text-left transition-all active:scale-[0.98]"
+                  style={selectionStyle(selectedMode === mode)}
+                >
+                  <ModeIcon mode={mode} size={36} iconSize={18} clip />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold" style={{ color: EMBER.textPrimary }}>
+                      {config.label}
+                    </p>
+                    <p className="text-sm mt-0.5" style={{ color: EMBER.textTertiary }}>
+                      {config.description}
+                    </p>
+                  </div>
+                  {config.timerSeconds !== null && (
+                    <span
+                      className="clip-chip-sm shrink-0 px-2 py-0.5 font-display font-bold"
+                      style={{
+                        fontSize:  10,
+                        color:     accent,
+                        background: `${accent}1A`,
+                        boxShadow: `inset 0 0 0 1px ${accent}33`,
+                      }}
+                    >
+                      {config.timerSeconds}s
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
+
         ) : step === 2 ? (
-          /* Arena selection */
+          /* ── Arena selection ────────────────────────────────────────────── */
           <div className="grid grid-cols-2 gap-3">
             {ARENAS.map(([arena, config]) => (
               <button
                 key={arena}
                 onClick={() => handleArenaSelect(arena)}
-                className={cn(
-                  'flex flex-col items-center gap-2 rounded-2xl border p-4 transition-all',
-                  selectedArena === arena
-                    ? 'border-arena-purple bg-arena-purple/10 ring-1 ring-arena-purple/30'
-                    : 'border-arena-border bg-arena-surface hover:border-white/15 hover:bg-arena-elev',
-                )}
+                className="clip-card flex flex-col items-center gap-2 p-4 transition-all active:scale-[0.98]"
+                style={selectionStyle(selectedArena === arena)}
               >
                 <ArenaIcon arena={arena} size={28} />
-                <p className="text-white text-sm font-medium text-center leading-tight font-display">
+                <p
+                  className="text-sm font-semibold text-center leading-tight font-display"
+                  style={{ color: EMBER.textPrimary }}
+                >
                   {config.label}
                 </p>
               </button>
             ))}
           </div>
+
         ) : step === 3 ? (
-          /* Stake selection */
+          /* ── Stake selection ────────────────────────────────────────────── */
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-2">
               {STAKES.map(({ label, value }) => (
                 <button
                   key={value}
                   onClick={() => setSelectedStake(value)}
-                  className={cn(
-                    'w-full rounded-xl border p-4 text-left font-semibold transition-all',
-                    selectedStake === value
-                      ? 'border-arena-purple bg-arena-purple/10 text-white ring-1 ring-arena-purple/30'
-                      : 'border-arena-border bg-arena-surface text-white/60 hover:border-white/15 hover:bg-arena-elev',
-                  )}
+                  className="clip-row w-full p-4 text-left font-display font-semibold transition-all active:scale-[0.98]"
+                  style={{
+                    ...selectionStyle(selectedStake === value),
+                    color: selectedStake === value ? EMBER.accent : EMBER.textSecondary,
+                  }}
                 >
                   {label}
                 </button>
               ))}
             </div>
 
-            <Button
-              onClick={() => setStep(4)}
-              className="w-full h-12 bg-arena-purple hover:bg-arena-purple-bright text-white font-semibold mt-4 transition-colors"
-            >
-              Continue
-            </Button>
+            {/* Continue — ember primary, leak-fixed */}
+            <div className="duel-btn-wrap is-primary mt-4">
+              <button
+                onClick={() => setStep(4)}
+                className="duel-btn-primary"
+                style={{ padding: '14px 16px', fontSize: 14 }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
+
         ) : (
-          /* Challenge type */
+          /* ── Challenge type ─────────────────────────────────────────────── */
           <div className="space-y-4">
             <button
               onClick={handleCreatePrivate}
               disabled={createDuel.isPending}
-              className="w-full flex flex-col items-start gap-2 rounded-2xl border border-arena-border bg-arena-surface p-5 text-left hover:border-white/15 hover:bg-arena-elev transition-all"
+              className="clip-card w-full flex flex-col items-start gap-2 p-5 text-left transition-all active:opacity-90 disabled:opacity-50"
+              style={{ background: EMBER.surface }}
             >
-              <Link2 className="h-6 w-6 text-arena-purple-bright" />
-              <p className="text-white font-semibold font-display">Challenge a friend</p>
-              <p className="text-white/50 text-sm">
+              <Link2 className="h-6 w-6" style={{ color: EMBER.accent }} />
+              <p className="font-display font-semibold" style={{ color: EMBER.textPrimary }}>
+                Challenge a friend
+              </p>
+              <p className="text-sm" style={{ color: EMBER.textTertiary }}>
                 Get a shareable code to send to a specific person.
               </p>
             </button>
@@ -279,18 +326,24 @@ export function CreateDuelPage() {
             <button
               onClick={handleMatchmake}
               disabled={matchmake.isPending}
-              className="w-full flex flex-col items-start gap-2 rounded-2xl border border-arena-border bg-arena-surface p-5 text-left hover:border-white/15 hover:bg-arena-elev transition-all"
+              className="clip-card w-full flex flex-col items-start gap-2 p-5 text-left transition-all active:opacity-90 disabled:opacity-50"
+              style={{ background: EMBER.surface }}
             >
-              <Shuffle className="h-6 w-6 text-arena-gold" />
-              <p className="text-white font-semibold font-display">Find a random opponent</p>
-              <p className="text-white/50 text-sm">
+              <Shuffle className="h-6 w-6" style={{ color: EMBER.accent }} />
+              <p className="font-display font-semibold" style={{ color: EMBER.textPrimary }}>
+                Find a random opponent
+              </p>
+              <p className="text-sm" style={{ color: EMBER.textTertiary }}>
                 We'll match you with someone at the same stake level.
               </p>
             </button>
 
             {(createDuel.isPending || matchmake.isPending) && (
               <div className="flex justify-center pt-2">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-arena-purple border-t-transparent" />
+                <div
+                  className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
+                  style={{ borderColor: EMBER.accent, borderTopColor: 'transparent' }}
+                />
               </div>
             )}
           </div>
