@@ -91,7 +91,7 @@ export function TournamentHUD({
         {/* ── Game type badge + question progress ── */}
         <div className="flex flex-col items-center gap-0.5 shrink-0">
           <div
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+            className="clip-chip-sm inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold"
             style={{ background: `${modeAccent}22`, color: modeAccent }}
           >
             {cfg.icon}

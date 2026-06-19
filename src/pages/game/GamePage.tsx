@@ -8,11 +8,13 @@ import { TournamentHUD } from '@/components/game/TournamentHUD';
 import { CountdownBar } from '@/components/game/CountdownBar';
 import { QuestionCard } from '@/components/game/QuestionCard';
 import { OptionButton } from '@/components/game/OptionButton';
+import { EMBER } from '@/lib/ember';
 import type { GameType } from '@/types/tournament.types';
 
+// Both modes now use ember — one hot look across the whole app.
 const GAME_TYPE_ACCENT: Record<GameType, string> = {
-  lightning_trivia:  '#4F9CF0', // azure — clean confident baseline
-  last_man_standing: '#FF7043', // ember — elimination tension
+  lightning_trivia:  EMBER.accent,
+  last_man_standing: '#FF7043',
 };
 
 export function GamePage() {
@@ -137,7 +139,7 @@ export function GamePage() {
 
   if (questionLoading && !question) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-arena-bg">
+      <div className="flex min-h-svh items-center justify-center" style={{ background: EMBER.base }}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -161,7 +163,7 @@ export function GamePage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col min-h-svh bg-arena-bg">
+    <div className="flex flex-col min-h-svh" style={{ background: EMBER.base }}>
 
       {/* Solo HUD — score + game type + question progress + standing */}
       <TournamentHUD

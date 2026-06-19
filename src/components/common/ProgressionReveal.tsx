@@ -146,7 +146,8 @@ export function ProgressionReveal({ data }: { data: ProgressionData }) {
 
   return (
     <div
-      className="rounded-2xl border border-arena-border bg-arena-surface p-4 space-y-4"
+      className="clip-card p-4 space-y-4"
+      style={{ background: '#120F0C' }}
       onClick={settled ? undefined : jumpToEnd}
       style={{ cursor: settled ? 'default' : 'pointer', userSelect: 'none' }}
     >
@@ -158,7 +159,7 @@ export function ProgressionReveal({ data }: { data: ProgressionData }) {
               Level {levelShown}
             </span>
             {flashLevel && (
-              <span className="font-display font-bold text-[11px] text-arena-purple-bright animate-result-reveal">
+              <span className="font-display font-bold text-[11px] animate-result-reveal" style={{ color: '#DCEAF2' }}>
                 {flashLevel}
               </span>
             )}
@@ -169,17 +170,19 @@ export function ProgressionReveal({ data }: { data: ProgressionData }) {
                 +{firstDuelOfDayBonus} daily
               </span>
             )}
-            <span className="font-display font-bold text-[12px] text-arena-purple-bright tabular-nums">
+            <span className="font-display font-bold text-[12px] tabular-nums" style={{ color: '#C6DCE8' }}>
               +{xpDisplay} XP
             </span>
           </div>
         </div>
 
-        <div className="h-[6px] rounded-full bg-arena-elev overflow-hidden">
+        <div className="h-[5px] overflow-hidden" style={{ background: 'rgba(198,220,232,0.10)', borderRadius: 99 }}>
           <div
-            className="h-full rounded-full bg-arena-purple"
+            className="h-full"
             style={{
-              width: `${Math.min(Math.max(xpBarPct, 0), 100)}%`,
+              width:      `${Math.min(Math.max(xpBarPct, 0), 100)}%`,
+              background: '#C6DCE8',
+              borderRadius: 99,
               transition: xpBarTrans,
             }}
           />
@@ -204,13 +207,14 @@ export function ProgressionReveal({ data }: { data: ProgressionData }) {
           </span>
         </div>
 
-        <div className="h-[4px] rounded-full bg-arena-elev overflow-hidden">
+        <div className="h-[4px] overflow-hidden" style={{ background: 'rgba(232,137,59,0.10)', borderRadius: 99 }}>
           <div
-            className="h-full rounded-full"
+            className="h-full"
             style={{
-              width: `${Math.min(Math.max(spBarPct, 0), 100)}%`,
+              width:      `${Math.min(Math.max(spBarPct, 0), 100)}%`,
               transition: spBarTrans,
-              background: '#6B6B7A',
+              background: 'linear-gradient(90deg, #C2541E, #E8893B)',
+              borderRadius: 99,
             }}
           />
         </div>

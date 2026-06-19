@@ -9,13 +9,15 @@ import { ProgressionReveal } from '@/components/common/ProgressionReveal';
 import { useSessionQuestions } from '@/hooks/use-game-session';
 import { useTournament, useTournamentLeaderboard } from '@/hooks/use-tournaments';
 import { Particles } from '@/components/common/Particles';
+import { EMBER } from '@/lib/ember';
 import { cn } from '@/lib/utils';
 import type { GameQuestion } from '@/types/game.types';
 import type { GameType } from '@/types/tournament.types';
 import type { ProgressionData } from '@/types/duel.types';
 
+// Both modes unified to ember — same look as duels.
 const GAME_TYPE_ACCENT: Record<GameType, string> = {
-  lightning_trivia:  '#4F9CF0',
+  lightning_trivia:  EMBER.accent,
   last_man_standing: '#FF7043',
 };
 
@@ -67,11 +69,11 @@ export function GameResultPage() {
   const thinField     = myRank === 1 && totalFinished === 1;
   const myPrize       = myRank && myRank <= 3 && myEntry?.prizeWon ? myEntry.prizeWon : null;
 
-  // Game-type theming — defaults to azure while tournament loads.
+  // Game-type theming — defaults to ember while tournament loads.
   const gameType = (tournament?.gameType ?? 'lightning_trivia') as GameType;
-  const accent   = GAME_TYPE_ACCENT[gameType] ?? '#4F9CF0';
+  const accent   = GAME_TYPE_ACCENT[gameType] ?? EMBER.accent;
 
-  const [showBreakdown, setShowBreakdown]     = useState(false);
+  const [showBreakdown, setShowBreakdown]         = useState(false);
   const [reportingQuestion, setReportingQuestion] = useState<GameQuestion | null>(null);
 
   const accuracy = (totalAnswered ?? 0) > 0
@@ -93,7 +95,6 @@ export function GameResultPage() {
   };
 
   // ── Placement copy ────────────────────────────────────────────────────────
-  // "so far" framing makes the async nature explicit when the tournament is still live.
   let placementLine: string | null = null;
   let placementSub:  string | null = null;
 
@@ -110,24 +111,22 @@ export function GameResultPage() {
   }
 
   return (
-    <div className="relative min-h-svh bg-arena-bg">
+    <div className="relative min-h-svh" style={{ background: EMBER.base }}>
       <Particles />
 
       <div className="relative z-10 mx-auto w-full max-w-[420px] px-4 pt-10 pb-12 flex flex-col gap-5">
 
-        {/* ── Placement header — the payoff beat ──────────────────────────── */}
+        {/* ── Placement header ─────────────────────────────────────────────── */}
         <div
           className="flex flex-col items-center gap-3 -mx-4 px-4 pt-8 pb-7 rounded-b-3xl"
           style={{ background: `linear-gradient(to bottom, ${accent}1A, transparent)` }}
         >
-          {/* Game-type icon */}
           <span className="animate-result-reveal" style={{ color: accent }}>
             {gameType === 'last_man_standing'
               ? <Trophy className="h-12 w-12" />
               : <Zap    className="h-12 w-12" />}
           </span>
 
-          {/* Rank numeral + placement line */}
           {myRank !== null && (
             <div className="text-center animate-result-reveal">
               {!thinField && (
@@ -138,38 +137,38 @@ export function GameResultPage() {
                   {ordinal(myRank)}
                 </p>
               )}
-              <p className="font-display font-bold text-base text-arena-text-primary">
+              <p className="font-display font-bold text-base" style={{ color: EMBER.textPrimary }}>
                 {placementLine}
               </p>
               {placementSub && (
-                <p className="text-arena-text-tertiary text-sm mt-0.5">{placementSub}</p>
+                <p className="text-sm mt-0.5" style={{ color: EMBER.textTertiary }}>{placementSub}</p>
               )}
             </div>
           )}
 
-          {/* Prize moment */}
+          {/* Prize moment — ember */}
           {myPrize && !thinField ? (
             <div
-              className="animate-result-reveal rounded-full px-6 py-2"
+              className="clip-chip animate-result-reveal px-6 py-2"
               style={{
-                background: 'rgba(45,212,167,0.12)',
-                border:     '1px solid rgba(45,212,167,0.3)',
+                background: 'rgba(232,137,59,0.14)',
+                boxShadow:  'inset 0 0 0 1px rgba(232,137,59,0.45)',
               }}
             >
-              <p className="font-display font-black text-xl text-arena-win tabular-nums">
+              <p className="font-display font-black text-xl tabular-nums" style={{ color: EMBER.accentBright }}>
                 {rankIsFinal ? 'You won ' : 'In the money · '}
                 ₦{Number(myPrize).toLocaleString()}
               </p>
             </div>
           ) : myRank !== null && !thinField ? (
-            <p className="text-arena-text-tertiary text-sm animate-result-reveal">
+            <p className="text-sm animate-result-reveal" style={{ color: EMBER.textTertiary }}>
               Top 3 win cash
             </p>
           ) : null}
         </div>
 
-        {/* ── Score card ──────────────────────────────────────────────────── */}
-        <div className="rounded-2xl bg-arena-surface border border-arena-border p-5 animate-slide-up">
+        {/* ── Score card ───────────────────────────────────────────────────── */}
+        <div className="clip-card p-5 animate-slide-up" style={{ background: EMBER.surface }}>
           <div className="flex items-end justify-between mb-4">
             <div>
               <p
@@ -178,13 +177,13 @@ export function GameResultPage() {
               >
                 {finalScore ?? 0}
               </p>
-              <p className="text-arena-text-tertiary text-xs mt-1">points</p>
+              <p className="text-xs mt-1" style={{ color: EMBER.textTertiary }}>points</p>
             </div>
             <div className="text-right">
-              <p className="font-display font-bold text-2xl text-arena-text-primary tabular-nums leading-none">
+              <p className="font-display font-bold text-2xl tabular-nums leading-none" style={{ color: EMBER.textPrimary }}>
                 {accuracy}%
               </p>
-              <p className="text-arena-text-tertiary text-xs mt-1">accuracy</p>
+              <p className="text-xs mt-1" style={{ color: EMBER.textTertiary }}>accuracy</p>
             </div>
           </div>
 
@@ -192,8 +191,8 @@ export function GameResultPage() {
             className="flex items-center justify-between"
             style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}
           >
-            <span className="text-sm text-arena-text-secondary">Correct</span>
-            <span className="font-display font-semibold text-sm text-arena-text-primary tabular-nums">
+            <span className="text-sm" style={{ color: EMBER.textSecondary }}>Correct</span>
+            <span className="font-display font-semibold text-sm tabular-nums" style={{ color: EMBER.textPrimary }}>
               {correctCount ?? 0} / {totalQuestions ?? totalAnswered ?? 0}
             </span>
           </div>
@@ -213,10 +212,11 @@ export function GameResultPage() {
 
         {/* ── Per-question breakdown ───────────────────────────────────────── */}
         {questions.length > 0 && (
-          <div className="rounded-2xl border border-arena-border bg-arena-surface overflow-hidden">
+          <div className="clip-card overflow-hidden" style={{ background: EMBER.surface }}>
             <button
               onClick={() => setShowBreakdown((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-3 text-sm text-arena-text-secondary hover:text-arena-text-primary transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 text-sm transition-colors"
+              style={{ color: EMBER.textSecondary }}
             >
               <span className="flex items-center gap-1.5 font-medium">
                 <LayoutList className="h-4 w-4" />
@@ -228,18 +228,25 @@ export function GameResultPage() {
             </button>
 
             {showBreakdown && (
-              <div className="border-t border-arena-border divide-y divide-arena-border/40">
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
                 {questions.map((q, i) => (
-                  <div key={q.id} className="flex items-start gap-3 px-4 py-3">
-                    <span className="text-arena-text-tertiary text-xs font-mono shrink-0 w-6 mt-0.5">
+                  <div
+                    key={q.id}
+                    className="flex items-start gap-3 px-4 py-3"
+                    style={{ borderTop: i > 0 ? '1px solid rgba(255,255,255,0.05)' : undefined }}
+                  >
+                    <span className="text-[11px] font-mono shrink-0 w-6 mt-0.5" style={{ color: EMBER.textTertiary }}>
                       Q{i + 1}
                     </span>
-                    <p className="text-sm text-arena-text-secondary leading-snug flex-1">
+                    <p className="text-sm leading-snug flex-1" style={{ color: EMBER.textSecondary }}>
                       {q.content}
                     </p>
                     <button
                       onClick={() => setReportingQuestion(q)}
-                      className="shrink-0 text-white/20 hover:text-arena-purple-bright transition-colors mt-0.5"
+                      className="shrink-0 mt-0.5 transition-colors"
+                      style={{ color: 'rgba(255,255,255,0.18)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = EMBER.accent)}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.18)')}
                       title="Report this question"
                     >
                       <Flag className="h-3.5 w-3.5" />
@@ -251,32 +258,49 @@ export function GameResultPage() {
           </div>
         )}
 
-        {/* ── CTAs ────────────────────────────────────────────────────────── */}
+        {/* ── CTAs ─────────────────────────────────────────────────────────── */}
         <div className="space-y-2.5">
+          {/* View leaderboard — ember primary */}
           {tournamentId && (
             <button
               onClick={() => navigate(`/tournaments/${tournamentId}/leaderboard`)}
-              className="w-full h-12 rounded-xl font-display font-semibold text-base text-white bg-arena-purple hover:bg-arena-purple-bright active:scale-[0.98] active:opacity-90 transition-all select-none"
+              className="clip-card w-full h-12 font-display font-semibold text-base text-white active:scale-[0.98] active:opacity-90 hover:brightness-[1.06] transition-all select-none"
+              style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
             >
               View leaderboard
             </button>
           )}
 
+          {/* Back — secondary when leaderboard is shown, primary ember when standalone */}
           <button
             onClick={handleBack}
             className={cn(
-              'w-full h-12 rounded-xl font-display font-semibold text-base transition-all select-none',
+              'clip-row w-full h-12 font-display font-semibold text-base transition-all select-none',
               tournamentId
-                ? 'text-arena-text-secondary bg-arena-surface border border-arena-border hover:border-arena-border-emphasis hover:text-arena-text-primary'
-                : 'text-white bg-arena-purple hover:bg-arena-purple-bright active:scale-[0.98] active:opacity-90',
+                ? 'active:opacity-80'
+                : 'text-white active:scale-[0.98] active:opacity-90 hover:brightness-[1.06]',
             )}
+            style={tournamentId
+              ? {
+                  color:      EMBER.textSecondary,
+                  background: EMBER.surface,
+                  boxShadow:  `inset 0 0 0 1px rgba(255,255,255,0.08)`,
+                }
+              : {
+                  background: 'linear-gradient(150deg, #E8893B, #C2541E)',
+                }}
           >
             {tournamentId ? 'Back to tournaments' : 'Back to lobby'}
           </button>
 
+          {/* Share — tertiary */}
           <button
             onClick={handleShare}
-            className="w-full h-11 rounded-xl text-sm text-arena-text-tertiary hover:text-arena-text-secondary border border-arena-border hover:border-arena-border-emphasis transition-colors flex items-center justify-center gap-2 select-none"
+            className="clip-row w-full h-11 text-sm flex items-center justify-center gap-2 select-none transition-colors"
+            style={{
+              color:      EMBER.textTertiary,
+              boxShadow:  `inset 0 0 0 1px rgba(255,255,255,0.08)`,
+            }}
           >
             <Share2 className="h-4 w-4" />
             Share result
@@ -285,7 +309,7 @@ export function GameResultPage() {
 
       </div>
 
-      {/* Report reason picker — preserved from original; dialog approach kept for UX clarity */}
+      {/* Report reason picker */}
       <Dialog
         open={!!reportingQuestion}
         onOpenChange={(open) => { if (!open) setReportingQuestion(null); }}

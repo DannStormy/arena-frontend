@@ -5,23 +5,24 @@ import { Zap, Trophy, Users } from 'lucide-react';
 import { useTournament, useTournamentLeaderboard } from '@/hooks/use-tournaments';
 import { useAuthStore } from '@/stores/auth.store';
 import { api } from '@/lib/api';
-import { getErrorMessage, cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/utils';
 import { ARENA_CONFIG } from '@/lib/arena-config';
+import { EMBER } from '@/lib/ember';
 import { ArenaIcon } from '@/lib/arena-icons';
-import { Progress } from '@/components/ui/progress';
 import { PageHeader } from '@/components/common/PageHeader';
 import { PageContainer } from '@/components/common/PageContainer';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import type { GameType } from '@/types/tournament.types';
 
-const GAME_TYPE_CONFIG: Record<GameType, { label: string; accent: string; icon: React.ReactNode }> = {
-  lightning_trivia:  { label: 'Lightning Trivia',  accent: '#4F9CF0', icon: <Zap    size={11} /> },
-  last_man_standing: { label: 'Last Man Standing', accent: '#FF7043', icon: <Trophy size={11} /> },
+// Both modes unified to ember — one hot look.
+const GAME_TYPE_CONFIG: Record<GameType, { label: string; icon: React.ReactNode }> = {
+  lightning_trivia:  { label: 'Lightning Trivia',  icon: <Zap    size={11} /> },
+  last_man_standing: { label: 'Last Man Standing', icon: <Trophy size={11} /> },
 };
 
 // Placement medal — gold/silver/bronze inline indicator.
-// NOT RankBadge (that's for season tiers only and will warn on medal strings).
+// NOT TierBadge (that's for season tiers only).
 const MEDAL_COLOR = ['#F5A623', 'rgba(255,255,255,0.6)', '#C9774A'] as const;
 function Medal({ pos }: { pos: 1 | 2 | 3 }) {
   return (
@@ -48,15 +49,14 @@ export function TournamentDetailPage() {
   }, [tournament?.hasJoined]);
 
   // Leaderboard — display only. Enabled when the user has completed their play.
-  // Used to derive honest async standing; has no effect on join/play flow.
-  const hasCompleted   = tournament?.userEntry?.status === 'completed';
+  const hasCompleted  = tournament?.userEntry?.status === 'completed';
   const { data: leaderboard } = useTournamentLeaderboard(hasCompleted ? id! : '');
-  const myEntry        = leaderboard?.find((e) => e.userId === user?.id);
-  const myRank         = myEntry?.rank ?? null;
-  const totalFinished  = leaderboard?.length ?? 0;
-  const showRank       = myRank !== null && totalFinished > 1;
+  const myEntry       = leaderboard?.find((e) => e.userId === user?.id);
+  const myRank        = myEntry?.rank ?? null;
+  const totalFinished = leaderboard?.length ?? 0;
+  const showRank      = myRank !== null && totalFinished > 1;
   const isOnlyFinisher = myRank === 1 && totalFinished === 1;
-  const myPrize        = showRank && myRank <= 3 && myEntry?.prizeWon ? myEntry.prizeWon : null;
+  const myPrize       = showRank && myRank <= 3 && myEntry?.prizeWon ? myEntry.prizeWon : null;
 
   // ── Logic (unchanged) ─────────────────────────────────────────────────────
 
@@ -93,7 +93,7 @@ export function TournamentDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-arena-bg">
+      <div className="flex min-h-svh items-center justify-center" style={{ background: EMBER.base }}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -101,7 +101,7 @@ export function TournamentDetailPage() {
 
   if (error || !tournament) {
     return (
-      <div className="flex min-h-svh flex-col bg-arena-bg">
+      <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
         <PageHeader title="Tournament" showBack />
         <div className="flex flex-1 items-center justify-center px-4">
           <ErrorMessage message="Could not load tournament details." />
@@ -112,10 +112,10 @@ export function TournamentDetailPage() {
 
   // ── Display derivations ───────────────────────────────────────────────────
 
-  const arena         = ARENA_CONFIG[tournament.arena];
-  const gameTypeCfg   = GAME_TYPE_CONFIG[tournament.gameType];
-  const playerCount   = tournament.entryCount ?? 0;
-  const progressPct   = tournament.maxPlayers
+  const arena          = ARENA_CONFIG[tournament.arena];
+  const gameTypeCfg    = GAME_TYPE_CONFIG[tournament.gameType];
+  const playerCount    = tournament.entryCount ?? 0;
+  const progressPct    = tournament.maxPlayers
     ? Math.min((playerCount / tournament.maxPlayers) * 100, 100)
     : 0;
   const effectivelyJoined = tournament.hasJoined || hasJoined;
@@ -129,13 +129,14 @@ export function TournamentDetailPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col min-h-full bg-arena-bg">
+    <div className="flex flex-col min-h-full" style={{ background: EMBER.base }}>
       <PageHeader title={tournament.title} showBack />
 
       <PageContainer size="default" className="py-5 pb-10 space-y-4">
 
         {/* ── 1. Identity — arena + game type ─────────────────────────────── */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* arena category tag — per-arena color stays as category identifier */}
           <span
             className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold text-black"
             style={{ background: arena.color }}
@@ -143,12 +144,13 @@ export function TournamentDetailPage() {
             <ArenaIcon arena={tournament.arena} size={12} />
             {arena.label}
           </span>
+          {/* game-type chip — ember + clipped grammar */}
           <span
-            className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold"
+            className="clip-chip-sm inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold"
             style={{
-              background: `${gameTypeCfg.accent}1A`,
-              color:      gameTypeCfg.accent,
-              border:     `1px solid ${gameTypeCfg.accent}33`,
+              background: 'rgba(232,137,59,0.14)',
+              color:      EMBER.accent,
+              boxShadow:  'inset 0 0 0 1px rgba(232,137,59,0.35)',
             }}
           >
             {gameTypeCfg.icon}
@@ -157,14 +159,17 @@ export function TournamentDetailPage() {
         </div>
 
         {/* ── 2. Prize ladder ──────────────────────────────────────────────── */}
-        <div className="rounded-2xl bg-arena-surface border border-arena-border p-4 space-y-3">
-          <p className="text-[10px] font-semibold text-arena-text-tertiary uppercase tracking-[0.09em]">
+        <div className="clip-card p-4 space-y-3" style={{ background: EMBER.surface }}>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.09em]"
+            style={{ color: EMBER.textTertiary }}
+          >
             Prizes
           </p>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Medal pos={1} />
-              <span className="flex-1 text-sm text-arena-text-secondary">1st place</span>
+              <span className="flex-1 text-sm" style={{ color: EMBER.textSecondary }}>1st place</span>
               <span
                 className="font-display font-bold text-base tabular-nums"
                 style={{ color: '#F5A623' }}
@@ -176,8 +181,8 @@ export function TournamentDetailPage() {
             {tournament.prizeSecond && (
               <div className="flex items-center gap-3">
                 <Medal pos={2} />
-                <span className="flex-1 text-sm text-arena-text-secondary">2nd place</span>
-                <span className="font-display font-semibold text-sm text-arena-text-primary tabular-nums">
+                <span className="flex-1 text-sm" style={{ color: EMBER.textSecondary }}>2nd place</span>
+                <span className="font-display font-semibold text-sm tabular-nums" style={{ color: EMBER.textPrimary }}>
                   ₦{Number(tournament.prizeSecond).toLocaleString()}
                 </span>
               </div>
@@ -186,8 +191,8 @@ export function TournamentDetailPage() {
             {tournament.prizeThird && (
               <div className="flex items-center gap-3">
                 <Medal pos={3} />
-                <span className="flex-1 text-sm text-arena-text-secondary">3rd place</span>
-                <span className="font-display font-semibold text-sm text-arena-text-primary tabular-nums">
+                <span className="flex-1 text-sm" style={{ color: EMBER.textSecondary }}>3rd place</span>
+                <span className="font-display font-semibold text-sm tabular-nums" style={{ color: EMBER.textPrimary }}>
                   ₦{Number(tournament.prizeThird).toLocaleString()}
                 </span>
               </div>
@@ -196,12 +201,15 @@ export function TournamentDetailPage() {
         </div>
 
         {/* ── 3. Players / fill state ───────────────────────────────────────── */}
-        <div className="rounded-2xl bg-arena-surface border border-arena-border p-4 space-y-2.5">
+        <div className="clip-card p-4 space-y-2.5" style={{ background: EMBER.surface }}>
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-semibold text-arena-text-tertiary uppercase tracking-[0.09em]">
+            <p
+              className="text-[10px] font-semibold uppercase tracking-[0.09em]"
+              style={{ color: EMBER.textTertiary }}
+            >
               Players
             </p>
-            <span className="flex items-center gap-1 text-[11px] text-arena-text-secondary tabular-nums">
+            <span className="flex items-center gap-1 text-[11px] tabular-nums" style={{ color: EMBER.textSecondary }}>
               <Users size={11} className="shrink-0" />
               {playerCount}
               {tournament.maxPlayers
@@ -213,11 +221,21 @@ export function TournamentDetailPage() {
           </div>
 
           {tournament.maxPlayers && (
-            <Progress value={progressPct} className="h-1.5" />
+            <div className="h-[3px] overflow-hidden" style={{ background: 'rgba(232,137,59,0.10)', borderRadius: 99 }}>
+              <div
+                className="h-full"
+                style={{
+                  width:        `${progressPct}%`,
+                  background:   'linear-gradient(90deg, #C2541E, #E8893B)',
+                  borderRadius: 99,
+                  transition:   'width 0.4s ease-out',
+                }}
+              />
+            </div>
           )}
 
           {!tournament.maxPlayers && playerCount < tournament.minPlayers && (
-            <p className="text-xs text-arena-text-tertiary">
+            <p className="text-xs" style={{ color: EMBER.textTertiary }}>
               {tournament.minPlayers - playerCount} more player
               {tournament.minPlayers - playerCount !== 1 ? 's' : ''} needed to start
             </p>
@@ -226,8 +244,11 @@ export function TournamentDetailPage() {
 
         {/* ── 4. Your result (only when user has completed their play) ─────── */}
         {hasCompleted && userEntry && (
-          <div className="rounded-2xl bg-arena-surface border border-arena-border p-4 space-y-3">
-            <p className="text-[10px] font-semibold text-arena-text-tertiary uppercase tracking-[0.09em]">
+          <div className="clip-card p-4 space-y-3" style={{ background: EMBER.surface }}>
+            <p
+              className="text-[10px] font-semibold uppercase tracking-[0.09em]"
+              style={{ color: EMBER.textTertiary }}
+            >
               Your result
             </p>
 
@@ -235,43 +256,39 @@ export function TournamentDetailPage() {
               <div>
                 <p
                   className="font-display font-black text-3xl tabular-nums leading-none"
-                  style={{ color: gameTypeCfg.accent }}
+                  style={{ color: EMBER.accent }}
                 >
                   {userEntry.score}
                 </p>
-                <p className="text-[10px] text-arena-text-tertiary mt-0.5">pts</p>
+                <p className="text-[10px] mt-0.5" style={{ color: EMBER.textTertiary }}>pts</p>
               </div>
               {accuracy !== null && (
                 <div>
-                  <p className="font-display font-bold text-xl text-arena-text-primary tabular-nums leading-none">
+                  <p className="font-display font-bold text-xl tabular-nums leading-none" style={{ color: EMBER.textPrimary }}>
                     {accuracy}%
                   </p>
-                  <p className="text-[10px] text-arena-text-tertiary mt-0.5">accuracy</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: EMBER.textTertiary }}>accuracy</p>
                 </div>
               )}
             </div>
 
-            {/* Honest async standing — explicitly framed as partial ("so far"), not final */}
+            {/* Honest async standing */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 10 }}>
               {showRank ? (
                 <div className="flex items-center justify-between">
-                  <span
-                    className="text-[12px] font-semibold"
-                    style={{ color: gameTypeCfg.accent }}
-                  >
+                  <span className="text-[12px] font-semibold" style={{ color: EMBER.accent }}>
                     #{myRank} of {totalFinished} so far
                   </span>
                   {myPrize ? (
-                    <span className="text-[12px] font-semibold text-arena-green">
+                    <span className="text-[12px] font-semibold" style={{ color: EMBER.accentBright }}>
                       In the money · ₦{Number(myPrize).toLocaleString()}
                     </span>
                   ) : (
-                    <span className="text-[12px] text-arena-text-tertiary">Top 3 win cash</span>
+                    <span className="text-[12px]" style={{ color: EMBER.textTertiary }}>Top 3 win cash</span>
                   )}
                 </div>
               ) : isOnlyFinisher ? (
-                // Thin-field: don't present "1st of 1" as a meaningful standing
-                <p className="text-[12px] text-arena-text-tertiary">
+                <p className="text-[12px]" style={{ color: EMBER.textTertiary }}>
                   You've set the pace — standings update as others finish
                 </p>
               ) : null}
@@ -280,25 +297,24 @@ export function TournamentDetailPage() {
         )}
 
         {/* ── 5. Entry fee ─────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between rounded-xl bg-arena-surface border border-arena-border px-4 py-3">
-          <span className="text-sm text-arena-text-tertiary">Entry fee</span>
-          <span className="font-display font-semibold text-sm text-arena-text-primary tabular-nums">
+        <div
+          className="clip-row flex items-center justify-between px-4 py-3"
+          style={{ background: EMBER.surface }}
+        >
+          <span className="text-sm" style={{ color: EMBER.textTertiary }}>Entry fee</span>
+          <span className="font-display font-semibold text-sm tabular-nums" style={{ color: EMBER.textPrimary }}>
             ₦{Number(tournament.entryFee).toLocaleString()}
           </span>
         </div>
 
-        {/* ── 6. Primary CTA (purple — reserved brand-action color) ────────── */}
+        {/* ── 6. Primary CTA — ember ───────────────────────────────────────── */}
         <div className="pt-1">
           {effectivelyJoined ? (
             <button
               onClick={handlePlay}
               disabled={isStarting}
-              className={cn(
-                'w-full h-14 rounded-xl font-display font-semibold text-base text-white',
-                'bg-arena-purple hover:bg-arena-purple-bright',
-                'active:scale-[0.98] active:opacity-90 transition-all select-none',
-                'disabled:opacity-50 disabled:pointer-events-none',
-              )}
+              className="clip-card w-full h-14 font-display font-bold text-base text-white active:scale-[0.98] active:opacity-90 hover:brightness-[1.06] transition-all select-none disabled:opacity-50 disabled:pointer-events-none"
+              style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
             >
               {isStarting ? 'Starting…' : 'Play now'}
             </button>
@@ -306,12 +322,8 @@ export function TournamentDetailPage() {
             <button
               onClick={handleJoin}
               disabled={!canJoin || isJoining}
-              className={cn(
-                'w-full h-14 rounded-xl font-display font-semibold text-base text-white',
-                'bg-arena-purple hover:bg-arena-purple-bright',
-                'active:scale-[0.98] active:opacity-90 transition-all select-none',
-                'disabled:opacity-50 disabled:pointer-events-none',
-              )}
+              className="clip-card w-full h-14 font-display font-bold text-base text-white active:scale-[0.98] active:opacity-90 hover:brightness-[1.06] transition-all select-none disabled:opacity-50 disabled:pointer-events-none"
+              style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
             >
               {isJoining
                 ? 'Joining…'
