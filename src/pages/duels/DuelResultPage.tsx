@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ReportQuestionPicker } from '@/components/common/ReportQuestionPicker';
 import { Particles } from '@/components/common/Particles';
 import { ProgressionReveal } from '@/components/common/ProgressionReveal';
+import { TierBadge } from '@/components/common/TierBadge';
 import { useDuel } from '@/hooks/use-duels';
 import { useDuelStore } from '@/stores/duel.store';
 import { useAuthStore } from '@/stores/auth.store';
@@ -92,7 +93,11 @@ export function DuelResultPage() {
   const forfeited    = result?.forfeited;
   const forfeitedBy  = result?.forfeitedBy;
   const prizeWon    = result?.prizeWon;
-  const progression = result?.myProgression ?? null;
+  const progression  = result?.myProgression ?? null;
+  // Tier badge for MY column — use post-duel rank so it reflects the latest standing.
+  // TODO(BE): opponent's tier requires backend to include opponentProgression or
+  // challengerTier/opponentTier fields in the duel response.
+  const myRankAfter  = result?.myProgression?.rankAfter ?? null;
 
   if (result && !result.myProgression) {
     console.warn('[ProgressionReveal] duel_complete payload missing myProgression — XP reveal will not show', result);
@@ -158,7 +163,7 @@ export function DuelResultPage() {
             {outcomeLabel}
           </p>
           {suddenDeathRounds > 0 && !isTie && (
-            <p className="text-arena-purple-bright text-sm font-medium flex items-center gap-1.5">
+            <p className="text-sm font-medium flex items-center gap-1.5" style={{ color: '#E8893B' }}>
               <Zap className="h-3.5 w-3.5" />
               Decided in sudden death
             </p>
@@ -181,9 +186,14 @@ export function DuelResultPage() {
           <div className="rounded-2xl border border-arena-border bg-arena-surface p-5 animate-result-reveal">
             <div className="flex items-start justify-around">
               <div className="text-center">
-                <p className="text-arena-text-tertiary text-xs mb-2 font-medium">
+                <p className="text-arena-text-tertiary text-xs mb-1.5 font-medium">
                   {myUsername ?? 'You'}
                 </p>
+                {myRankAfter && (
+                  <div className="flex justify-center mb-2">
+                    <TierBadge tier={myRankAfter} size="sm" />
+                  </div>
+                )}
                 {isSuddenDeath ? (
                   <p className={cn('text-sm font-semibold mt-1', iWon ? 'text-arena-win' : 'text-arena-loss')}>
                     {iWon ? `Won on ${eliminatedOn}` : `Eliminated on ${eliminatedOn}`}
@@ -291,7 +301,7 @@ export function DuelResultPage() {
                           {q.questionId ? (
                             <button
                               onClick={() => setReportingQuestion({ id: q.questionId!, index: q.questionIndex })}
-                              className="w-6 text-arena-text-tertiary hover:text-arena-purple-bright transition-colors"
+                              className="w-6 text-arena-text-tertiary hover:text-white/60 transition-colors"
                               title="Report this question"
                             >
                               <Flag className="h-3.5 w-3.5" />
@@ -312,7 +322,8 @@ export function DuelResultPage() {
           <div className="pt-2 space-y-3">
             <Button
               onClick={() => navigate('/duels/create', { state: { mode: duel?.mode, arena: duel?.arena } })}
-              className="w-full h-12 bg-arena-purple hover:bg-arena-purple-bright active:bg-arena-purple-pressed active:scale-[0.98] text-white font-semibold transition-all"
+              className="w-full h-12 text-white font-semibold transition-all active:scale-[0.98] hover:brightness-[1.06]"
+              style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
             >
               Rematch
             </Button>

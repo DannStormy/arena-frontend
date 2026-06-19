@@ -1,93 +1,123 @@
+// NOTE(data): This page currently reads the tournament leaderboard endpoint
+// (/leaderboard). The duel-rank leaderboard requires a separate backend endpoint
+// (e.g. /progression/leaderboard). When that ships, swap the queryFn URL and
+// update the score field name — UI and TierBadge derivation stay the same.
+// TierBadge tier is derived from totalScore using duel-rank thresholds for now;
+// the visual hierarchy is correct once real duel-rank points are in the response.
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
 import { ARENA_CONFIG } from '@/lib/arena-config';
+import { EMBER } from '@/lib/ember';
 import { useAuthStore } from '@/stores/auth.store';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { RankBadge } from '@/components/common/RankBadge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { TierBadge } from '@/components/common/TierBadge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
 import type { LeaderboardEntry } from '@/types/leaderboard.types';
 import type { TournamentArena } from '@/types/tournament.types';
 
 const ARENAS = ['all', ...Object.keys(ARENA_CONFIG)] as const;
 type ArenaFilter = (typeof ARENAS)[number];
 
-const PODIUM_RANK: Record<number, { numColor: string; borderLeft: string; borderGlow: string }> = {
-  1: { numColor: '#F5A623',                 borderLeft: '#F5A623',                  borderGlow: '2px 0 10px rgba(245,166,35,0.4)'  },
-  2: { numColor: 'rgba(255,255,255,0.55)',  borderLeft: 'rgba(255,255,255,0.2)',     borderGlow: 'none'                             },
-  3: { numColor: '#C9774A',                 borderLeft: 'rgba(201,119,74,0.55)',     borderGlow: '2px 0 8px rgba(201,119,74,0.3)'   },
+const PODIUM_COLORS: Record<number, string> = {
+  1: '#F5A623',
+  2: 'rgba(255,255,255,0.40)',
+  3: '#C9774A',
 };
 
 function EntryRow({ entry, rank, isMe }: { entry: LeaderboardEntry; rank: number; isMe: boolean }) {
-  const podium = PODIUM_RANK[rank];
   const isPodium = rank <= 3;
+  const rankColor = PODIUM_COLORS[rank];
+  const leftBarColor = isMe
+    ? EMBER.accent
+    : rankColor ?? 'transparent';
 
   return (
     <div
-      className={cn(
-        'relative flex items-center gap-3 rounded-xl border overflow-hidden',
-        isPodium ? 'p-4' : 'p-3',
-        isMe ? 'bg-arena-purple/10 border-arena-purple/35' : 'bg-arena-surface border-arena-border',
-      )}
+      className="relative clip-row overflow-hidden flex items-center gap-3"
+      style={{
+        minHeight: 48,
+        background: isMe ? 'rgba(232,137,59,0.10)' : EMBER.surface,
+        paddingLeft: 16,
+        paddingRight: 12,
+        paddingTop: 10,
+        paddingBottom: 10,
+      }}
     >
-      {/* Left accent: podium gets tier color, own row gets brand purple */}
-      {(isPodium || isMe) && (
+      {/* Left accent bar */}
+      {(isMe || isPodium) && (
         <div
           className="absolute left-0 top-0 bottom-0 w-[3px]"
-          style={{
-            background: isMe ? '#7C5CFF' : (podium?.borderLeft ?? 'transparent'),
-            boxShadow:  isMe ? '2px 0 10px rgba(124,92,255,0.4)' : (podium?.borderGlow ?? 'none'),
-          }}
+          style={{ background: leftBarColor }}
         />
       )}
 
-      {/* Rank number */}
+      {/* Rank number — fixed 24px slot */}
       <span
-        className={cn(
-          'w-7 text-center shrink-0 tabular-nums font-display',
-          isPodium ? 'text-base font-bold' : 'text-sm font-medium',
-        )}
-        style={{ color: podium?.numColor ?? '#76767F' }}
+        className="font-display font-bold tabular-nums shrink-0 text-center"
+        style={{
+          width: 24,
+          fontSize: isPodium ? 14 : 12,
+          color: rankColor ?? EMBER.textTertiary,
+        }}
       >
         {rank}
       </span>
 
       {/* Avatar */}
-      <Avatar className={isPodium ? 'h-9 w-9' : 'h-8 w-8'}>
-        <AvatarImage src={entry.avatarUrl ?? undefined} />
-        <AvatarFallback
-          className="text-xs font-bold text-white"
-          style={{ background: isMe ? '#7C5CFF' : '#26262F' }}
-        >
-          {entry.username.slice(0, 2).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
+      <div
+        className="clip-avatar flex items-center justify-center shrink-0 font-bold text-xs text-white select-none"
+        style={{
+          width: isPodium ? 36 : 32,
+          height: isPodium ? 36 : 32,
+          background: isMe
+            ? 'linear-gradient(150deg, #E8893B, #C2541E)'
+            : 'rgba(255,255,255,0.06)',
+        }}
+      >
+        {entry.username.slice(0, 2).toUpperCase()}
+      </div>
 
-      {/* Name + subtitle */}
+      {/* Name + YOU tag */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <p className={cn('text-sm font-semibold truncate', isMe ? 'text-arena-purple-bright' : 'text-arena-text-primary')}>
+          <p
+            className="text-sm font-semibold truncate"
+            style={{ color: isMe ? EMBER.accent : EMBER.textPrimary }}
+          >
             {entry.username}
           </p>
           {isMe && (
-            <span className="text-[9px] font-bold text-arena-purple-bright/60 shrink-0 font-display">
+            <span
+              className="text-[9px] font-bold shrink-0 font-display"
+              style={{ color: EMBER.accent, opacity: 0.65 }}
+            >
               YOU
             </span>
           )}
         </div>
-        <p className="text-arena-text-tertiary text-[11px]">{entry.tournamentsPlayed} played</p>
+        <p className="text-[11px]" style={{ color: EMBER.textTertiary }}>
+          {entry.tournamentsPlayed} played
+        </p>
       </div>
 
-      {/* Score + tier badge */}
-      <div className="flex flex-col items-end gap-1.5">
-        <p className={cn('font-display font-bold tabular-nums', isPodium ? 'text-base' : 'text-sm', isMe ? 'text-arena-purple-bright' : 'text-arena-text-primary')}>
+      {/* Fixed right section: TierBadge | score — both in fixed columns for alignment */}
+      <div
+        className="grid shrink-0 items-center"
+        style={{ gridTemplateColumns: '40px 64px', columnGap: 8 }}
+      >
+        <div className="flex justify-center">
+          <TierBadge tier={entry.totalScore ?? 0} size="sm" />
+        </div>
+        <p
+          className="font-display font-bold tabular-nums text-right text-sm"
+          style={{ color: isMe ? EMBER.accent : EMBER.textPrimary }}
+        >
           {(entry.totalScore ?? 0).toLocaleString()}
         </p>
-        <RankBadge score={entry.totalScore ?? 0} size="xs" />
       </div>
     </div>
   );
@@ -95,7 +125,7 @@ function EntryRow({ entry, rank, isMe }: { entry: LeaderboardEntry; rank: number
 
 export function LeaderboardPage() {
   const [arena, setArena] = useState<ArenaFilter>('all');
-  const token = useAuthStore((s) => s.token);
+  const token  = useAuthStore((s) => s.token);
   const userId = useAuthStore((s) => s.user?.id);
 
   const { data: entries, isLoading } = useQuery<LeaderboardEntry[]>({
@@ -112,7 +142,7 @@ export function LeaderboardPage() {
   const isInList = entries?.some((e) => e.userId === userId) ?? false;
 
   return (
-    <div className="flex flex-col min-h-full bg-arena-bg">
+    <div className="flex flex-col min-h-full" style={{ background: EMBER.base }}>
       <PageHeader title="Leaderboard" />
 
       <Tabs
@@ -121,10 +151,19 @@ export function LeaderboardPage() {
         className="flex-col"
       >
         <div className="overflow-x-auto px-4 pb-1">
-          <TabsList className="flex flex-nowrap justify-start bg-arena-surface border border-arena-border h-auto p-1 gap-1 rounded-xl">
+          <TabsList
+            className="flex flex-nowrap justify-start h-auto p-1 gap-1"
+            style={{
+              background: EMBER.surface,
+              border: `1px solid ${EMBER.border}`,
+              borderRadius: 0,
+              clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+            }}
+          >
             <TabsTrigger
               value="all"
-              className="text-xs shrink-0 text-arena-text-tertiary rounded-lg data-active:bg-arena-purple data-active:text-white"
+              className="text-xs shrink-0 rounded-none data-active:text-white"
+              style={{}}
             >
               All arenas
             </TabsTrigger>
@@ -132,7 +171,7 @@ export function LeaderboardPage() {
               <TabsTrigger
                 key={key}
                 value={key}
-                className="text-xs shrink-0 text-arena-text-tertiary rounded-lg data-active:bg-arena-purple data-active:text-white"
+                className="text-xs shrink-0 rounded-none data-active:text-white"
               >
                 {ARENA_CONFIG[key].label}
               </TabsTrigger>
@@ -149,17 +188,20 @@ export function LeaderboardPage() {
 
           {!isLoading && (!entries || entries.length === 0) && (
             <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-              <p className="font-display text-arena-text-primary font-bold text-lg">
+              <p
+                className="font-display font-bold text-lg"
+                style={{ color: EMBER.textPrimary }}
+              >
                 No competitors yet
               </p>
-              <p className="text-arena-text-tertiary text-sm max-w-[240px]">
+              <p className="text-sm max-w-[240px]" style={{ color: EMBER.textTertiary }}>
                 Play a duel to claim the top spot and start your legacy
               </p>
             </div>
           )}
 
           {!isLoading && entries && entries.length > 0 && (
-            <div className="space-y-2 pb-4">
+            <div className="space-y-1.5 pb-4">
               {entries.map((entry, i) => {
                 const rank = entry.rank ?? (i + 1);
                 const isMe = entry.userId === userId;
@@ -169,8 +211,11 @@ export function LeaderboardPage() {
               })}
 
               {!isInList && (
-                <div className="pt-3 mt-1 border-t border-arena-border/40 text-center">
-                  <p className="text-arena-text-tertiary text-xs">
+                <div
+                  className="pt-3 mt-1 text-center"
+                  style={{ borderTop: `1px solid ${EMBER.border}` }}
+                >
+                  <p className="text-xs" style={{ color: EMBER.textTertiary }}>
                     You're not on the board yet — play a duel to climb
                   </p>
                 </div>

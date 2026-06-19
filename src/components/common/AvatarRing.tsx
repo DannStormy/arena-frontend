@@ -61,7 +61,7 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
         <circle
           cx={cx} cy={cy} r={radius}
           fill="none"
-          stroke="rgba(124,92,255,0.18)"
+          stroke="rgba(198,220,232,0.15)"
           strokeWidth={c.sw}
         />
         {/* Progress arc — starts at 12 o'clock */}
@@ -69,7 +69,7 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
           <circle
             cx={cx} cy={cy} r={radius}
             fill="none"
-            stroke="#7C5CFF"
+            stroke="#C6DCE8"
             strokeWidth={c.sw}
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -85,15 +85,15 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
         className="absolute rounded-full overflow-hidden flex items-center justify-center"
         style={{
           top: inset, left: inset, width: c.inner, height: c.inner,
-          background: '#7C5CFF',
+          background: 'rgba(198,220,232,0.15)',
         }}
       >
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
         ) : (
           <span
-            className="font-bold text-white select-none"
-            style={{ fontSize: c.initFontSize }}
+            className="font-bold select-none"
+            style={{ fontSize: c.initFontSize, color: '#DCEAF2' }}
           >
             {initials}
           </span>
@@ -109,8 +109,8 @@ export function AvatarRing({ avatarUrl, initials, intoLevel, nextLevelAt, level,
           height:        c.badge,
           fontSize:      c.badgeFontSize,
           background:    '#0A0A0F',
-          border:        '1px solid rgba(124,92,255,0.6)',
-          color:         '#8E72FF',
+          border:        '1px solid rgba(198,220,232,0.55)',
+          color:         '#C6DCE8',
           letterSpacing: '0.02em',
         }}
       >

@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { RankBadge, getTierFromName, isKnownTier } from '@/components/common/RankBadge';
 import { AvatarRing } from '@/components/common/AvatarRing';
+import { TierBadge, getTierDisplayName, getTierInkColor } from '@/components/common/TierBadge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
@@ -24,6 +24,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { EMBER } from '@/lib/ember';
 
 const bankSchema = z.object({
   bankCode: z.string().min(1, 'Select a bank'),
@@ -32,6 +33,8 @@ const bankSchema = z.object({
 });
 
 type BankFormData = z.infer<typeof bankSchema>;
+
+const TIER_ORDER = ['spectator', 'challenger', 'gladiator', 'champion', 'legend'] as const;
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
@@ -83,7 +86,7 @@ export function ProfilePage() {
     }
   }, [banks, watchedBankCode]);
 
-  // ── Auto-resolve account name ────────────────────────────────────────────────
+  // ── Auto-resolve account name ─────────────────────────────────────────────
 
   const [debouncedAccountNumber, setDebouncedAccountNumber] = useState('');
   const [debouncedBankCode, setDebouncedBankCode] = useState('');
@@ -120,8 +123,6 @@ export function ProfilePage() {
 
   const isAccountNameLocked = resolveReady && (resolving || (!resolveError && !!resolveData));
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-
   const { onChange: onAccountNumberChange, ...accountNumberRest } = register('bankAccountNumber');
 
   const copyReferral = async () => {
@@ -132,159 +133,287 @@ export function ProfilePage() {
 
   const onSubmitBank = (data: BankFormData) => updateBankDetails.mutate(data);
 
-  // ── Derived stats ─────────────────────────────────────────────────────────────
+  // ── Derived progression values ────────────────────────────────────────────
 
-  const currentRank = user?.rank ?? stats?.seasonRank;
-  const initials    = user?.username?.slice(0, 2).toUpperCase() ?? '??';
+  const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
+  const hasRing  = stats?.level != null && stats.intoLevel != null && stats.nextLevelAt != null;
 
+  // Season rank (duel rank)
+  const seasonRank   = stats?.seasonRank ?? null;
+  const seasonPoints = stats?.seasonPoints ?? null;
+
+  const seasonRankFloor = stats?.seasonRankFloor ?? 0;
+  const nextRankAt      = stats?.nextRankAt ?? null;
+
+  const seasonRange = Math.max((nextRankAt ?? 0) - seasonRankFloor, 1);
+  const seasonPct =
+    seasonRank && seasonPoints != null
+      ? Math.min(((seasonPoints - seasonRankFloor) / seasonRange) * 100, 100)
+      : 0;
+
+  const nextTierName = (() => {
+    if (!seasonRank) return null;
+    const idx = TIER_ORDER.findIndex((t) => t === seasonRank.toLowerCase());
+    return idx >= 0 && idx < TIER_ORDER.length - 1
+      ? TIER_ORDER[idx + 1].charAt(0).toUpperCase() + TIER_ORDER[idx + 1].slice(1)
+      : null;
+  })();
+
+  // Demotion shield: within 100 pts of tier floor means player is shielded
+  const isShielded =
+    seasonPoints != null &&
+    seasonRankFloor > 0 &&
+    seasonPoints < seasonRankFloor + 100;
+
+  // XP progress for level bar
+  const xpPct =
+    stats?.level != null && stats.intoLevel != null && stats.nextLevelAt
+      ? Math.min((stats.intoLevel / stats.nextLevelAt) * 100, 100)
+      : 0;
+
+  const allTimeHighestRank = stats?.allTimeHighestRank ?? null;
+
+  const tierInk = seasonRank ? getTierInkColor(seasonRank) : EMBER.textSecondary;
+
+  // Win rate for record block
   const winRate =
     stats?.duelsWon != null && stats?.duelsPlayed
       ? Math.round((stats.duelsWon / stats.duelsPlayed) * 100)
       : null;
 
-  // XP bar (used in level block only — ring has its own inline calc)
-  const xpPct =
-    stats?.level != null && stats?.intoLevel != null && stats?.nextLevelAt
-      ? Math.min((stats.intoLevel / stats.nextLevelAt) * 100, 100)
-      : 0;
-
-  const seasonRange = Math.max((stats?.nextRankAt ?? 0) - (stats?.seasonRankFloor ?? 0), 1);
-  const seasonPct =
-    stats?.seasonRank && stats?.seasonPoints != null
-      ? Math.min(((stats.seasonPoints - (stats.seasonRankFloor ?? 0)) / seasonRange) * 100, 100)
-      : 0;
-
-  const seasonBarColor =
-    stats?.seasonRank && isKnownTier(stats.seasonRank)
-      ? getTierFromName(stats.seasonRank).color + 'CC'
-      : '#6B6B7A';
-
-  // All-time highest rank — may be absent if BE hasn't shipped it yet
-  const allTimeHighestRank = stats?.allTimeHighestRank ?? null;
-
-  // Next-tier label for season block
-  const nextTierName = (() => {
-    const TIERS = ['Spectator', 'Challenger', 'Gladiator', 'Champion', 'Legend'];
-    if (!stats?.seasonRank) return null;
-    const idx = TIERS.findIndex((t) => t.toLowerCase() === stats.seasonRank!.toLowerCase());
-    return idx >= 0 && idx < TIERS.length - 1 ? TIERS[idx + 1] : null;
-  })();
-
-  const hasRing = stats?.level != null && stats.intoLevel != null && stats.nextLevelAt != null;
-
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col min-h-full bg-arena-bg">
       <PageHeader title="Profile" />
 
       <div className="px-4 space-y-3 pb-6">
-        {/* ── Trophy case header ───────────────────────────────────────────── */}
-        <div className="rounded-2xl border border-arena-border bg-arena-surface p-5 flex items-center gap-4">
-          {hasRing ? (
-            <AvatarRing
-              avatarUrl={user?.avatarUrl}
-              initials={initials}
-              intoLevel={stats!.intoLevel!}
-              nextLevelAt={stats!.nextLevelAt!}
-              level={stats!.level!}
-            />
-          ) : (
-            /* Fallback when BE hasn't shipped progression yet */
-            <div
-              className="h-16 w-16 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-              style={{ background: '#7C5CFF', boxShadow: '0 0 0 2px rgba(124,92,255,0.3)' }}
-            >
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span className="font-bold text-xl text-white">{initials}</span>
-              )}
-            </div>
-          )}
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <p className="font-display font-bold text-lg text-arena-text-primary leading-none">
-                {user?.username ?? '—'}
-              </p>
-              {currentRank && isKnownTier(currentRank) && <RankBadge rank={currentRank} size="sm" />}
+        {/* ── Rank hero card ────────────────────────────────────────────────── */}
+        <div
+          className="clip-card relative overflow-hidden"
+          style={{ background: EMBER.surface }}
+        >
+          {/* Ambient room-light — same layer technique as duels hero */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: '-60px -30px -80px -30px',
+              pointerEvents: 'none',
+              filter: 'blur(24px)',
+              background:
+                'radial-gradient(40% 38% at 70% 35%, rgba(232,137,59,0.16), transparent 72%)',
+              zIndex: 0,
+            }}
+          />
+
+          <div className="relative z-10 p-5">
+            {/* Top: avatar | tier badge + labels */}
+            <div className="flex items-start gap-4 mb-5">
+              {/* Avatar — level system (permanent, purple) */}
+              {hasRing ? (
+                <AvatarRing
+                  avatarUrl={user?.avatarUrl}
+                  initials={initials}
+                  intoLevel={stats!.intoLevel!}
+                  nextLevelAt={stats!.nextLevelAt!}
+                  level={stats!.level!}
+                />
+              ) : (
+                <div
+                  className="clip-avatar h-16 w-16 flex items-center justify-center shrink-0 font-bold text-xl text-white select-none"
+                  style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
+                >
+                  {initials}
+                </div>
+              )}
+
+              {/* Tier badge + labels */}
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                {seasonRank ? (
+                  <TierBadge tier={seasonRank} size="lg" />
+                ) : (
+                  <TierBadge tier="spectator" size="lg" />
+                )}
+                <div className="flex-1 min-w-0 pt-1">
+                  <p
+                    className="text-[10px] font-semibold uppercase tracking-[0.12em] mb-0.5"
+                    style={{ color: EMBER.textTertiary }}
+                  >
+                    Duel rank · seasonal
+                  </p>
+                  <p
+                    className="font-display font-bold text-2xl leading-none"
+                    style={{ color: tierInk }}
+                  >
+                    {seasonRank ? getTierDisplayName(seasonRank) : 'Unranked'}
+                  </p>
+                  {seasonPoints != null && (
+                    <p
+                      className="font-display text-sm mt-1 tabular-nums"
+                      style={{ color: EMBER.textSecondary }}
+                    >
+                      {seasonPoints.toLocaleString()} pts
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-            <p className="text-arena-text-tertiary text-xs truncate">{user?.email ?? '—'}</p>
+
+            {/* Username */}
+            <p
+              className="font-display font-bold text-lg leading-none mb-4"
+              style={{ color: EMBER.textPrimary }}
+            >
+              {user?.username ?? '—'}
+            </p>
+
+            {/* Progress to next tier */}
+            {seasonPoints != null && nextRankAt != null && nextTierName && (
+              <div>
+                <div
+                  className="flex items-center justify-between mb-1.5"
+                  style={{ color: EMBER.textTertiary }}
+                >
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.08em]">
+                    → {nextTierName}
+                  </span>
+                  <span className="text-[10px] tabular-nums">
+                    {(nextRankAt - seasonPoints).toLocaleString()} pts away
+                  </span>
+                </div>
+                <div
+                  className="h-[4px] overflow-hidden"
+                  style={{ background: 'rgba(232,137,59,0.15)' }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${seasonPct}%`,
+                      background: `linear-gradient(90deg, ${EMBER.accentDeep}, ${EMBER.accent})`,
+                      transition: 'width 600ms ease-out',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Max rank label */}
+            {seasonRank && !nextTierName && (
+              <p className="text-[10px] mt-1" style={{ color: EMBER.textTertiary }}>
+                Maximum rank reached
+              </p>
+            )}
+
+            {/* Demotion shield indicator */}
+            {isShielded && (
+              <div className="flex items-center gap-1.5 mt-2">
+                <Shield className="h-3 w-3" style={{ color: EMBER.accent }} />
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-[0.08em]"
+                  style={{ color: EMBER.accent }}
+                >
+                  Protected from demotion
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ── Level block ──────────────────────────────────────────────────── */}
+        {/* ── Level block (permanent XP system) ────────────────────────────── */}
         {stats?.level != null && (
-          <div className="rounded-2xl border border-arena-border bg-arena-surface p-4">
-            <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-3">
-              Level
-            </p>
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-display font-bold text-2xl text-arena-text-primary">
+          <div
+            className="clip-card relative overflow-hidden"
+            style={{ background: EMBER.surface }}
+          >
+            <div className="p-4">
+              {/* PERMANENT label — visually distinct from seasonal rank above */}
+              <div className="flex items-center justify-between mb-3">
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-[0.12em]"
+                  style={{ color: 'rgba(198,220,232,0.65)' }}
+                >
+                  Level · permanent
+                </p>
+                {stats.intoLevel != null && stats.nextLevelAt != null && (
+                  <span
+                    className="text-[11px] tabular-nums"
+                    style={{ color: EMBER.textTertiary }}
+                  >
+                    {stats.intoLevel.toLocaleString()} / {stats.nextLevelAt.toLocaleString()} XP
+                  </span>
+                )}
+              </div>
+
+              <p
+                className="font-display font-bold text-3xl leading-none mb-3"
+                style={{ color: EMBER.textPrimary }}
+              >
                 {stats.level}
-              </span>
+              </p>
+
+              {/* XP bar — purple to distinguish from ember rank bar above */}
               {stats.intoLevel != null && stats.nextLevelAt != null && (
-                <span className="text-arena-text-tertiary text-[11px] tabular-nums">
-                  {stats.intoLevel.toLocaleString()} / {stats.nextLevelAt.toLocaleString()} XP
-                </span>
+                <div
+                  className="h-[5px] overflow-hidden"
+                  style={{ background: 'rgba(198,220,232,0.12)' }}
+                >
+                  <div
+                    className="h-full"
+                    style={{
+                      width: `${xpPct}%`,
+                      background: 'linear-gradient(90deg, #A9C5D6, #C6DCE8)',
+                      transition: 'width 600ms ease-out',
+                    }}
+                  />
+                </div>
+              )}
+
+              {stats.lifetimeXp != null && (
+                <p
+                  className="text-[10px] mt-2 tabular-nums"
+                  style={{ color: EMBER.textTertiary }}
+                >
+                  {stats.lifetimeXp.toLocaleString()} lifetime XP
+                </p>
               )}
             </div>
-            <div className="h-[6px] rounded-full bg-arena-elev overflow-hidden">
-              <div className="h-full rounded-full bg-arena-purple" style={{ width: `${xpPct}%` }} />
-            </div>
-            {stats.lifetimeXp != null && (
-              <p className="text-arena-text-tertiary text-[10px] mt-2 tabular-nums">
-                {stats.lifetimeXp.toLocaleString()} lifetime XP
-              </p>
-            )}
           </div>
         )}
 
-        {/* ── Season rank block ────────────────────────────────────────────── */}
-        {stats?.seasonRank && (
-          <div className="rounded-2xl border border-arena-border bg-arena-surface p-4">
-            <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-3">
-              Season rank
-            </p>
-            <div className="flex items-center justify-between mb-2">
-              {isKnownTier(stats.seasonRank) && <RankBadge rank={stats.seasonRank} size="sm" />}
-              {stats.seasonPoints != null && stats.nextRankAt != null && (
-                <span className="text-arena-text-tertiary text-[11px] tabular-nums">
-                  {stats.seasonPoints.toLocaleString()} / {stats.nextRankAt.toLocaleString()} pts
-                </span>
-              )}
-            </div>
-            <div className="h-[4px] rounded-full bg-arena-elev overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${seasonPct}%`, background: seasonBarColor }} />
-            </div>
-            {nextTierName && stats.nextRankAt != null && stats.seasonPoints != null && (
-              <p className="text-arena-text-tertiary text-[10px] mt-2 tabular-nums">
-                {(stats.nextRankAt - stats.seasonPoints).toLocaleString()} pts to {nextTierName}
+        {/* ── All-time peak ─────────────────────────────────────────────────── */}
+        {allTimeHighestRank && (
+          <div
+            className="clip-card"
+            style={{ background: EMBER.surface }}
+          >
+            <div className="p-4 flex items-center gap-4">
+              <TierBadge tier={allTimeHighestRank} size="md" />
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-[0.12em] mb-0.5"
+                  style={{ color: EMBER.textTertiary }}
+                >
+                  All-time peak
+                </p>
+                <p
+                  className="font-display font-bold text-lg leading-none"
+                  style={{ color: getTierInkColor(allTimeHighestRank) }}
+                >
+                  {getTierDisplayName(allTimeHighestRank)}
+                </p>
+              </div>
+              <p
+                className="text-[10px] text-right shrink-0"
+                style={{ color: EMBER.textTertiary }}
+              >
+                Permanent —<br />never resets
               </p>
-            )}
-            {!nextTierName && <p className="text-arena-text-tertiary text-[10px] mt-2">Max rank</p>}
+            </div>
           </div>
         )}
-
-        {/* ── All-time highest rank ─────────────────────────────────────────── */}
-        {allTimeHighestRank ? (
-          <div className="rounded-2xl border border-arena-border bg-arena-surface p-4 flex items-center justify-between">
-            <div>
-              <p className="text-arena-text-tertiary text-[10px] font-semibold uppercase tracking-[0.09em] mb-1.5">
-                All-time best
-              </p>
-              {isKnownTier(allTimeHighestRank) && <RankBadge rank={allTimeHighestRank} size="md" />}
-            </div>
-            <p className="text-arena-text-tertiary text-[10px] text-right max-w-[100px]">
-              Permanent — never resets
-            </p>
-          </div>
-        ) : (
-          /* Visible only until BE ships allTimeHighestRank — comment flags the gap */
-          /* TODO(BE): allTimeHighestRank field not yet in /users/me/stats response */
-          null
-        )}
+        {/* TODO(BE): allTimeHighestRank field not yet confirmed in /users/me/stats response */}
 
         {/* ── Record ───────────────────────────────────────────────────────── */}
         {stats && (
@@ -295,7 +424,6 @@ export function ProfilePage() {
 
             {stats.duelsPlayed != null ? (
               <>
-                {/* Primary: win / loss / tie counts */}
                 <div className="grid grid-cols-3 gap-0 mb-4 pb-4 border-b border-arena-border/40">
                   <div className="text-center border-r border-arena-border/40">
                     <p className="font-display text-arena-win text-2xl font-bold">
@@ -323,7 +451,6 @@ export function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Secondary: win rate / accuracy / streak */}
                 <div className="grid grid-cols-3 gap-0">
                   <div className="text-center border-r border-arena-border/40">
                     <p className="font-display text-arena-text-primary text-base font-bold">
@@ -346,7 +473,6 @@ export function ProfilePage() {
                 </div>
               </>
             ) : (
-              /* Fallback when backend hasn't shipped duel stats yet */
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
                   <p className="font-display text-arena-text-primary text-xl font-bold">
@@ -361,7 +487,7 @@ export function ProfilePage() {
                   <p className="text-arena-text-tertiary text-xs mt-0.5">Questions</p>
                 </div>
                 <div>
-                  <p className="font-display text-arena-purple-bright text-xl font-bold">
+                  <p className="font-display text-xl font-bold" style={{ color: '#C6DCE8' }}>
                     {stats.accuracy}%
                   </p>
                   <p className="text-arena-text-tertiary text-xs mt-0.5">Accuracy</p>
@@ -400,7 +526,7 @@ export function ProfilePage() {
               <Popover open={bankPickerOpen} onOpenChange={setBankPickerOpen}>
                 <PopoverTrigger
                   disabled={banksLoading}
-                  className="h-11 w-full flex items-center justify-between rounded-xl border border-arena-border bg-arena-elev px-3 text-sm text-white disabled:opacity-50 focus:outline-none focus:border-arena-purple/60"
+                  className="h-11 w-full flex items-center justify-between rounded-xl border border-arena-border bg-arena-elev px-3 text-sm text-white disabled:opacity-50 focus:outline-none focus:border-[#A9C5D6]/60"
                 >
                   <span className={selectedBank ? 'text-white' : 'text-arena-text-tertiary'}>
                     {banksLoading ? 'Loading banks…' : (selectedBank?.name ?? 'Select bank')}
@@ -450,7 +576,7 @@ export function ProfilePage() {
                 inputMode="numeric"
                 maxLength={10}
                 placeholder="Account number (10 digits)"
-                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-arena-text-tertiary focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
+                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-arena-text-tertiary focus-visible:ring-[#C6DCE8]/40 focus-visible:border-[#A9C5D6]/60"
               />
               {errors.bankAccountNumber && (
                 <p className="mt-1 text-xs text-arena-red">{errors.bankAccountNumber.message}</p>
@@ -464,7 +590,7 @@ export function ProfilePage() {
                   type="text"
                   placeholder="Account name"
                   readOnly={isAccountNameLocked}
-                  className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-arena-text-tertiary read-only:opacity-60 read-only:cursor-default pr-8 focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
+                  className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-arena-text-tertiary read-only:opacity-60 read-only:cursor-default pr-8 focus-visible:ring-[#C6DCE8]/40 focus-visible:border-[#A9C5D6]/60"
                 />
                 {resolving && (
                   <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
@@ -486,7 +612,8 @@ export function ProfilePage() {
             <Button
               type="submit"
               disabled={isSubmitting || updateBankDetails.isPending}
-              className="w-full h-11 bg-arena-purple hover:bg-arena-purple-bright active:bg-arena-purple-pressed active:scale-[0.98] text-white font-semibold transition-all"
+              className="w-full h-11 text-white font-semibold transition-all active:scale-[0.98] hover:brightness-[1.06]"
+              style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
             >
               {updateBankDetails.isPending ? 'Saving…' : 'Save bank details'}
             </Button>
