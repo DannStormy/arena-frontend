@@ -31,10 +31,13 @@ export function RankBar({ rank, points, nextAt, floor = 0, className }: RankBarP
           <span className="text-[11px] text-arena-text-tertiary">Max rank</span>
         )}
       </div>
-      <div className="h-[3px] rounded-full bg-arena-elev overflow-hidden">
+      <div
+        className="h-[3px] overflow-hidden"
+        style={{ background: 'rgba(232,137,59,0.10)', borderRadius: 99 }}
+      >
         <div
-          className="h-full rounded-full"
-          style={{ width: `${pct}%`, background: `${tier.color}CC` }}
+          className="h-full"
+          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #C2541E, #E8893B)', borderRadius: 99 }}
         />
       </div>
     </div>

@@ -1,13 +1,11 @@
-// NOTE(data): This page reads the tournament leaderboard endpoint (/leaderboard).
-// The duel-rank leaderboard needs a separate backend endpoint (e.g. /progression/leaderboard).
-// When that ships, swap the queryFn URL + score field — UI and TierBadge derivation stay the same.
-// TierBadge derives tier from totalScore using spec thresholds until real duel-rank points arrive.
+// NOTE(data): Reads the duel-rank leaderboard endpoint — GET /leaderboard/duels.
+// This is a GLOBAL per-season duel-rank ledger: there are no per-arena projections,
+// so this board shows no arena selector (the endpoint's `arena` param doesn't filter).
+// `tier` comes straight from the BE row (real duel rank) — no score-derived stopgap.
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
-import { ARENA_CONFIG } from '@/lib/arena-config';
 import { EMBER } from '@/lib/ember';
 import { useAuthStore } from '@/stores/auth.store';
 import { PageHeader } from '@/components/common/PageHeader';
@@ -15,24 +13,11 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import {
   TierBadge,
   TIER_THRESHOLDS,
-  getTierFromScore,
+  normalizeTierName,
   getTierDisplayName,
 } from '@/components/common/TierBadge';
 import type { LeaderboardEntry } from '@/types/leaderboard.types';
-import type { TournamentArena } from '@/types/tournament.types';
-
-// ── Arena filter data ────────────────────────────────────────────────────────
-
-type ArenaFilter = 'all' | TournamentArena;
-
-const ARENA_FILTERS: { value: ArenaFilter; label: string; color: string | null }[] = [
-  { value: 'all', label: 'All arenas', color: null },
-  ...(Object.keys(ARENA_CONFIG) as TournamentArena[]).map((key) => ({
-    value: key as ArenaFilter,
-    label: ARENA_CONFIG[key].label,
-    color: ARENA_CONFIG[key].color,
-  })),
-];
+import type { PaginatedResponse } from '@/types/tournament.types';
 
 // ── Podium styling ───────────────────────────────────────────────────────────
 
@@ -151,17 +136,17 @@ function EntryRow({
           )}
         </div>
         <p style={{ fontSize: 10, color: EMBER.textTertiary, marginTop: 1 }}>
-          {entry.tournamentsPlayed} played
+          {entry.gamesPlayed} played
         </p>
       </div>
 
-      {/* Fixed right section: TierBadge sm | score */}
+      {/* Fixed right section: TierBadge sm | rank points */}
       <div
         className="grid shrink-0 items-center"
         style={{ gridTemplateColumns: '36px 60px', columnGap: 8 }}
       >
         <div className="flex justify-center">
-          <TierBadge tier={entry.totalScore ?? 0} size="sm" />
+          <TierBadge tier={entry.tier} size="sm" />
         </div>
         <p
           className="font-display font-bold tabular-nums text-right"
@@ -170,7 +155,7 @@ function EntryRow({
             color: isMe ? EMBER.accent : EMBER.textPrimary,
           }}
         >
-          {(entry.totalScore ?? 0).toLocaleString()}
+          {(entry.rankPoints ?? 0).toLocaleString()}
         </p>
       </div>
     </div>
@@ -181,8 +166,8 @@ function EntryRow({
 // Shown when the board is empty or sparse — gives the player something
 // aspirational to look at rather than a black void.
 
-function TierLadder({ myScore }: { myScore?: number }) {
-  const myTier = myScore != null ? getTierFromScore(myScore) : null;
+function TierLadder({ myTierName }: { myTierName?: string }) {
+  const myTier = myTierName != null ? normalizeTierName(myTierName) : null;
 
   return (
     <div className="clip-card overflow-hidden" style={{ background: EMBER.surface }}>
@@ -240,17 +225,15 @@ function TierLadder({ myScore }: { myScore?: number }) {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export function LeaderboardPage() {
-  const [arena, setArena] = useState<ArenaFilter>('all');
   const token  = useAuthStore((s) => s.token);
   const userId = useAuthStore((s) => s.user?.id);
 
+  // Duel rank is a GLOBAL per-season ledger — no per-arena filtering.
   const { data: entries, isLoading } = useQuery<LeaderboardEntry[]>({
-    queryKey: queryKeys.leaderboard.global(arena === 'all' ? undefined : arena),
+    queryKey: queryKeys.leaderboard.global(),
     queryFn: async () => {
-      const response = await api.get<LeaderboardEntry[]>('/leaderboard', {
-        params: arena !== 'all' ? { arena } : undefined,
-      });
-      return Array.isArray(response.data) ? response.data : [];
+      const response = await api.get<PaginatedResponse<LeaderboardEntry>>('/leaderboard/duels');
+      return Array.isArray(response.data?.data) ? response.data.data : [];
     },
     enabled: !!token,
   });
@@ -263,46 +246,7 @@ export function LeaderboardPage() {
     <div className="flex flex-col min-h-full" style={{ background: EMBER.base }}>
       <PageHeader title="Leaderboard" />
 
-      {/* ── Filter strip ──────────────────────────────────────────────────── */}
-      <div className="overflow-x-auto px-4 pt-3 pb-3 shrink-0">
-        <div className="flex gap-2 min-w-max">
-          {ARENA_FILTERS.map((f) => {
-            const isActive = arena === f.value;
-            return (
-              <button
-                key={f.value}
-                onClick={() => setArena(f.value)}
-                className="clip-chip-sm flex items-center gap-1.5 shrink-0 px-3 py-1.5 transition-[background,color] duration-150"
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '0.09em',
-                  textTransform: 'uppercase',
-                  background: isActive ? EMBER.accent : EMBER.surface,
-                  color: isActive ? '#08080D' : EMBER.textTertiary,
-                  border: isActive ? 'none' : `1px solid ${EMBER.border}`,
-                }}
-              >
-                {f.color && (
-                  <span
-                    aria-hidden
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: '50%',
-                      background: f.color,
-                      display: 'inline-block',
-                      flexShrink: 0,
-                      opacity: isActive ? 0.6 : 0.8,
-                    }}
-                  />
-                )}
-                {f.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* No arena selector — duel rank is a global per-season ledger, not per-arena. */}
 
       {/* ── Content ───────────────────────────────────────────────────────── */}
       <div className="flex-1 px-4 pb-6">
@@ -330,7 +274,7 @@ export function LeaderboardPage() {
                 Play a duel to stake your claim on the board
               </p>
             </div>
-            <TierLadder myScore={myEntry?.totalScore} />
+            <TierLadder myTierName={myEntry?.tier} />
           </div>
         )}
 
@@ -369,7 +313,7 @@ export function LeaderboardPage() {
                 >
                   Climb the ranks
                 </p>
-                <TierLadder myScore={myEntry?.totalScore} />
+                <TierLadder myTierName={myEntry?.tier} />
               </div>
             )}
           </div>

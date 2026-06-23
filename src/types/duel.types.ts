@@ -155,6 +155,11 @@ export interface ProgressionData {
   firstDuelOfDayBonus?: number;
 }
 
+export interface OpponentProgression {
+  tier: string;
+  rankPoints: number;
+}
+
 export interface DuelCompletePayload {
   winnerId: string | null;
   isTie: boolean;
@@ -165,6 +170,7 @@ export interface DuelCompletePayload {
   prizeWon: string;
   suddenDeathRounds?: number;
   myProgression?: ProgressionData;
+  opponentProgression?: OpponentProgression | null;
 }
 
 export interface DuelForfeitedPayload {

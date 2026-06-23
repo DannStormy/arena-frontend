@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProgressionData } from '@/types/duel.types';
+import { EMBER } from '@/lib/ember';
 
 // Durations (ms)
 const XP_FILL   = 800;
@@ -147,9 +148,8 @@ export function ProgressionReveal({ data }: { data: ProgressionData }) {
   return (
     <div
       className="clip-card p-4 space-y-4"
-      style={{ background: '#120F0C' }}
       onClick={settled ? undefined : jumpToEnd}
-      style={{ cursor: settled ? 'default' : 'pointer', userSelect: 'none' }}
+      style={{ background: '#120F0C', cursor: settled ? 'default' : 'pointer', userSelect: 'none' }}
     >
       {/* XP row */}
       <div className="space-y-1.5">
@@ -197,13 +197,13 @@ export function ProgressionReveal({ data }: { data: ProgressionData }) {
               {rankAfter}
             </span>
             {rankFlash && (
-              <span className="text-arena-win text-[10px] font-bold animate-result-reveal">
+              <span className="text-[10px] font-bold animate-result-reveal" style={{ color: EMBER.accent }}>
                 {rankFlash}
               </span>
             )}
           </div>
           <span className="text-arena-text-tertiary text-[11px] tabular-nums">
-            +{spDisplay} pts
+            {spDisplay >= 0 ? '+' : '−'}{Math.abs(spDisplay)} pts
           </span>
         </div>
 
