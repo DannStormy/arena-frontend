@@ -15,6 +15,7 @@ import { TournamentDetailPage } from '@/pages/tournament/TournamentDetailPage';
 import { TournamentLeaderboardPage } from '@/pages/tournament/TournamentLeaderboardPage';
 import { GamePage } from '@/pages/game/GamePage';
 import { GameResultPage } from '@/pages/game/GameResultPage';
+import { SpeedMathPage } from '@/pages/game/SpeedMathPage';
 import { WalletPage } from '@/pages/wallet/WalletPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { LeaderboardPage } from '@/pages/leaderboard/LeaderboardPage';
@@ -32,6 +33,9 @@ import { JoinDuelPage } from '@/pages/duels/JoinDuelPage';
 import { DuelGamePage } from '@/pages/duels/DuelGamePage';
 import { DuelResultPage } from '@/pages/duels/DuelResultPage';
 import { ChallengePreviewPage } from '@/pages/duels/ChallengePreviewPage';
+import { AsyncDuelStartPage } from '@/pages/async/AsyncDuelStartPage';
+import { AsyncDuelPlayPage } from '@/pages/async/AsyncDuelPlayPage';
+import { AsyncDuelResultPage } from '@/pages/async/AsyncDuelResultPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +68,7 @@ export function App() {
               <Route path="/duels" element={<DuelsPage />} />
             </Route>
 
+            <Route path="/play/speed-math" element={<SpeedMathPage />} />
             <Route path="/game/:sessionId" element={<GamePage />} />
             <Route path="/game/:sessionId/result" element={<GameResultPage />} />
             <Route path="/duels/create" element={<CreateDuelPage />} />
@@ -71,6 +76,10 @@ export function App() {
             <Route path="/duels/:code/waiting" element={<DuelWaitingPage />} />
             <Route path="/duels/:id/play" element={<DuelGamePage />} />
             <Route path="/duels/:id/result" element={<DuelResultPage />} />
+
+            {/* Async duels (milestone 2) — start picker + resolved result */}
+            <Route path="/async/new" element={<AsyncDuelStartPage />} />
+            <Route path="/async/:id/result" element={<AsyncDuelResultPage />} />
           </Route>
 
           <Route element={<ProtectedRoute adminOnly />}>
@@ -86,6 +95,9 @@ export function App() {
           </Route>
 
           <Route path="/duels/:code" element={<ChallengePreviewPage />} />
+
+          {/* Async-duel play link — self-gates auth so shared links work logged-out */}
+          <Route path="/async/:code" element={<AsyncDuelPlayPage />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -17,12 +17,22 @@ export const queryKeys = {
     nextQuestion: (id: string) => ['game-sessions', id, 'next-question'] as const,
     sessionQuestions: (id: string) => ['game-sessions', id, 'questions'] as const,
   },
+  challenges: {
+    all: ['challenges'] as const,
+    practice: (mode: string, difficulty: number) =>
+      ['challenges', 'practice', mode, difficulty] as const,
+  },
   duels: {
     all: ['duels'] as const,
     history: ['duels', 'history'] as const,
     historyInfinite: ['duels', 'history', 'infinite'] as const,
     detail: (id: string) => ['duels', id] as const,
     byCode: (code: string) => ['duels', 'code', code] as const,
+  },
+  asyncDuels: {
+    all: ['async-duels'] as const,
+    set: (code: string) => ['async-duels', 'set', code] as const,
+    result: (id: string) => ['async-duels', 'result', id] as const,
   },
   admin: {
     stats: ['admin', 'stats'] as const,

@@ -271,6 +271,86 @@ export function HomePage() {
           </Link>
         </div>
 
+        {/* ── 3a. Async duels — challenge a friend / quick ghost match ─────── */}
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            to="/async/new?intent=friend"
+            className="clip-row relative flex flex-col justify-center gap-1 px-4 py-3 active:opacity-90 transition-opacity"
+            style={{ background: EMBER.surface }}
+          >
+            <div
+              className="absolute left-0 top-0 bottom-0 w-[3px]"
+              style={{ background: EMBER.accent }}
+            />
+            <div
+              className="flex items-center justify-center"
+              style={{ width: 32, height: 32, background: 'rgba(232,137,59,0.13)' }}
+            >
+              <Swords className="h-4 w-4" style={{ color: EMBER.accent }} />
+            </div>
+            <p className="mt-1 text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+              Challenge a friend
+            </p>
+            <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+              Share a link · async
+            </p>
+          </Link>
+          <Link
+            to="/async/new?intent=quick"
+            className="clip-row relative flex flex-col justify-center gap-1 px-4 py-3 active:opacity-90 transition-opacity"
+            style={{ background: EMBER.surface }}
+          >
+            <div
+              className="absolute left-0 top-0 bottom-0 w-[3px]"
+              style={{ background: EMBER.accentBright }}
+            />
+            <div
+              className="flex items-center justify-center"
+              style={{ width: 32, height: 32, background: 'rgba(240,176,90,0.13)' }}
+            >
+              <Zap className="h-4 w-4" style={{ color: EMBER.accentBright }} />
+            </div>
+            <p className="mt-1 text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+              Quick match
+            </p>
+            <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+              Beat a ghost run
+            </p>
+          </Link>
+        </div>
+
+        {/* ── 3b. Solo practice — Speed Math ───────────────────────────────── */}
+        <Link
+          to="/play/speed-math"
+          className="clip-row relative flex items-center gap-3 px-4 py-3 active:opacity-90 transition-opacity"
+          style={{ background: EMBER.surface }}
+        >
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[3px]"
+            style={{ background: EMBER.accentBright }}
+          />
+          <div
+            className="flex items-center justify-center shrink-0 pl-1"
+            style={{ width: 36, height: 36 }}
+          >
+            <div
+              className="flex items-center justify-center"
+              style={{ width: 32, height: 32, background: 'rgba(240,176,90,0.13)' }}
+            >
+              <Zap className="h-4 w-4" style={{ color: EMBER.accentBright }} />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+              Speed Math practice
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
+              Solo · no stakes · beat the clock
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
+        </Link>
+
         {/* ── 4. Recent form ──────────────────────────────────────────────── */}
         {showRecentForm && (
           <div>
