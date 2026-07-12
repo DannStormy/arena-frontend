@@ -83,6 +83,8 @@ export interface AsyncDuelProgressionSnapshot {
 
 export interface AsyncDuelSideResult {
   userId: string | null;
+  /** Display name for this side; null in edge cases (e.g. awaiting opponent). */
+  username: string | null;
   score: number;
   correct: number;
   elapsedMs: number;
@@ -93,6 +95,7 @@ export interface AsyncDuelSideResult {
 export interface AsyncDuelResult {
   id: string;
   code: string;
+  mode: ChallengeMode;
   matchType: AsyncDuelMatchType;
   status: AsyncDuelStatus;
   winnerId: string | null;

@@ -13,6 +13,7 @@ import type {
   AsyncDuelResult,
   AsyncDuelSideResult,
 } from '@/types/async-duel.types';
+import type { ChallengeMode } from '@/types/challenge.types';
 import type { ProgressionData } from '@/types/duel.types';
 
 // Backend ProgressionSnapshot → the ProgressionData shape ProgressionReveal wants.
@@ -90,14 +91,22 @@ export function AsyncDuelResultPage() {
 
   // Shareable challenge/rematch link — same code the M2 waiting screen shares.
   const challengeUrl = `${window.location.origin}/async/${data.code}`;
-  const opponentLabel = isGhost ? 'the ghost' : 'my opponent';
+  const modeLabel = challengeModeLabel(data.mode);
+  // Prefer the opponent's real name; fall back to a generic label (and never
+  // render "@null"/"@undefined") when the backend couldn't resolve a username.
+  const opponentName = them.username?.trim() || null;
+  const opponentLabel = opponentName
+    ? `@${opponentName}`
+    : isGhost
+      ? 'the ghost'
+      : 'my opponent';
   const shareHeadline = data.isTie ? 'Draw' : iWon ? 'Victory' : 'Defeat';
   const shareAccent = iLost ? EMBER.lossInk : EMBER.accentBright;
   const shareText = iWon
     ? `I beat ${opponentLabel} ${me.score}–${them.score} on Arena — think you can beat me? ${challengeUrl}`
     : data.isTie
-      ? `Dead heat ${me.score}–${them.score} on Arena — settle it: ${challengeUrl}`
-      : `${them.score}–${me.score}… I want a rematch on Arena: ${challengeUrl}`;
+      ? `Dead heat with ${opponentLabel} ${me.score}–${them.score} on Arena — settle it: ${challengeUrl}`
+      : `${opponentLabel} beat me ${them.score}–${me.score}… I want a rematch on Arena: ${challengeUrl}`;
 
   return (
     <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
@@ -157,14 +166,17 @@ export function AsyncDuelResultPage() {
             shareUrl={challengeUrl}
             card={{
               variant: 'duel',
-              eyebrow: isGhost ? 'Ghost match' : 'Duel',
+              eyebrow: modeLabel,
               headline: shareHeadline,
               subhead: `${me.score.toLocaleString()} – ${them.score.toLocaleString()}`,
               accent: shareAccent,
               cta: iWon ? 'Can you beat me?' : 'Rematch me →',
               stats: [
                 { label: 'You', value: me.score.toLocaleString() },
-                { label: isGhost ? 'Ghost' : 'Them', value: them.score.toLocaleString() },
+                {
+                  label: opponentName ?? (isGhost ? 'Ghost' : 'Them'),
+                  value: them.score.toLocaleString(),
+                },
               ],
             }}
           />
@@ -352,6 +364,17 @@ function ScoreCell({
       </p>
     </div>
   );
+}
+
+function challengeModeLabel(mode: ChallengeMode): string {
+  switch (mode) {
+    case 'speed_math':
+      return 'Speed Math';
+    case 'brain_duel':
+      return 'Brain Duel';
+    default:
+      return 'Duel';
+  }
 }
 
 function resolutionLabel(r: string): string {
