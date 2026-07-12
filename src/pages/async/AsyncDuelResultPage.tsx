@@ -6,6 +6,7 @@ import { useAsyncDuelResult } from '@/hooks/use-async-duels';
 import { useAuthStore } from '@/stores/auth.store';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ProgressionReveal } from '@/components/common/ProgressionReveal';
+import { ShareButton } from '@/components/share/ShareButton';
 import { EMBER } from '@/lib/ember';
 import type {
   AsyncDuelProgressionSnapshot,
@@ -87,6 +88,17 @@ export function AsyncDuelResultPage() {
   const outcome = data.isTie ? 'Draw' : iWon ? 'You win' : iLost ? 'You lose' : 'Result';
   const outcomeColor = iWon ? EMBER.accentBright : iLost ? EMBER.lossInk : EMBER.textSecondary;
 
+  // Shareable challenge/rematch link — same code the M2 waiting screen shares.
+  const challengeUrl = `${window.location.origin}/async/${data.code}`;
+  const opponentLabel = isGhost ? 'the ghost' : 'my opponent';
+  const shareHeadline = data.isTie ? 'Draw' : iWon ? 'Victory' : 'Defeat';
+  const shareAccent = iLost ? EMBER.lossInk : EMBER.accentBright;
+  const shareText = iWon
+    ? `I beat ${opponentLabel} ${me.score}–${them.score} on Arena — think you can beat me? ${challengeUrl}`
+    : data.isTie
+      ? `Dead heat ${me.score}–${them.score} on Arena — settle it: ${challengeUrl}`
+      : `${them.score}–${me.score}… I want a rematch on Arena: ${challengeUrl}`;
+
   return (
     <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col px-5 pb-8 pt-10">
@@ -135,9 +147,32 @@ export function AsyncDuelResultPage() {
 
         <div className="flex-1" />
 
+        {/* Branded share card + share (drives new players via the challenge link) */}
+        <div className="mt-8">
+          <ShareButton
+            preview
+            fileName="arena-duel"
+            label={iWon ? 'Share the win' : 'Share · rematch'}
+            shareText={shareText}
+            shareUrl={challengeUrl}
+            card={{
+              variant: 'duel',
+              eyebrow: isGhost ? 'Ghost match' : 'Duel',
+              headline: shareHeadline,
+              subhead: `${me.score.toLocaleString()} – ${them.score.toLocaleString()}`,
+              accent: shareAccent,
+              cta: iWon ? 'Can you beat me?' : 'Rematch me →',
+              stats: [
+                { label: 'You', value: me.score.toLocaleString() },
+                { label: isGhost ? 'Ghost' : 'Them', value: them.score.toLocaleString() },
+              ],
+            }}
+          />
+        </div>
+
         <button
           onClick={() => navigate('/')}
-          className="clip-card mt-8 flex h-14 w-full items-center justify-center gap-2 font-display text-base font-bold text-white transition-all active:scale-[0.98]"
+          className="clip-card mt-3 flex h-14 w-full items-center justify-center gap-2 font-display text-base font-bold text-white transition-all active:scale-[0.98]"
           style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
         >
           <Home size={18} /> Home

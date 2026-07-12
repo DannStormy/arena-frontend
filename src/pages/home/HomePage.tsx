@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { AlertTriangle, LayoutGrid, Check, Swords, ChevronRight, Zap } from 'lucide-react';
+import { AlertTriangle, LayoutGrid, Check, Swords, ChevronRight, Zap, Trophy } from 'lucide-react';
 import { useTournaments } from '@/hooks/use-tournaments';
 import { useDuelHistory } from '@/hooks/use-duels';
 import { useUserStats } from '@/hooks/use-user';
+import { useStreak } from '@/hooks/use-streak';
 import { useAuthStore } from '@/stores/auth.store';
 import { ARENA_CONFIG } from '@/lib/arena-config';
 import { ARENA_LUCIDE_ICONS } from '@/lib/arena-icons';
@@ -12,8 +13,9 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageContainer } from '@/components/common/PageContainer';
 import { AvatarRing } from '@/components/common/AvatarRing';
-import { TierBadge } from '@/components/common/TierBadge';
+import { TierBadge, getTierDisplayName, normalizeTierName } from '@/components/common/TierBadge';
 import { RankBar } from '@/components/common/RankBar';
+import { StreakBanner } from '@/components/common/StreakBanner';
 import type { Tournament, TournamentArena } from '@/types/tournament.types';
 import type { DuelHistoryItem } from '@/types/duel.types';
 
@@ -128,6 +130,7 @@ export function HomePage() {
   const myId  = user?.id ?? '';
   const { data: stats }        = useUserStats();
   const { data: history }      = useDuelHistory();
+  const { data: streak }       = useStreak();
   const {
     data: tournaments,
     isLoading: tournamentsLoading,
@@ -216,6 +219,9 @@ export function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* ── 1b. Daily streak (retention) ────────────────────────────────── */}
+        {streak && <StreakBanner streak={streak} />}
 
         {/* ── 2. Daily bonus nudge (conditional) ──────────────────────────── */}
         {showDailyNudge && (
@@ -349,6 +355,48 @@ export function HomePage() {
             </p>
           </div>
           <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
+        </Link>
+
+        {/* ── 3c. Leaderboard entry point ─────────────────────────────────── */}
+        <Link
+          to="/leaderboard"
+          className="clip-row relative flex items-center gap-3 px-4 py-3 active:opacity-90 transition-opacity"
+          style={{ background: EMBER.surface }}
+        >
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[3px]"
+            style={{ background: EMBER.accent }}
+          />
+          <div
+            className="flex items-center justify-center shrink-0 pl-1"
+            style={{ width: 36, height: 36 }}
+          >
+            <div
+              className="flex items-center justify-center"
+              style={{ width: 32, height: 32, background: 'rgba(232,137,59,0.13)' }}
+            >
+              <Trophy className="h-4 w-4" style={{ color: EMBER.accent }} />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+              Leaderboard
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
+              {currentRank
+                ? `You're ${getTierDisplayName(normalizeTierName(currentRank))}${
+                    stats?.seasonPoints != null
+                      ? ` · ${stats.seasonPoints.toLocaleString()} pts`
+                      : ''
+                  }`
+                : 'See where you rank this season'}
+            </p>
+          </div>
+          {currentRank ? (
+            <TierBadge tier={currentRank} size="sm" />
+          ) : (
+            <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
+          )}
         </Link>
 
         {/* ── 4. Recent form ──────────────────────────────────────────────── */}

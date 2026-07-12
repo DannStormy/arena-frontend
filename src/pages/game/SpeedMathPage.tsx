@@ -4,6 +4,7 @@ import { RotateCcw, X, Zap } from 'lucide-react';
 import { usePracticeSet, useValidateAnswer } from '@/hooks/use-challenges';
 import { ChallengePlayer } from '@/components/game/ChallengePlayer';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ShareButton } from '@/components/share/ShareButton';
 import { EMBER } from '@/lib/ember';
 import type { Challenge, ChallengeSetResponse } from '@/types/challenge.types';
 
@@ -142,10 +143,30 @@ export function SpeedMathPage() {
             </p>
           </div>
         </div>
+        {/* Branded share card + Share button — the viral loop */}
+        <div className="mt-8 w-full max-w-xs">
+          <ShareButton
+            preview
+            fileName="arena-speed-math"
+            label="Share result"
+            shareText={`I scored ${score.toLocaleString()} on Arena Speed Math (${correctCount}/${total} correct) — think you can beat me?`}
+            card={{
+              variant: 'speed_math',
+              eyebrow: 'Speed Math',
+              headline: score.toLocaleString(),
+              subhead: 'points',
+              accent: ACCENT,
+              stats: [
+                { label: 'Correct', value: `${correctCount}/${total}` },
+                { label: 'Accuracy', value: `${accuracy}%` },
+              ],
+            }}
+          />
+        </div>
         <button
           onClick={() => void startSet()}
           disabled={practiceSet.isPending}
-          className="clip-card mt-8 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+          className="clip-card mt-3 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
           style={{ background: 'linear-gradient(150deg, #F0B05A, #C2541E)' }}
         >
           {practiceSet.isPending ? (
