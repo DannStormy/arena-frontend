@@ -10,13 +10,17 @@ import {
   SHARE_CARD_WIDTH,
   type ShareCardStat,
   type ShareCardVariant,
+  type ShareCardOutcome,
 } from './ShareCard';
 
 export interface ShareCardData {
   variant: ShareCardVariant;
+  outcome?: ShareCardOutcome;
   eyebrow: string;
+  kicker?: string;
   headline: string;
   subhead?: string;
+  badge?: string;
   stats?: ShareCardStat[];
   accent?: string;
   cta?: string;

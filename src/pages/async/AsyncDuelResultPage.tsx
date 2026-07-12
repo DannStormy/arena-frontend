@@ -100,8 +100,18 @@ export function AsyncDuelResultPage() {
     : isGhost
       ? 'the ghost'
       : 'my opponent';
-  const shareHeadline = data.isTie ? 'Draw' : iWon ? 'Victory' : 'Defeat';
-  const shareAccent = iLost ? EMBER.lossInk : EMBER.accentBright;
+  const duelOutcome = data.isTie ? 'draw' : iWon ? 'win' : 'loss';
+  const shareBadge = data.isTie ? 'Dead heat' : iWon ? 'Victory' : 'Got clipped';
+  const shareKicker = iWon
+    ? `I beat ${opponentLabel}`
+    : data.isTie
+      ? `Dead heat vs ${opponentLabel}`
+      : `${opponentLabel} clipped me`;
+  const shareCta = iWon
+    ? 'Think you can beat me? 👀'
+    : data.isTie
+      ? 'Settle it — run it back 🔁'
+      : 'Run it back 🔁';
   const shareText = iWon
     ? `I beat ${opponentLabel} ${me.score}–${them.score} on Arena — think you can beat me? ${challengeUrl}`
     : data.isTie
@@ -166,11 +176,12 @@ export function AsyncDuelResultPage() {
             shareUrl={challengeUrl}
             card={{
               variant: 'duel',
+              outcome: duelOutcome,
               eyebrow: modeLabel,
-              headline: shareHeadline,
-              subhead: `${me.score.toLocaleString()} – ${them.score.toLocaleString()}`,
-              accent: shareAccent,
-              cta: iWon ? 'Can you beat me?' : 'Rematch me →',
+              kicker: shareKicker,
+              headline: `${me.score.toLocaleString()}–${them.score.toLocaleString()}`,
+              badge: shareBadge,
+              cta: shareCta,
               stats: [
                 { label: 'You', value: me.score.toLocaleString() },
                 {
