@@ -53,7 +53,7 @@ export function LoginPage() {
     <AuthShell>
       <div className="mb-5">
         <h2 className="font-display text-xl font-bold text-arena-text-primary">Welcome back</h2>
-        <p className="mt-0.5 text-sm text-arena-text-secondary">Your streak is waiting. 🔥</p>
+        <p className="mt-0.5 text-sm text-arena-text-secondary">Your streak is waiting.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

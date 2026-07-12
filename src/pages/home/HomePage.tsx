@@ -251,9 +251,9 @@ export function HomePage() {
                 <span className="font-display font-bold text-xs uppercase tracking-[0.14em]">Quick Duel</span>
               </div>
               <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
-                Jump in.<br />Beat someone now.
+                Beat someone<br />right now.
               </p>
-              <p className="text-white/85 text-sm mt-1.5">Head-to-head. Bank the points. ⚡</p>
+              <p className="text-white/85 text-sm mt-1.5">Head-to-head. Winner takes the points.</p>
               <span
                 className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-bold text-sm"
                 style={{ padding: '8px 16px', color: '#C2541E', background: '#fff' }}
@@ -398,7 +398,7 @@ export function HomePage() {
                 Speed Math practice
               </p>
               <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
-                Just you vs the clock. Bank the points. ⚡
+                Just you vs the clock.
               </p>
             </div>
             <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />

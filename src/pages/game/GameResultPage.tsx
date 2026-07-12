@@ -81,7 +81,7 @@ export function GameResultPage() {
     : 0;
 
   const handleShare = async () => {
-    const text = `I scored ${finalScore ?? 0} points in Arena! Can you beat me?`;
+    const text = `I scored ${finalScore ?? 0} points on Arena. Beat that.`;
     if (navigator.share) {
       await navigator.share({ text, url: window.location.origin });
     } else {

@@ -149,19 +149,19 @@ export function SpeedMathPage() {
             preview
             fileName="arena-speed-math"
             label="Share result"
-            shareText={`I scored ${score.toLocaleString()} on Arena Speed Math (${correctCount}/${total} correct) — think you can beat me?`}
+            shareText={`I scored ${score.toLocaleString()} on Arena Speed Math (${correctCount}/${total} correct). Beat that.`}
             card={{
               variant: 'speed_math',
               outcome: 'solo',
               eyebrow: 'Speed Math',
-              kicker: 'I banked ⚡',
+              kicker: 'I banked',
               headline: score.toLocaleString(),
               subhead: 'points banked',
               stats: [
                 { label: 'Correct', value: `${correctCount}/${total}` },
                 { label: 'Accuracy', value: `${accuracy}%` },
               ],
-              cta: 'Think you can beat me? 👀',
+              cta: 'Beat that.',
             }}
           />
         </div>

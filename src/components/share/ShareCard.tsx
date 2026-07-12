@@ -392,7 +392,7 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
             boxShadow: `0 0 44px ${HOT_PINK}44`,
           }}
         >
-          {cta ?? 'Think you can beat me? 👀'}
+          {cta ?? 'Beat that.'}
         </div>
       </div>
 

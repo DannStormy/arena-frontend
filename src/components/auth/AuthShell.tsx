@@ -47,7 +47,7 @@ function AuthHero() {
         Sharpest mind wins.
       </h1>
       <p className="mt-1.5 text-sm font-medium text-arena-text-secondary">
-        Outsmart. Outspeed. Bank the points. ⚡
+        Fast head-to-head brain games. No luck.
       </p>
 
       {/* Value-prop chip — an honest positioning line, NOT a fabricated user

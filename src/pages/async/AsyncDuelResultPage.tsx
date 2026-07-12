@@ -108,15 +108,15 @@ export function AsyncDuelResultPage() {
       ? `Dead heat vs ${opponentLabel}`
       : `${opponentLabel} clipped me`;
   const shareCta = iWon
-    ? 'Think you can beat me? 👀'
+    ? 'Beat that.'
     : data.isTie
-      ? 'Settle it — run it back 🔁'
-      : 'Run it back 🔁';
+      ? 'Settle it — run it back.'
+      : 'Run it back.';
   const shareText = iWon
-    ? `I beat ${opponentLabel} ${me.score}–${them.score} on Arena — think you can beat me? ${challengeUrl}`
+    ? `I beat ${opponentLabel} ${me.score}–${them.score} on Arena. Beat that: ${challengeUrl}`
     : data.isTie
       ? `Dead heat with ${opponentLabel} ${me.score}–${them.score} on Arena — settle it: ${challengeUrl}`
-      : `${opponentLabel} beat me ${them.score}–${me.score}… I want a rematch on Arena: ${challengeUrl}`;
+      : `${opponentLabel} beat me ${them.score}–${me.score} on Arena. Run it back: ${challengeUrl}`;
 
   return (
     <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
@@ -236,7 +236,7 @@ function WaitingScreen({
   };
 
   const share = async () => {
-    const text = `I scored ${me.score} on Arena — think you can beat me?`;
+    const text = `I scored ${me.score} on Arena. Beat that.`;
     try {
       if (navigator.share) {
         await navigator.share({ title: 'Arena Challenge', text, url: shareUrl });
