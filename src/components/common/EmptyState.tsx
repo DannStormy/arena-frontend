@@ -22,7 +22,7 @@ export function EmptyState({ title, description, icon, cta, className }: EmptySt
       {cta && (
         <button
           onClick={cta.onClick}
-          className="mt-1 text-sm text-arena-purple-bright font-medium hover:underline transition-colors"
+          className="mt-1 text-sm text-arena-accent-bright font-medium hover:underline transition-colors"
         >
           {cta.label}
         </button>

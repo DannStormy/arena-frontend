@@ -14,7 +14,7 @@ interface SegmentedControlProps {
 }
 
 /**
- * Segmented control with active state baked in (brand-purple pill).
+ * Segmented control with active state baked in (brand-accent pill).
  * Uses base-ui's data-active attribute pattern — data-active:* selectors.
  */
 export function SegmentedControl({ value, onValueChange, options, className }: SegmentedControlProps) {
@@ -37,7 +37,7 @@ export function SegmentedControl({ value, onValueChange, options, className }: S
             className={cn(
               'inline-flex items-center gap-1 shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
               isActive
-                ? 'bg-arena-purple text-white'
+                ? 'bg-arena-accent text-white'
                 : 'text-arena-text-tertiary hover:text-arena-text-secondary',
             )}
           >

@@ -1,5 +1,5 @@
 // AvatarRing — SVG level-progress ring wrapping the "you" avatar.
-// Purple track + arc; level badge pinned at bottom of the ring.
+// Accent track + arc; level badge pinned at bottom of the ring.
 // Size 'md' = 88px outer (profile, home hero). Size 'sm' = 44px outer (header).
 // animated=true: arc fills from empty on mount once (~600ms). Respects prefers-reduced-motion.
 

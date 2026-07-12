@@ -9,7 +9,7 @@ interface TierConfig {
 export const RANK_TIERS: TierConfig[] = [
   { name: 'Legend',     minScore: 3001, color: '#FF7043', bg: 'rgba(255,112,67,0.12)',   border: 'rgba(255,112,67,0.4)'   },
   { name: 'Champion',   minScore: 1501, color: '#F5A623', bg: 'rgba(245,166,35,0.12)',   border: 'rgba(245,166,35,0.4)'   },
-  { name: 'Gladiator',  minScore:  501, color: '#7C5CFF', bg: 'rgba(124,92,255,0.12)',   border: 'rgba(124,92,255,0.4)'   },
+  { name: 'Gladiator',  minScore:  501, color: '#D4664C', bg: 'rgba(212,102,76,0.12)',   border: 'rgba(212,102,76,0.4)'   },
   { name: 'Challenger', minScore:    1, color: '#4F9CF0', bg: 'rgba(79,156,240,0.12)',   border: 'rgba(79,156,240,0.3)'   },
   { name: 'Spectator',  minScore:    0, color: '#76767F', bg: 'rgba(118,118,127,0.10)', border: 'rgba(118,118,127,0.25)' },
 ];

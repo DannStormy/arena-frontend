@@ -98,7 +98,7 @@ export function DuelHUD({
         <div className="flex-1 flex items-center gap-2.5 min-w-0">
           <div
             className="h-9 w-9 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-            style={{ background: '#7C5CFF' }}
+            style={{ background: '#E8893B' }}
           >
             {myAvatarUrl ? (
               <img src={myAvatarUrl} alt="" className="h-full w-full object-cover" />

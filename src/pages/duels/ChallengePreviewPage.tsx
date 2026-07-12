@@ -69,7 +69,7 @@ export function ChallengePreviewPage() {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="text-arena-purple-bright text-sm hover:underline font-medium"
+            className="text-arena-accent-bright text-sm hover:underline font-medium"
           >
             Go to Arena
           </button>
@@ -92,7 +92,7 @@ export function ChallengePreviewPage() {
           <p className="text-white/50 text-sm text-center">{msg}</p>
           <button
             onClick={() => navigate('/')}
-            className="text-arena-purple-bright text-sm hover:underline font-medium"
+            className="text-arena-accent-bright text-sm hover:underline font-medium"
           >
             Go to Arena
           </button>
@@ -113,7 +113,7 @@ export function ChallengePreviewPage() {
       <div className="relative z-10 flex flex-col flex-1">
         {/* Header */}
         <div className="flex flex-col items-center justify-center py-10 gap-3 animate-slide-up">
-          <div className="h-20 w-20 rounded-full bg-arena-purple/20 ring-2 ring-arena-purple/40 flex items-center justify-center">
+          <div className="h-20 w-20 rounded-full bg-arena-accent/20 ring-2 ring-arena-accent/40 flex items-center justify-center">
             <ModeIcon mode={duel.mode} size={44} iconSize={22} />
           </div>
           <div className="text-center mt-2">
@@ -167,7 +167,7 @@ export function ChallengePreviewPage() {
             <Button
               onClick={handleAccept}
               disabled={expired || accept.isPending}
-              className="w-full h-12 bg-arena-purple hover:bg-arena-purple-bright text-white font-semibold transition-all active:scale-[0.98] active:bg-arena-purple-pressed"
+              className="w-full h-12 bg-arena-accent hover:bg-arena-accent-bright text-white font-semibold transition-all active:scale-[0.98] active:bg-arena-accent-pressed"
             >
               {accept.isPending ? 'Joining…' : 'Accept challenge'}
             </Button>
@@ -177,7 +177,7 @@ export function ChallengePreviewPage() {
                 onClick={() =>
                   navigate(`/register?redirect=${encodeURIComponent(redirectPath)}`)
                 }
-                className="w-full h-12 bg-arena-purple hover:bg-arena-purple-bright text-white font-semibold transition-all active:scale-[0.98] active:bg-arena-purple-pressed"
+                className="w-full h-12 bg-arena-accent hover:bg-arena-accent-bright text-white font-semibold transition-all active:scale-[0.98] active:bg-arena-accent-pressed"
               >
                 Sign up to accept
               </Button>

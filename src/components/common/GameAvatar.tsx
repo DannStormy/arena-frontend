@@ -23,7 +23,7 @@ export function GameAvatar({ username, avatarUrl, size = 'md', isMe }: Props) {
         className={cn(
           'relative flex h-full w-full items-center justify-center overflow-hidden rounded-full',
           isMe
-            ? 'ring-2 ring-arena-purple/60 bg-arena-purple animate-your-turn'
+            ? 'ring-2 ring-arena-accent/60 bg-arena-accent animate-your-turn'
             : 'ring-1 ring-arena-border bg-arena-neutral-fill',
         )}
       >

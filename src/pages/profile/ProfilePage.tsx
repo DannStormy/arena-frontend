@@ -211,7 +211,7 @@ export function ProfilePage() {
           <div className="relative z-10 p-5">
             {/* Top: avatar | tier badge + labels */}
             <div className="flex items-start gap-4 mb-5">
-              {/* Avatar — level system (permanent, purple) */}
+              {/* Avatar — level system (permanent, accent) */}
               {hasRing ? (
                 <AvatarRing
                   avatarUrl={user?.avatarUrl}
@@ -353,7 +353,7 @@ export function ProfilePage() {
                 {stats.level}
               </p>
 
-              {/* XP bar — purple to distinguish from ember rank bar above */}
+              {/* XP bar — accent to distinguish from ember rank bar above */}
               {stats.intoLevel != null && stats.nextLevelAt != null && (
                 <div
                   className="h-[5px] overflow-hidden"

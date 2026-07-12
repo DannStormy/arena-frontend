@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
-/* ── Purple discipline rule ────────────────────────────────────────────────────
-   Purple = brand identity + "you" + live action + primary CTA + focus rings.
-   Purple must NOT appear on: card borders, passive hover states, dividers,
+/* ── Accent discipline rule ────────────────────────────────────────────────────
+   Ember accent = brand identity + "you" + live action + primary CTA + focus rings.
+   Accent must NOT appear on: card borders, passive hover states, dividers,
    generic chrome, outcome colors, or decorative icons.
-   Wins → arena-win (#2DD4A7). Losses → arena-loss (#FF4D5E). Never purple.
+   Losses → arena-loss (#FF4D5E). No purple anywhere — unified to warm ember.
    ─────────────────────────────────────────────────────────────────────────── */
 
 @theme {
@@ -16,12 +16,12 @@
   /* borders — neutral, no purple cast; emphasis for interactive/selected; focus for brand inputs */
   --color-arena-border:         #1E1E24;
   --color-arena-border-emphasis: rgba(255,255,255,0.14);
-  --color-arena-border-focus:    rgba(124,92,255,0.55);
+  --color-arena-border-focus:    rgba(232,137,59,0.55);
 
-  /* brand — purple, used with discipline */
-  --color-arena-purple:         #7C5CFF;
-  --color-arena-purple-bright:  #8E72FF;
-  --color-arena-purple-pressed: #6A4DE0;
+  /* brand — ember firelight (formerly purple; unified to warm) */
+  --color-arena-accent:         #E8893B;
+  --color-arena-accent-bright:  #F0B05A;
+  --color-arena-accent-pressed: #C2541E;
 
   /* outcome — fixed, never purple */
   --color-arena-win:   #2DD4A7;
@@ -148,8 +148,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Your-turn pulse: low-amplitude, slow — only during active turn */
 @keyframes your-turn-pulse {
-  0%, 100% { box-shadow: 0 0 0 0   rgba(124,92,255,0.55); }
-  50%      { box-shadow: 0 0 0 6px rgba(124,92,255,0);    }
+  0%, 100% { box-shadow: 0 0 0 0   rgba(232,137,59,0.55); }
+  50%      { box-shadow: 0 0 0 6px rgba(232,137,59,0);    }
 }
 
 /* Archive rows fade-and-rise on scroll-in */

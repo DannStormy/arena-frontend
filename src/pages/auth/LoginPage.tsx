@@ -66,7 +66,7 @@ export function LoginPage() {
                 type="email"
                 placeholder="Email"
                 autoComplete="email"
-                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
+                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-accent/50 focus-visible:border-arena-accent/60"
               />
               {errors.email && <ErrorMessage message={errors.email.message!} className="mt-1" />}
             </div>
@@ -76,7 +76,7 @@ export function LoginPage() {
                 {...register('password')}
                 placeholder="Password"
                 autoComplete="current-password"
-                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-purple/50 focus-visible:border-arena-purple/60"
+                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-accent/50 focus-visible:border-arena-accent/60"
               />
               {errors.password && <ErrorMessage message={errors.password.message!} className="mt-1" />}
             </div>
@@ -86,7 +86,7 @@ export function LoginPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 bg-arena-purple hover:bg-arena-purple-bright active:bg-arena-purple-pressed text-white font-semibold transition-all active:scale-[0.98]"
+              className="w-full h-11 bg-arena-accent hover:bg-arena-accent-bright active:bg-arena-accent-pressed text-white font-semibold transition-all active:scale-[0.98]"
             >
               {isSubmitting ? 'Signing in…' : 'Sign in'}
             </Button>
@@ -96,7 +96,7 @@ export function LoginPage() {
             No account?{' '}
             <Link
               to={redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register'}
-              className="text-arena-purple-bright hover:underline font-medium"
+              className="text-arena-accent-bright hover:underline font-medium"
             >
               Create one free
             </Link>
