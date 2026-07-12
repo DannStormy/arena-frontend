@@ -154,7 +154,9 @@ export function HomePage() {
   const hasPlayedToday = (history?.data ?? []).some(
     (item) => item.status === 'completed' && new Date(item.createdAt) >= todayStart,
   );
-  const showDailyNudge  = history !== undefined && !hasPlayedToday;
+  // Don't nag "play your first game today" once any play (incl. Speed Math) has
+  // already kept the streak alive — the two signals must not contradict.
+  const showDailyNudge  = history !== undefined && !hasPlayedToday && !streak?.playedToday;
   const recentDuels     = (history?.data ?? []).filter((d) => d.status === 'completed').slice(0, 5);
   const showRecentForm  = history !== undefined && recentDuels.length > 0;
 
@@ -163,82 +165,156 @@ export function HomePage() {
     return acc;
   }, {});
 
+  // ── Live signal — real, derivable data only (no fabricated "players online").
+  // Open tournaments are genuinely live right now; their prize pool is real.
+  const openTournaments = tournaments?.data ?? [];
+  const openCount = openTournaments.length;
+  const livePool = openTournaments.reduce((sum, t) => sum + Number(t.prizeFirst || 0), 0);
+  const liveLabel =
+    openCount > 0
+      ? `${openCount} tournament${openCount === 1 ? '' : 's'} live`
+      : 'Season live';
+
   return (
     <div className="min-h-full" style={{ background: EMBER.base }}>
-      <PageContainer size="wide" className="py-4 space-y-4">
+      <PageContainer size="wide" className="py-4 space-y-5">
 
-        {/* ── 1. Hero / you-block ─────────────────────────────────────────── */}
-        <div className="clip-card p-5" style={{ background: EMBER.surface }}>
-          <div className="flex items-start gap-4">
-            {hasRing ? (
-              <AvatarRing
-                avatarUrl={user?.avatarUrl}
-                initials={initials}
-                level={stats!.level!}
-                intoLevel={stats!.intoLevel!}
-                nextLevelAt={stats!.nextLevelAt!}
-                size="md"
-                animated
-              />
-            ) : (
-              // Fallback disc (no level data yet) — ice gradient to match AvatarRing disc
-              <div
-                className="shrink-0 clip-avatar flex items-center justify-center overflow-hidden select-none"
+        {/* ── Top bar — compact identity, deliberately demoted ────────────── */}
+        <Link to="/profile" className="flex items-center gap-3 active:opacity-90">
+          {hasRing ? (
+            <AvatarRing
+              avatarUrl={user?.avatarUrl}
+              initials={initials}
+              level={stats!.level!}
+              intoLevel={stats!.intoLevel!}
+              nextLevelAt={stats!.nextLevelAt!}
+              size="sm"
+              animated
+            />
+          ) : (
+            <div
+              className="shrink-0 clip-avatar flex items-center justify-center overflow-hidden select-none"
+              style={{ width: 44, height: 44, background: 'rgba(198,220,232,0.15)' }}
+            >
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="font-bold text-[13px]" style={{ color: '#DCEAF2' }}>
+                  {initials}
+                </span>
+              )}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs" style={{ color: EMBER.textTertiary }}>{greeting}</p>
+            <p className="font-display font-bold text-lg truncate leading-tight" style={{ color: EMBER.textPrimary }}>
+              {user?.username ?? '—'}
+            </p>
+          </div>
+          {currentRank && <TierBadge tier={currentRank} size="sm" />}
+        </Link>
+
+        {/* ── HERO PLAY — one unmissable, alive primary action ────────────── */}
+        <div className="relative">
+          <div className="hero-room-light" />
+          <div className="hero-room-drift" />
+          <Link
+            to="/duels/create"
+            className="animate-lobby-breathe clip-card relative block overflow-hidden select-none active:scale-[0.98] transition-transform"
+            style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)', minHeight: 150 }}
+          >
+            {/* Live chip — pulsing dot + real derivable signal */}
+            <div className="absolute top-3 right-3">
+              <span
+                className="clip-chip-sm inline-flex items-center gap-1.5 font-display font-bold uppercase tracking-wide"
                 style={{
-                  width:      88,
-                  height:     88,
-                  background: 'rgba(198,220,232,0.15)',
+                  fontSize: 10,
+                  padding: '3px 8px',
+                  color: '#fff',
+                  background: 'rgba(0,0,0,0.26)',
+                  boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.28)',
                 }}
               >
-                {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="font-bold text-[20px]" style={{ color: '#DCEAF2' }}>
-                    {initials}
-                  </span>
-                )}
-              </div>
-            )}
+                <span className="relative inline-flex" style={{ width: 6, height: 6 }}>
+                  <span
+                    className="animate-live-dot absolute inset-0"
+                    style={{ background: '#fff', borderRadius: 99 }}
+                  />
+                </span>
+                {liveLabel}
+              </span>
+            </div>
 
-            <div className="flex-1 min-w-0 pt-1">
-              <p className="text-xs mb-0.5" style={{ color: EMBER.textTertiary }}>{greeting}</p>
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <p className="font-display font-bold text-xl truncate leading-none" style={{ color: EMBER.textPrimary }}>
-                  {user?.username ?? '—'}
-                </p>
-                {currentRank && <TierBadge tier={currentRank} size="sm" />}
+            <div className="px-5 pt-6 pb-5">
+              <div className="flex items-center gap-1.5 text-white/80">
+                <Swords className="h-4 w-4" />
+                <span className="font-display font-bold text-xs uppercase tracking-[0.14em]">Quick Duel</span>
               </div>
-              {hasRankBar && (
+              <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
+                Jump in.<br />Beat someone now.
+              </p>
+              <p className="text-white/85 text-sm mt-1.5">Head-to-head. Bank the points. ⚡</p>
+              <span
+                className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-bold text-sm"
+                style={{ padding: '8px 16px', color: '#C2541E', background: '#fff' }}
+              >
+                Play <ChevronRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Link>
+        </div>
+        <Link
+          to="/duels"
+          className="-mt-2 flex w-full h-9 items-center justify-center text-sm"
+        >
+          <span style={{ color: EMBER.textTertiary }}>Have a code?&nbsp;</span>
+          <span className="font-medium" style={{ color: EMBER.accent }}>Join</span>
+        </Link>
+
+        {/* ── Status trophies — rank + streak, elevated & animated ────────── */}
+        <div className="clip-card p-4" style={{ background: EMBER.surface }}>
+          <div className="flex items-center gap-3.5">
+            <TierBadge tier={currentRank ?? 'spectator'} size="lg" />
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-[10px] font-semibold uppercase tracking-[0.12em] mb-1"
+                style={{ color: EMBER.textTertiary }}
+              >
+                Season rank
+              </p>
+              <p
+                className="font-display font-bold text-lg leading-none mb-2.5"
+                style={{ color: EMBER.textPrimary }}
+              >
+                {getTierDisplayName(currentRank ?? 'spectator')}
+              </p>
+              {hasRankBar ? (
                 <RankBar
                   rank={stats!.seasonRank!}
                   points={stats!.seasonPoints!}
                   nextAt={stats!.nextRankAt!}
                   floor={stats!.seasonRankFloor ?? 0}
                 />
+              ) : (
+                <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+                  Play ranked duels to climb the ladder
+                </p>
               )}
             </div>
           </div>
         </div>
 
-        {/* ── 1b. Daily streak (retention) ────────────────────────────────── */}
         {streak && <StreakBanner streak={streak} />}
 
-        {/* ── 2. Daily bonus nudge (conditional) ──────────────────────────── */}
+        {/* Daily bonus nudge (conditional) */}
         {showDailyNudge && (
           <Link
             to="/duels/create"
             className="clip-row relative flex items-center gap-3 px-4 py-3 active:opacity-90 transition-opacity animate-slide-up"
             style={{ background: EMBER.surface }}
           >
-            {/* ember accent bar */}
-            <div
-              className="absolute left-0 top-0 bottom-0 w-[3px]"
-              style={{ background: EMBER.accent }}
-            />
-            <div
-              className="flex items-center justify-center shrink-0 pl-1"
-              style={{ width: 36, height: 36 }}
-            >
+            <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: EMBER.accent }} />
+            <div className="flex items-center justify-center shrink-0 pl-1" style={{ width: 36, height: 36 }}>
               <div
                 className="flex items-center justify-center"
                 style={{ width: 32, height: 32, background: 'rgba(232,137,59,0.13)' }}
@@ -258,146 +334,106 @@ export function HomePage() {
           </Link>
         )}
 
-        {/* ── 3. Quick Duel CTA ───────────────────────────────────────────── */}
+        {/* ── Secondary shelf — demoted "more ways to play" ───────────────── */}
         <div className="space-y-2">
-          <Link
-            to="/duels/create"
-            className="clip-card flex w-full h-14 items-center justify-center gap-2 font-display font-bold text-base select-none active:scale-[0.98] active:opacity-90 hover:brightness-[1.06] transition-all"
-            style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)', color: '#fff' }}
+          <p
+            className="font-display text-xs font-semibold uppercase tracking-[0.09em] pt-1"
+            style={{ color: EMBER.textTertiary }}
           >
-            <Swords className="h-5 w-5" />
-            Quick Duel
-          </Link>
-          <Link
-            to="/duels"
-            className="flex w-full h-10 items-center justify-center text-sm transition-colors"
-          >
-            <span style={{ color: EMBER.textTertiary }}>Have a code?&nbsp;</span>
-            <span className="font-medium" style={{ color: EMBER.accent }}>Join</span>
-          </Link>
-        </div>
+            More ways to play
+          </p>
 
-        {/* ── 3a. Async duels — challenge a friend / quick ghost match ─────── */}
-        <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to="/async/new?intent=friend"
+              className="clip-row relative flex flex-col justify-center gap-1 px-3.5 py-2.5 active:opacity-90 transition-opacity"
+              style={{ background: EMBER.surface }}
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: EMBER.accent }} />
+              <div
+                className="flex items-center justify-center"
+                style={{ width: 28, height: 28, background: 'rgba(232,137,59,0.13)' }}
+              >
+                <Swords className="h-3.5 w-3.5" style={{ color: EMBER.accent }} />
+              </div>
+              <p className="mt-1 text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+                Challenge a friend
+              </p>
+              <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+                Share a link · async
+              </p>
+            </Link>
+            <Link
+              to="/async/new?intent=quick"
+              className="clip-row relative flex flex-col justify-center gap-1 px-3.5 py-2.5 active:opacity-90 transition-opacity"
+              style={{ background: EMBER.surface }}
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: EMBER.accentBright }} />
+              <div
+                className="flex items-center justify-center"
+                style={{ width: 28, height: 28, background: 'rgba(240,176,90,0.13)' }}
+              >
+                <Zap className="h-3.5 w-3.5" style={{ color: EMBER.accentBright }} />
+              </div>
+              <p className="mt-1 text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+                Quick match
+              </p>
+              <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+                Beat a ghost run
+              </p>
+            </Link>
+          </div>
+
           <Link
-            to="/async/new?intent=friend"
-            className="clip-row relative flex flex-col justify-center gap-1 px-4 py-3 active:opacity-90 transition-opacity"
+            to="/play/speed-math"
+            className="clip-row relative flex items-center gap-3 px-3.5 py-2.5 active:opacity-90 transition-opacity"
             style={{ background: EMBER.surface }}
           >
-            <div
-              className="absolute left-0 top-0 bottom-0 w-[3px]"
-              style={{ background: EMBER.accent }}
-            />
-            <div
-              className="flex items-center justify-center"
-              style={{ width: 32, height: 32, background: 'rgba(232,137,59,0.13)' }}
-            >
-              <Swords className="h-4 w-4" style={{ color: EMBER.accent }} />
+            <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: EMBER.accentBright }} />
+            <div className="flex items-center justify-center shrink-0" style={{ width: 28, height: 28, background: 'rgba(240,176,90,0.13)' }}>
+              <Zap className="h-3.5 w-3.5" style={{ color: EMBER.accentBright }} />
             </div>
-            <p className="mt-1 text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
-              Challenge a friend
-            </p>
-            <p className="text-xs" style={{ color: EMBER.textTertiary }}>
-              Share a link · async
-            </p>
-          </Link>
-          <Link
-            to="/async/new?intent=quick"
-            className="clip-row relative flex flex-col justify-center gap-1 px-4 py-3 active:opacity-90 transition-opacity"
-            style={{ background: EMBER.surface }}
-          >
-            <div
-              className="absolute left-0 top-0 bottom-0 w-[3px]"
-              style={{ background: EMBER.accentBright }}
-            />
-            <div
-              className="flex items-center justify-center"
-              style={{ width: 32, height: 32, background: 'rgba(240,176,90,0.13)' }}
-            >
-              <Zap className="h-4 w-4" style={{ color: EMBER.accentBright }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+                Speed Math practice
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
+                Just you vs the clock. Bank the points. ⚡
+              </p>
             </div>
-            <p className="mt-1 text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
-              Quick match
-            </p>
-            <p className="text-xs" style={{ color: EMBER.textTertiary }}>
-              Beat a ghost run
-            </p>
-          </Link>
-        </div>
-
-        {/* ── 3b. Solo practice — Speed Math ───────────────────────────────── */}
-        <Link
-          to="/play/speed-math"
-          className="clip-row relative flex items-center gap-3 px-4 py-3 active:opacity-90 transition-opacity"
-          style={{ background: EMBER.surface }}
-        >
-          <div
-            className="absolute left-0 top-0 bottom-0 w-[3px]"
-            style={{ background: EMBER.accentBright }}
-          />
-          <div
-            className="flex items-center justify-center shrink-0 pl-1"
-            style={{ width: 36, height: 36 }}
-          >
-            <div
-              className="flex items-center justify-center"
-              style={{ width: 32, height: 32, background: 'rgba(240,176,90,0.13)' }}
-            >
-              <Zap className="h-4 w-4" style={{ color: EMBER.accentBright }} />
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
-              Speed Math practice
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
-              Solo · no stakes · beat the clock
-            </p>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
-        </Link>
-
-        {/* ── 3c. Leaderboard entry point ─────────────────────────────────── */}
-        <Link
-          to="/leaderboard"
-          className="clip-row relative flex items-center gap-3 px-4 py-3 active:opacity-90 transition-opacity"
-          style={{ background: EMBER.surface }}
-        >
-          <div
-            className="absolute left-0 top-0 bottom-0 w-[3px]"
-            style={{ background: EMBER.accent }}
-          />
-          <div
-            className="flex items-center justify-center shrink-0 pl-1"
-            style={{ width: 36, height: 36 }}
-          >
-            <div
-              className="flex items-center justify-center"
-              style={{ width: 32, height: 32, background: 'rgba(232,137,59,0.13)' }}
-            >
-              <Trophy className="h-4 w-4" style={{ color: EMBER.accent }} />
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
-              Leaderboard
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
-              {currentRank
-                ? `You're ${getTierDisplayName(normalizeTierName(currentRank))}${
-                    stats?.seasonPoints != null
-                      ? ` · ${stats.seasonPoints.toLocaleString()} pts`
-                      : ''
-                  }`
-                : 'See where you rank this season'}
-            </p>
-          </div>
-          {currentRank ? (
-            <TierBadge tier={currentRank} size="sm" />
-          ) : (
             <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
-          )}
-        </Link>
+          </Link>
+
+          <Link
+            to="/leaderboard"
+            className="clip-row relative flex items-center gap-3 px-3.5 py-2.5 active:opacity-90 transition-opacity"
+            style={{ background: EMBER.surface }}
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: EMBER.accent }} />
+            <div className="flex items-center justify-center shrink-0" style={{ width: 28, height: 28, background: 'rgba(232,137,59,0.13)' }}>
+              <Trophy className="h-3.5 w-3.5" style={{ color: EMBER.accent }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+                Leaderboard
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
+                {currentRank
+                  ? `You're ${getTierDisplayName(normalizeTierName(currentRank))}${
+                      stats?.seasonPoints != null
+                        ? ` · ${stats.seasonPoints.toLocaleString()} pts`
+                        : ''
+                    }`
+                  : 'See where you rank this season'}
+              </p>
+            </div>
+            {currentRank ? (
+              <TierBadge tier={currentRank} size="sm" />
+            ) : (
+              <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
+            )}
+          </Link>
+        </div>
 
         {/* ── 4. Recent form ──────────────────────────────────────────────── */}
         {showRecentForm && (
@@ -428,7 +464,11 @@ export function HomePage() {
             <p className="font-display text-xs font-semibold uppercase tracking-[0.09em]" style={{ color: EMBER.textTertiary }}>
               Tournaments
             </p>
-            <p className="text-xs" style={{ color: EMBER.textTertiary }}>Real cash prizes</p>
+            <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+              {livePool > 0
+                ? `₦${livePool.toLocaleString()} in prize pools`
+                : 'Sponsored prize pools'}
+            </p>
           </div>
 
           {tournamentsLoading && (

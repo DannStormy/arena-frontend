@@ -46,7 +46,7 @@ export function StreakBanner({ streak }: { streak: StreakResponse }) {
       >
         <Flame
           size={22}
-          className={atRisk ? 'animate-ping-slow' : undefined}
+          className={atRisk ? 'animate-ping-slow' : 'animate-flame-flicker'}
           style={{
             color: flameColor,
             fill: lit ? flameColor : 'none',

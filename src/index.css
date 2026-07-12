@@ -211,6 +211,27 @@ h1, h2, h3, h4, h5, h6 {
   100% { background-position:  220% 0; }
 }
 
+/* Lobby hero PLAY: gentle idle "breathe" so the primary action is never dead.
+   Transform-only (scale) + tiny brightness — cheap, 60fps on low-end Android. */
+@keyframes lobby-breathe {
+  0%, 100% { transform: scale(1);     filter: brightness(1);    }
+  50%      { transform: scale(1.014); filter: brightness(1.06); }
+}
+
+/* Streak trophy flame flicker — transform + opacity only, no layout, no repaint cost. */
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1)    rotate(0deg);   opacity: 1;    }
+  25%      { transform: scale(1.09) rotate(-2.5deg); opacity: 0.9;  }
+  50%      { transform: scale(0.96) rotate(1.5deg);  opacity: 1;    }
+  75%      { transform: scale(1.05) rotate(-1deg);   opacity: 0.94; }
+}
+
+/* Live-signal dot: soft solid pulse (paired with a static core dot). */
+@keyframes live-dot {
+  0%, 100% { transform: scale(1);   opacity: 0.9; }
+  50%      { transform: scale(1.25); opacity: 1;  }
+}
+
 .hero-room-light {
   position: absolute;
   inset: -80px -40px -100px -40px;
@@ -249,6 +270,9 @@ h1, h2, h3, h4, h5, h6 {
 .animate-hero-breathe  { animation: hero-glow-breathe 4s   ease-in-out infinite; }
 .animate-winner-glow   { animation: winner-glow-pulse 4s   ease-in-out 1.3s infinite; }
 .animate-slash-energy  { animation: slash-energy      6s   linear 2s infinite; }
+.animate-lobby-breathe { animation: lobby-breathe     3.6s ease-in-out infinite; }
+.animate-flame-flicker { animation: flame-flicker     1.5s ease-in-out infinite; }
+.animate-live-dot      { animation: live-dot          1.8s ease-in-out infinite; }
 
 /* ── VS slash divider ────────────────────────────────── */
 
@@ -471,6 +495,9 @@ h1, h2, h3, h4, h5, h6 {
   .animate-juice-combo-pop,
   .animate-juice-combo-shatter,
   .animate-juice-heartbeat,
+  .animate-lobby-breathe,
+  .animate-flame-flicker,
+  .animate-live-dot,
   .hero-room-light,
   .hero-room-drift {
     animation: none;
