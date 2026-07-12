@@ -16,7 +16,9 @@ export function ProtectedRoute({ adminOnly }: Props) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    // Lead a new/logged-out visitor with the branded sign-up entry (§8),
+    // not the returning-user login. Sign-in stays one tap away from there.
+    return <Navigate to="/register" replace />;
   }
 
   if (adminOnly && !user?.isAdmin) {

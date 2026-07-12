@@ -3,6 +3,8 @@ export const BRAND_NAME = 'Arena';
 
 interface LogoProps {
   variant?: 'full' | 'mark';
+  /** Mark size in px (only used by the 'mark' variant). Defaults to 28. */
+  size?: number;
   className?: string;
 }
 
@@ -32,11 +34,11 @@ function Mark({ size = 28 }: { size?: number }) {
   );
 }
 
-export function Logo({ variant = 'full', className }: LogoProps) {
+export function Logo({ variant = 'full', size, className }: LogoProps) {
   if (variant === 'mark') {
     return (
       <span className={className} aria-label={BRAND_NAME}>
-        <Mark />
+        <Mark size={size} />
       </span>
     );
   }

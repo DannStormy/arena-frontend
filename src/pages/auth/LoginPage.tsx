@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
-import { Particles } from '@/components/common/Particles';
-import { Logo } from '@/components/common/Logo';
+import { AuthShell } from '@/components/auth/AuthShell';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -16,6 +15,9 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+
+// Machined ember CTA — chamfered top-right corner, breathing glow (§6/§8).
+const CTA_CLIP = 'polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%)';
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -48,61 +50,55 @@ export function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-svh items-center justify-center bg-arena-bg px-4">
-      <Particles />
-      <div className="relative z-10 w-full max-w-sm animate-slide-up">
-        <div className="mb-8 text-center">
-          <div className="flex justify-center mb-2">
-            <Logo variant="full" className="text-2xl" />
-          </div>
-          <p className="text-white/50 text-sm">Welcome back. Let's compete.</p>
-        </div>
-
-        <div className="rounded-2xl border border-arena-border bg-arena-surface/80 backdrop-blur-sm p-6 space-y-5">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Input
-                {...register('email')}
-                type="email"
-                placeholder="Email"
-                autoComplete="email"
-                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-accent/50 focus-visible:border-arena-accent/60"
-              />
-              {errors.email && <ErrorMessage message={errors.email.message!} className="mt-1" />}
-            </div>
-
-            <div>
-              <PasswordInput
-                {...register('password')}
-                placeholder="Password"
-                autoComplete="current-password"
-                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-accent/50 focus-visible:border-arena-accent/60"
-              />
-              {errors.password && <ErrorMessage message={errors.password.message!} className="mt-1" />}
-            </div>
-
-            {errors.root && <ErrorMessage message={errors.root.message!} />}
-
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-11 bg-arena-accent hover:bg-arena-accent-bright active:bg-arena-accent-pressed text-white font-semibold transition-all active:scale-[0.98]"
-            >
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
-
-          <p className="text-center text-sm text-white/40">
-            No account?{' '}
-            <Link
-              to={redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register'}
-              className="text-arena-accent-bright hover:underline font-medium"
-            >
-              Create one free
-            </Link>
-          </p>
-        </div>
+    <AuthShell>
+      <div className="mb-5">
+        <h2 className="font-display text-xl font-bold text-arena-text-primary">Welcome back</h2>
+        <p className="mt-0.5 text-sm text-arena-text-secondary">Your streak is waiting. 🔥</p>
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <Input
+            {...register('email')}
+            type="email"
+            placeholder="Email"
+            autoComplete="email"
+            className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-accent/50 focus-visible:border-arena-accent/60"
+          />
+          {errors.email && <ErrorMessage message={errors.email.message!} className="mt-1" />}
+        </div>
+
+        <div>
+          <PasswordInput
+            {...register('password')}
+            placeholder="Password"
+            autoComplete="current-password"
+            className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-accent/50 focus-visible:border-arena-accent/60"
+          />
+          {errors.password && <ErrorMessage message={errors.password.message!} className="mt-1" />}
+        </div>
+
+        {errors.root && <ErrorMessage message={errors.root.message!} />}
+
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          style={{ clipPath: CTA_CLIP }}
+          className="animate-lobby-breathe h-12 w-full rounded-none bg-gradient-to-b from-arena-accent to-arena-accent-pressed font-display text-base font-semibold uppercase tracking-wide text-white shadow-[0_0_30px_-6px_rgba(232,137,59,0.65)] transition-[filter,transform] hover:brightness-110 active:translate-y-px active:brightness-95"
+        >
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+
+      <p className="mt-5 text-center text-sm text-arena-text-secondary">
+        New here?{' '}
+        <Link
+          to={redirectTo ? `/register?redirect=${encodeURIComponent(redirectTo)}` : '/register'}
+          className="font-semibold text-arena-accent-bright hover:underline"
+        >
+          Create an account
+        </Link>
+      </p>
+    </AuthShell>
   );
 }
