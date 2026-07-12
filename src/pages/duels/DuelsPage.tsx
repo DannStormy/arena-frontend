@@ -538,7 +538,7 @@ function HeroCard({
 // ── Compressed archive row ─────────────────────────────────────────────────────
 
 function CompressedRow({ item, myId, onClick }: { item: DuelHistoryItem; myId: string | undefined; onClick: () => void }) {
-  const { myScore, theirScore, opponentName, myScoreIsWinner, theirScoreIsWinner, scoresEqual, outcome, isLive } = deriveCard(item, myId);
+  const { myScore, theirScore, opponentName, myScoreIsWinner, theirScoreIsWinner, outcome, isLive } = deriveCard(item, myId);
   const modeAccent = getEmberModeAccent(item.mode);
   const modeConfig = DUEL_MODE_CONFIG[item.mode];
 

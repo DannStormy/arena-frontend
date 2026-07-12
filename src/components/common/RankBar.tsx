@@ -1,5 +1,5 @@
 // RankBar — season rank progress bar. Use in hero block and profile season section.
-import { getTierFromName, RANK_TIERS } from './RankBadge';
+import { RANK_TIERS } from './RankBadge';
 
 interface RankBarProps {
   rank: string;
@@ -10,7 +10,6 @@ interface RankBarProps {
 }
 
 export function RankBar({ rank, points, nextAt, floor = 0, className }: RankBarProps) {
-  const tier = getTierFromName(rank);
   const range = Math.max(nextAt - floor, 1);
   const pct = Math.min(Math.max(((points - floor) / range) * 100, 0), 100);
 

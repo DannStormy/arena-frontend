@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Skull, Trophy, Zap } from 'lucide-react';
-import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ModeIcon, getModeAccent } from '@/components/common/ModeIcon';
 import { DuelHUD } from '@/components/game/DuelHUD';
@@ -13,7 +12,6 @@ import { useDuelStore } from '@/stores/duel.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { getDuelSocket } from '@/lib/duel-socket';
 import { DUEL_MODE_CONFIG, type Duel, type DuelForfeitedPayload } from '@/types/duel.types';
-import { cn } from '@/lib/utils';
 
 export function DuelGamePage() {
   const { id: duelId } = useParams<{ id: string }>();

@@ -37,6 +37,7 @@ interface ParsedQuestion {
   options: [string, string, string, string];
   correctAnswer: number;
   category: string;
+  arena: string;
   difficulty: string;
 }
 
@@ -75,11 +76,15 @@ function validateRows(rows: Record<string, unknown>[]): {
       return;
     }
 
+    const category = String(row.category);
     valid.push({
       content: String(row.content),
       options: [String(row.option_a), String(row.option_b), String(row.option_c), String(row.option_d)],
       correctAnswer,
-      category: String(row.category),
+      category,
+      // Arena and category share the same value set (see TournamentArena);
+      // the CSV carries one column, which maps directly to both.
+      arena: category,
       difficulty: row.difficulty ? String(row.difficulty) : 'medium',
     });
   });

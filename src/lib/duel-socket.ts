@@ -18,7 +18,7 @@ export function getDuelSocket(
 
   const wsUrl = import.meta.env.VITE_API_BASE_URL_WS ?? import.meta.env.VITE_API_BASE_URL;
 
-  socket = io<ServerToClientEvents, ClientToServerEvents>(`${wsUrl}/duels`, {
+  socket = io(`${wsUrl}/duels`, {
     auth: { token },
     autoConnect: false,
     transports: ['websocket'],

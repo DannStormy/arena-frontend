@@ -346,7 +346,7 @@ export function AdminProgressionConfigPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const prevConfigId = useRef<string | undefined>();
+  const prevConfigId = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (config && config.id !== prevConfigId.current) {
       prevConfigId.current = config.id;
