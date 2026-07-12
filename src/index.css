@@ -371,6 +371,81 @@ h1, h2, h3, h4, h5, h6 {
   transition: transform 85ms ease-in, filter 85ms ease-in;
 }
 
+/* ── Core-loop juice (ChallengePlayer) ─────────────────────
+   All cheap: transform/opacity only. Gold = #FFC93F (correct),
+   red = #FF4D5E (wrong/urgent). Drives dopamine via motion, not hue. */
+
+/* Entered number "locks in" — spring pop */
+@keyframes juice-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+/* +N flies up from the answer and fades */
+@keyframes juice-float-up {
+  0%   { transform: translateY(2px)   scale(0.9); opacity: 0; }
+  18%  { transform: translateY(-4px)  scale(1.05); opacity: 1; }
+  100% { transform: translateY(-52px) scale(1);    opacity: 0; }
+}
+
+/* Particle burst — per-dot direction via --tx / --ty custom props */
+@keyframes juice-particle {
+  0%   { transform: translate(0, 0) scale(1);   opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
+}
+
+/* Whole-screen tint flash (opacity only) */
+@keyframes juice-gold-flash {
+  0%   { opacity: 0; }
+  14%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+@keyframes juice-red-flash {
+  0%   { opacity: 0; }
+  10%  { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+/* Restrained screen-shake on wrong/timeout (±4px) */
+@keyframes juice-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  35% { transform: translateX(4px); }
+  55% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+  90% { transform: translateX(-1px); }
+}
+
+/* Combo multiplier increment pop */
+@keyframes juice-combo-pop {
+  0%   { transform: scale(0.55); opacity: 0; }
+  55%  { transform: scale(1.28); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Combo break — shatter/drop downward */
+@keyframes juice-combo-shatter {
+  0%   { transform: translateY(0) rotate(0) scale(1);      opacity: 1; }
+  100% { transform: translateY(30px) rotate(-10deg) scale(0.8); opacity: 0; }
+}
+
+/* Danger-zone heartbeat on the timer ring + problem */
+@keyframes juice-heartbeat {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.045); }
+}
+
+.animate-juice-pop           { animation: juice-pop            0.2s  cubic-bezier(0.34,1.56,0.64,1); }
+.animate-juice-float-up      { animation: juice-float-up       0.85s ease-out forwards; }
+.animate-juice-particle      { animation: juice-particle       0.6s  ease-out forwards; }
+.animate-juice-gold-flash    { animation: juice-gold-flash     0.45s ease-out forwards; }
+.animate-juice-red-flash     { animation: juice-red-flash      0.4s  ease-out forwards; }
+.animate-juice-shake         { animation: juice-shake          0.22s ease-in-out; }
+.animate-juice-combo-pop     { animation: juice-combo-pop      0.28s cubic-bezier(0.34,1.56,0.64,1); }
+.animate-juice-combo-shatter { animation: juice-combo-shatter  0.42s ease-in forwards; }
+.animate-juice-heartbeat     { animation: juice-heartbeat      0.7s  ease-in-out infinite; }
+
 /* ── Reduced motion ───────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -387,6 +462,15 @@ h1, h2, h3, h4, h5, h6 {
   .animate-hero-breathe,
   .animate-winner-glow,
   .animate-slash-energy,
+  .animate-juice-pop,
+  .animate-juice-float-up,
+  .animate-juice-particle,
+  .animate-juice-gold-flash,
+  .animate-juice-red-flash,
+  .animate-juice-shake,
+  .animate-juice-combo-pop,
+  .animate-juice-combo-shatter,
+  .animate-juice-heartbeat,
   .hero-room-light,
   .hero-room-drift {
     animation: none;
