@@ -10,7 +10,7 @@ import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { AuthShell } from '@/components/auth/AuthShell';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  identifier: z.string().min(1, 'Enter your username or email'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -59,13 +59,13 @@ export function LoginPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Input
-            {...register('email')}
-            type="email"
-            placeholder="Email"
-            autoComplete="email"
+            {...register('identifier')}
+            type="text"
+            placeholder="Username or email"
+            autoComplete="username"
             className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-white/30 focus-visible:ring-arena-accent/50 focus-visible:border-arena-accent/60"
           />
-          {errors.email && <ErrorMessage message={errors.email.message!} className="mt-1" />}
+          {errors.identifier && <ErrorMessage message={errors.identifier.message!} className="mt-1" />}
         </div>
 
         <div>
