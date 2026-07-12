@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Delete, Volume2, VolumeX, X } from 'lucide-react';
+import { EmberFlame } from '@/components/common/EmberFlame';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EMBER } from '@/lib/ember';
 import * as sfx from '@/lib/sfx';
@@ -393,24 +394,30 @@ export function ChallengePlayer({
             {combo >= 2 && (
               <span
                 key={`combo-${combo}`}
-                className="animate-juice-combo-pop font-display text-xl font-black"
-                style={{
-                  backgroundImage: `linear-gradient(90deg, ${GOLD}, ${DANGER})`,
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                }}
+                className="animate-juice-combo-pop font-display text-xl font-black inline-flex items-center gap-1"
               >
-                🔥 x{combo}
+                <EmberFlame intensity={Math.min(combo / 8, 1)} size={22} />
+                <span
+                  style={{
+                    backgroundImage: `linear-gradient(90deg, ${GOLD}, ${DANGER})`,
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                  }}
+                >
+                  x{combo}
+                </span>
               </span>
             )}
             {fx?.brokeComboFrom ? (
               <span
                 key={`break-${fx.id}`}
-                className="animate-juice-combo-shatter absolute font-display text-xl font-black"
+                className="animate-juice-combo-shatter absolute font-display text-xl font-black inline-flex items-center gap-1"
                 style={{ color: DANGER }}
               >
-                🔥 x{fx.brokeComboFrom}
+                {/* Guttering ember — cooling out as the combo breaks */}
+                <EmberFlame intensity={0} size={22} />
+                x{fx.brokeComboFrom}
               </span>
             ) : null}
           </div>

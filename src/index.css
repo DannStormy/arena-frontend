@@ -232,6 +232,26 @@ h1, h2, h3, h4, h5, h6 {
   50%      { transform: scale(1.25); opacity: 1;  }
 }
 
+/* EmberFlame — two overlapping flicker cycles (1.7s core + 2.3s halo) so the
+   glow reads organic, never mechanical. Transform + opacity + brightness only. */
+@keyframes ember-flicker-a {
+  0%, 100% { transform: scale(1);    opacity: 1;    filter: brightness(1);    }
+  28%      { transform: scale(1.06); opacity: 0.9;  filter: brightness(1.14); }
+  52%      { transform: scale(0.93); opacity: 1;    filter: brightness(0.95); }
+  78%      { transform: scale(1.03); opacity: 0.85; filter: brightness(1.07); }
+}
+@keyframes ember-flicker-b {
+  0%, 100% { transform: scale(1.03); opacity: 0.82; }
+  36%      { transform: scale(0.9);  opacity: 1;    }
+  64%      { transform: scale(1.06); opacity: 0.78; }
+}
+/* Spark mote: drifts up and fades. translateY px == SVG user units here. */
+@keyframes ember-spark-rise {
+  0%   { transform: translateY(0)      scale(1);   opacity: 0;    }
+  18%  {                                            opacity: 0.85; }
+  100% { transform: translateY(-18px)  scale(0.3); opacity: 0;    }
+}
+
 .hero-room-light {
   position: absolute;
   inset: -80px -40px -100px -40px;
@@ -273,6 +293,9 @@ h1, h2, h3, h4, h5, h6 {
 .animate-lobby-breathe { animation: lobby-breathe     3.6s ease-in-out infinite; }
 .animate-flame-flicker { animation: flame-flicker     1.5s ease-in-out infinite; }
 .animate-live-dot      { animation: live-dot          1.8s ease-in-out infinite; }
+.animate-ember-flicker-a { animation: ember-flicker-a 1.7s ease-in-out infinite; }
+.animate-ember-flicker-b { animation: ember-flicker-b 2.3s ease-in-out infinite; }
+.animate-ember-spark     { animation: ember-spark-rise 2s  ease-out     infinite; }
 
 /* ── VS slash divider ────────────────────────────────── */
 
@@ -498,6 +521,9 @@ h1, h2, h3, h4, h5, h6 {
   .animate-lobby-breathe,
   .animate-flame-flicker,
   .animate-live-dot,
+  .animate-ember-flicker-a,
+  .animate-ember-flicker-b,
+  .animate-ember-spark,
   .hero-room-light,
   .hero-room-drift {
     animation: none;

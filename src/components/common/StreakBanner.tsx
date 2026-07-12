@@ -1,5 +1,5 @@
-import { Flame } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { EmberFlame } from '@/components/common/EmberFlame';
 import { EMBER } from '@/lib/ember';
 import type { StreakResponse } from '@/hooks/use-streak';
 
@@ -15,7 +15,8 @@ export function StreakBanner({ streak }: { streak: StreakResponse }) {
   if (currentDailyStreak <= 0 && !atRisk) return null;
 
   const lit = playedToday;
-  const flameColor = lit ? EMBER.accentBright : atRisk ? EMBER.lossInk : EMBER.accent;
+  // Calm, steady ember — hottest when kept alive today, cooling toward at-risk.
+  const emberIntensity = lit ? 0.55 : atRisk ? 0.2 : 0.38;
   const tileBg = lit
     ? 'rgba(240,176,90,0.14)'
     : atRisk
@@ -44,14 +45,7 @@ export function StreakBanner({ streak }: { streak: StreakResponse }) {
         className="flex items-center justify-center shrink-0"
         style={{ width: 40, height: 40, background: tileBg }}
       >
-        <Flame
-          size={22}
-          className={atRisk ? 'animate-ping-slow' : 'animate-flame-flicker'}
-          style={{
-            color: flameColor,
-            fill: lit ? flameColor : 'none',
-          }}
-        />
+        <EmberFlame intensity={emberIntensity} size={24} />
       </div>
 
       <div className="flex-1 min-w-0">
