@@ -13,7 +13,8 @@ import type { CSSProperties } from 'react';
  * How the firing works (all in index.css):
  *   • Each signal is a dash riding one <path> via `stroke-dashoffset` for the
  *     first ~28% of its cycle, then parked off-path (invisible) for the rest.
- *     That built-in pause is what keeps only ~2–3 comets in flight at once.
+ *     That built-in pause is what keeps only ~3–4 comets in flight at once even
+ *     though there's now one signal per neuron (every node fires over a cycle).
  *   • Every signal carries its own `dur`/`delay` (inline) so no two ever sync —
  *     signals are always racing *somewhere*, never in lockstep.
  *   • The destination node's flare ring shares that exact dur+delay and peaks at
@@ -50,15 +51,29 @@ const EDGES: ReadonlyArray<readonly [number, number]> = [
 
 // Firing signals: [source, dest, dur(s), delay(s)]. Each rides an existing wire
 // (so the comet stays on a drawn line) and flares its dest node on arrival.
-// Durations 4.2–5.6s with spread delays → travel ~1.2–1.6s, ~2–3 in flight.
+//
+// Invariant: every one of the 13 neurons appears as a `dest` exactly once, so
+// the whole constellation fires over a cycle — no dark nodes. Each signal rides
+// a *different* wire (13 of the 15 edges), and the durations are mutually
+// incommensurate (5.0–6.6, no shared factors), so the aggregate pattern drifts
+// out of phase and never visibly repeats. A comet is only mid-flight for the
+// first ~28% of its cycle (then parks off-path), and the delays are spread
+// across ~6s, so on average just ~3–4 are travelling at once — a mind mid-
+// thought roving the whole web, not a fixed handful of lit paths.
 const SIGNALS: ReadonlyArray<readonly [number, number, number, number]> = [
-  [1, 3, 4.6, 0.0],
-  [3, 6, 5.2, 1.1],
-  [6, 9, 4.9, 2.0],
-  [9, 10, 4.2, 2.9],
-  [2, 3, 5.6, 3.4],
-  [6, 8, 4.4, 1.6],
-  [0, 2, 5.0, 2.4],
+  [1, 0, 5.8, 0.0], // → 0
+  [0, 2, 5.2, 1.4], // → 2
+  [7, 12, 5.7, 1.1], // → 12
+  [4, 6, 5.0, 0.7], // → 6
+  [6, 8, 5.4, 1.9], // → 8
+  [3, 4, 5.5, 2.2], // → 4
+  [9, 10, 5.1, 2.7], // → 10
+  [3, 1, 6.4, 3.1], // → 1
+  [6, 7, 6.2, 3.8], // → 7
+  [7, 9, 5.9, 4.2], // → 9
+  [1, 3, 6.0, 4.7], // → 3
+  [3, 5, 6.6, 5.3], // → 5
+  [2, 11, 6.3, 5.9], // → 11
 ];
 
 // Order-independent quadratic control point, so a wire and the comet riding it
