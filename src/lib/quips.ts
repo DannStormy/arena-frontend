@@ -2,14 +2,10 @@
  * quips — the app's little voice lines.
  *
  * ┌─────────────────────────────────────────────────────────────────────────┐
- * │  THIS IS YOURS TO FILL.                                                   │
- * │  Every line below is a PLACEHOLDER. Swap them for your voice — the        │
- * │  breezy, plain, half-a-breath lines you'd actually say. Rules that hold:  │
- * │    · no emoji, anywhere                                                   │
- * │    · plain over clever — never try-hard, never corny                     │
- * │    · short. one glance. a line, not a sentence.                          │
- * │  Add as many per slot as you like; the picker rotates through them.      │
- * │  Freestyle scratch (your words, parked — move up into a slot when ready):│
+ * │  THIS IS YOUR VOICE. Edit freely — add, cut, reorder.                     │
+ * │  The picker rotates through each slot; an empty slot renders nothing.     │
+ * │  Only hard rule: no emoji, anywhere.                                      │
+ * │  Freestyle scratch (parked — move up into a slot when ready):            │
  * │    "go gentle into the night" · "fight, survive" · "boom"                │
  * └─────────────────────────────────────────────────────────────────────────┘
  *
@@ -23,38 +19,40 @@ export type QuipContext =
   | 'tie' // dead even
   | 'correct' // right answer, mid-game
   | 'wrong' // wrong answer, mid-game
-  | 'loading'; // waiting on a match / results
+  | 'loading' // waiting on a match / results
+  | 'rematch'; // queuing again after a loss — defined, not yet wired (needs comeback detection)
 
 export const QUIPS: Record<QuipContext, readonly string[]> = {
   win: [
-    'That was clean.',
-    'You had it start to finish.',
-    'Back for more.',
+    'ba sing se',
+    'hahaha',
   ],
   loss: [
-    'So close.',
-    'Run it back.',
-    "Next one's yours.",
+    'You sef eh',
+    'Omo...',
+    '...',
+    "you'll get there lol.",
   ],
   tie: [
+    // your voice here — no tie lines yet
     'Dead even.',
     'Nobody blinked.',
-    'Run it back to settle it.',
   ],
   correct: [
-    'Sharp.',
-    'Locked in.',
-    'Got it.',
+    'sonic boom',
   ],
   wrong: [
-    'Not that one.',
-    'Shake it off.',
-    'Keep moving.',
+    'bruh...',
+    'Fawwwwwwwwk!',
   ],
   loading: [
-    'Setting up.',
-    'Warming up.',
-    'One sec.',
+    "bzzzz bzzzz...don't mind me, just beeing around",
+    'goodluck in there.',
+    'sudo docker...complete it',
+  ],
+  rematch: [
+    // not wired to a surface yet — say the word and I'll fire it when you re-queue after a loss
+    "He he he...look who's not giving up",
   ],
 };
 
