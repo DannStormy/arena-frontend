@@ -357,6 +357,39 @@ h1, h2, h3, h4, h5, h6 {
 .animate-ember-flicker-b { animation: ember-flicker-b 2.3s ease-in-out infinite; }
 .animate-ember-spark     { animation: ember-spark-rise 2s  ease-out     infinite; }
 
+/* ── MindEnergy — neural constellation (auth hero) ─────
+   A firing mind: bright signal-comets race along synapse wires and flare each
+   node as they land, over a bed of softly breathing neurons. All motion is
+   stroke-dashoffset / opacity / transform (no filters animated), so it stays
+   60fps on low-end Android. Timings live per-element inline (dur/delay) so no
+   two firings ever sync — like the ember flickers. See MindEnergy.tsx.
+
+   Signal comet: a short dash rides one path start→end during the first ~28% of
+   its cycle, then parks off-path (invisible) for the rest — this is the pause
+   that keeps only 2–3 sparks in flight at once (restraint, not a storm). */
+@keyframes mind-signal {
+  0%   { stroke-dashoffset: 12;   }
+  28%  { stroke-dashoffset: -112; }
+  100% { stroke-dashoffset: -112; }
+}
+/* Node flare — a quick bright ring that peaks the instant the comet lands
+   (~26% of the cycle, matched to the signal's dur+delay), then fades. */
+@keyframes mind-flare {
+  0%, 20% { opacity: 0;   transform: scale(0.6); }
+  26%     { opacity: 1;   transform: scale(2);   }
+  44%     { opacity: 0;   transform: scale(1);   }
+  100%    { opacity: 0;   transform: scale(1);   }
+}
+/* Resting neuron glow — a slow, staggered breath between firings. */
+@keyframes mind-breathe {
+  0%, 100% { opacity: 0.42; transform: scale(0.9);  }
+  50%      { opacity: 0.9;  transform: scale(1.1);  }
+}
+
+.mind-signal  { animation: mind-signal  5s linear      infinite; }
+.mind-flare   { animation: mind-flare   5s ease-out    infinite; }
+.mind-breathe { animation: mind-breathe 4s ease-in-out infinite; }
+
 /* ── VS slash divider ────────────────────────────────── */
 
 .vs-slash-line {
@@ -584,10 +617,20 @@ h1, h2, h3, h4, h5, h6 {
   .animate-ember-flicker-a,
   .animate-ember-flicker-b,
   .animate-ember-spark,
+  .mind-signal,
+  .mind-flare,
+  .mind-breathe,
   .ember-mote,
   .hero-room-light,
   .hero-room-drift {
     animation: none;
+  }
+
+  /* MindEnergy collapses to a static, lit constellation: no travelling comets
+     (signal dashes park off-path at their 0% state), no flares (flare rings
+     park at opacity 0), and the neuron halos hold their base glow. */
+  .mind-breathe {
+    opacity: 0.65;
   }
 
   /* Motes never resolve their fade-in without the animation, so they collapse

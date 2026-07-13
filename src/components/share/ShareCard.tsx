@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { BRAND_NAME } from '@/components/common/Logo';
+import { CurlMark, Wordmark } from '@/components/common/Logo';
 
 // ── Card geometry ────────────────────────────────────────────────────────────
 // Fixed 1080×1350 (4:5) — the standard portrait share ratio for TikTok /
@@ -208,31 +208,9 @@ export const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(function Sha
           zIndex: 1,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <svg width={58} height={58} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M12 2L3 6v6c0 5.25 3.75 9.65 9 11.15C17.25 21.65 21 17.25 21 12V6L12 2z"
-              fill="#F0872E"
-            />
-            <path
-              d="M9 12l2 2 4-4"
-              stroke={INK}
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span
-            style={{
-              fontSize: 50,
-              fontWeight: 700,
-              letterSpacing: '-0.01em',
-              color: EMBER_HOT,
-              textTransform: 'uppercase',
-            }}
-          >
-            {BRAND_NAME}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <CurlMark size={58} />
+          <Wordmark height={50} />
         </div>
 
         <span
