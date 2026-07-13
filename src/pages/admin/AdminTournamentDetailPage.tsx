@@ -62,10 +62,6 @@ export function AdminTournamentDetailPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-arena-border">
           <div>
-            <p className="text-white/40 text-xs">Entry fee</p>
-            <p className="text-white font-semibold">₦{Number(tournament.entryFee).toLocaleString()}</p>
-          </div>
-          <div>
             <p className="text-white/40 text-xs">1st prize</p>
             <p className="text-white font-semibold">₦{Number(tournament.prizeFirst).toLocaleString()}</p>
           </div>

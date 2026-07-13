@@ -88,7 +88,6 @@ export interface CreateTournamentInput {
   title: string;
   arena: string;
   gameType: string;
-  entryFee: number;
   prizeFirst: number;
   prizeSecond?: number;
   prizeThird?: number;

@@ -10,7 +10,6 @@ import type { TournamentArena, PaginatedResponse } from '@/types/tournament.type
 interface CreateDuelData {
   mode: DuelMode;
   arena: TournamentArena;
-  stake: number;
 }
 
 export function useCreateDuel() {

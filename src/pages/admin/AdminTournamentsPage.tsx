@@ -34,7 +34,6 @@ const EMPTY_FORM: CreateTournamentInput & { prizeSecondStr: string; prizeThirdSt
   title: '',
   arena: Object.keys(ARENA_CONFIG)[0],
   gameType: 'quiz',
-  entryFee: 0,
   prizeFirst: 0,
   prizeSecond: undefined,
   prizeThird: undefined,
@@ -63,7 +62,6 @@ export function AdminTournamentsPage() {
       title: form.title,
       arena: form.arena,
       gameType: form.gameType,
-      entryFee: Number(form.entryFee),
       prizeFirst: Number(form.prizeFirst),
       minPlayers: Number(form.minPlayers),
     };
@@ -208,15 +206,9 @@ export function AdminTournamentsPage() {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-white/50 mb-1 block">Entry fee (₦)</label>
-                <Input type="number" value={form.entryFee} onChange={(e) => set('entryFee', e.target.value)} className="bg-arena-bg border-arena-border text-white" />
-              </div>
-              <div>
-                <label className="text-xs text-white/50 mb-1 block">1st prize (₦)</label>
-                <Input type="number" value={form.prizeFirst} onChange={(e) => set('prizeFirst', e.target.value)} className="bg-arena-bg border-arena-border text-white" />
-              </div>
+            <div>
+              <label className="text-xs text-white/50 mb-1 block">1st prize (₦)</label>
+              <Input type="number" value={form.prizeFirst} onChange={(e) => set('prizeFirst', e.target.value)} className="bg-arena-bg border-arena-border text-white" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

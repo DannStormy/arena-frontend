@@ -296,18 +296,7 @@ export function TournamentDetailPage() {
           </div>
         )}
 
-        {/* ── 5. Entry fee ─────────────────────────────────────────────────── */}
-        <div
-          className="clip-row flex items-center justify-between px-4 py-3"
-          style={{ background: EMBER.surface }}
-        >
-          <span className="text-sm" style={{ color: EMBER.textTertiary }}>Entry fee</span>
-          <span className="font-display font-semibold text-sm tabular-nums" style={{ color: EMBER.textPrimary }}>
-            ₦{Number(tournament.entryFee).toLocaleString()}
-          </span>
-        </div>
-
-        {/* ── 6. Primary CTA — ember ───────────────────────────────────────── */}
+        {/* ── 5. Primary CTA — ember ───────────────────────────────────────── */}
         <div className="pt-1">
           {effectivelyJoined ? (
             <button
@@ -329,7 +318,7 @@ export function TournamentDetailPage() {
                 ? 'Joining…'
                 : tournament.status !== 'open'
                   ? 'Tournament closed'
-                  : `Join — ₦${Number(tournament.entryFee).toLocaleString()}`}
+                  : 'Join'}
             </button>
           )}
         </div>

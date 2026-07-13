@@ -291,26 +291,6 @@ function OutcomeBadge({
   return null;
 }
 
-// ── Payout node ────────────────────────────────────────────────────────────────
-
-function PayoutNode({ item, outcome }: { item: DuelHistoryItem; outcome: 'win' | 'loss' | 'tie' | null }) {
-  const isFree = parseFloat(item.stake || '0') === 0;
-  if (isFree) {
-    return (
-      <span className="px-1.5 py-px rounded text-[9px] font-semibold uppercase tracking-wider" style={{ background: 'rgba(240,232,220,0.05)', color: EMBER.textTertiary, border: '1px solid rgba(240,232,220,0.07)' }}>
-        Free play
-      </span>
-    );
-  }
-  if (outcome === 'win') {
-    return <span className="text-[11px] font-semibold leading-none" style={{ color: EMBER.win }}>+₦{item.prizeWon ?? item.stake}</span>;
-  }
-  if (outcome === 'loss') {
-    return <span className="text-[11px] font-semibold leading-none" style={{ color: EMBER.loss }}>−₦{item.stake}</span>;
-  }
-  return <span className="text-[11px] leading-none" style={{ color: EMBER.textTertiary }}>₦{item.stake}</span>;
-}
-
 // ── Hero avatar ────────────────────────────────────────────────────────────────
 
 function HeroVsAvatar({
@@ -520,8 +500,6 @@ function HeroCard({
             </span>
             <span className="text-[11px] mx-0.5" style={{ color: 'rgba(240,232,220,0.18)' }}>·</span>
             <span className="text-[11px] leading-none" style={{ color: EMBER.textTertiary }}>{date}</span>
-            <span className="text-[11px] mx-0.5" style={{ color: 'rgba(240,232,220,0.18)' }}>·</span>
-            <PayoutNode item={item} outcome={outcome} />
             {item.resolution && item.resolution !== 'score' && (
               <>
                 <span className="text-[11px] mx-0.5" style={{ color: 'rgba(240,232,220,0.18)' }}>·</span>

@@ -10,15 +10,7 @@ import { useCreateDuel, useMatchmake } from '@/hooks/use-duels';
 import { ARENA_CONFIG } from '@/lib/arena-config';
 import type { TournamentArena } from '@/types/tournament.types';
 
-type Step = 1 | 2 | 3 | 4;
-
-const STAKES = [
-  { label: 'Free',   value: 0    },
-  { label: '₦100',  value: 100  },
-  { label: '₦200',  value: 200  },
-  { label: '₦500',  value: 500  },
-  { label: '₦1,000', value: 1000 },
-];
+type Step = 1 | 2 | 3;
 
 const ARENAS = Object.entries(ARENA_CONFIG) as [TournamentArena, (typeof ARENA_CONFIG)[TournamentArena]][];
 const MODES  = Object.entries(DUEL_MODE_CONFIG) as [DuelMode, (typeof DUEL_MODE_CONFIG)[DuelMode]][];
@@ -26,8 +18,7 @@ const MODES  = Object.entries(DUEL_MODE_CONFIG) as [DuelMode, (typeof DUEL_MODE_
 const STEP_TITLES: Record<Step, string> = {
   1: 'Choose mode',
   2: 'Choose arena',
-  3: 'Set stake',
-  4: 'Challenge type',
+  3: 'Challenge type',
 };
 
 // ── Ember selection styles ────────────────────────────────────────────────────
@@ -46,7 +37,6 @@ export function CreateDuelPage() {
   const [step, setStep]               = useState<Step>(stateMode ? 2 : 1);
   const [selectedMode, setSelectedMode]   = useState<DuelMode | null>(stateMode ?? null);
   const [selectedArena, setSelectedArena] = useState<TournamentArena | null>(null);
-  const [selectedStake, setSelectedStake] = useState(0);
   const [createdDuel, setCreatedDuel]     = useState<Duel | null>(null);
 
   const createDuel = useCreateDuel();
@@ -70,7 +60,7 @@ export function CreateDuelPage() {
   const handleCreatePrivate = () => {
     if (!selectedMode || !selectedArena) return;
     createDuel.mutate(
-      { mode: selectedMode, arena: selectedArena, stake: selectedStake },
+      { mode: selectedMode, arena: selectedArena },
       { onSuccess: (duel) => setCreatedDuel(duel) },
     );
   };
@@ -78,7 +68,7 @@ export function CreateDuelPage() {
   const handleMatchmake = () => {
     if (!selectedMode || !selectedArena) return;
     matchmake.mutate(
-      { mode: selectedMode, arena: selectedArena, stake: selectedStake },
+      { mode: selectedMode, arena: selectedArena },
       { onSuccess: (duel) => navigate(`/duels/${duel.code}/waiting`, { state: { duel } }) },
     );
   };
@@ -125,7 +115,7 @@ export function CreateDuelPage() {
       {/* ── Progress dots ───────────────────────────────────────────────────── */}
       {!createdDuel && (
         <div className="flex justify-center gap-2 py-4">
-          {([1, 2, 3, 4] as Step[]).map((s) => (
+          {([1, 2, 3] as Step[]).map((s) => (
             <div
               key={s}
               className="h-1 rounded-full transition-all duration-300"
@@ -274,37 +264,6 @@ export function CreateDuelPage() {
             ))}
           </div>
 
-        ) : step === 3 ? (
-          /* ── Stake selection ────────────────────────────────────────────── */
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-2">
-              {STAKES.map(({ label, value }) => (
-                <button
-                  key={value}
-                  onClick={() => setSelectedStake(value)}
-                  className="clip-row w-full p-4 text-left font-display font-semibold transition-all active:scale-[0.98]"
-                  style={{
-                    ...selectionStyle(selectedStake === value),
-                    color: selectedStake === value ? EMBER.accent : EMBER.textSecondary,
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Continue — ember primary, leak-fixed */}
-            <div className="duel-btn-wrap is-primary mt-4">
-              <button
-                onClick={() => setStep(4)}
-                className="duel-btn-primary"
-                style={{ padding: '14px 16px', fontSize: 14 }}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-
         ) : (
           /* ── Challenge type ─────────────────────────────────────────────── */
           <div className="space-y-4">
@@ -334,7 +293,7 @@ export function CreateDuelPage() {
                 Find a random opponent
               </p>
               <p className="text-sm" style={{ color: EMBER.textTertiary }}>
-                We'll match you with someone at the same stake level.
+                We'll match you with someone ready to play right now.
               </p>
             </button>
 

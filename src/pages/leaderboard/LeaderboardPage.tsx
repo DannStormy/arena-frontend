@@ -271,7 +271,7 @@ export function LeaderboardPage() {
                 First blood — no competitors yet
               </p>
               <p className="text-sm" style={{ color: EMBER.textTertiary }}>
-                Play a duel to stake your claim on the board
+                Play a duel to claim your spot on the board
               </p>
             </div>
             <TierLadder myTierName={myEntry?.tier} />

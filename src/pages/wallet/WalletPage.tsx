@@ -59,11 +59,11 @@ export function WalletPage() {
           <div
             className="rounded-2xl p-5 text-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(22,22,40,1) 100%)',
-              border: '1px solid rgba(124,58,237,0.3)',
+              background: 'linear-gradient(135deg, rgba(232,137,59,0.20) 0%, rgba(28,20,14,1) 100%)',
+              border: '1px solid rgba(232,137,59,0.30)',
             }}
           >
-            <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Balance</p>
+            <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Winnings balance</p>
             <p className="font-display text-5xl font-bold text-white mt-1">
               ₦{Number(wallet?.balance ?? 0).toLocaleString()}
             </p>
@@ -77,7 +77,7 @@ export function WalletPage() {
               </div>
               <div className="w-px bg-arena-border" />
               <div>
-                <p className="text-white/30 text-xs uppercase tracking-wider">Spent</p>
+                <p className="text-white/30 text-xs uppercase tracking-wider">Withdrawn</p>
                 <p className="font-display text-arena-red font-bold text-lg mt-0.5">
                   ₦{Number(wallet?.totalSpent ?? 0).toLocaleString()}
                 </p>

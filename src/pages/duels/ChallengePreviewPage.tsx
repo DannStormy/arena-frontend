@@ -127,19 +127,12 @@ export function ChallengePreviewPage() {
         <div className="space-y-3 flex-1">
           {/* Duel details card */}
           <div className="rounded-2xl border border-arena-border bg-arena-surface/80 p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <ArenaIcon arena={duel.arena} size={18} />
-                <div>
-                  <p className="text-white font-semibold font-display">{modeConfig.label}</p>
-                  <p className="text-white/40 text-xs">{arenaConfig?.label}</p>
-                </div>
+            <div className="flex items-center gap-3">
+              <ArenaIcon arena={duel.arena} size={18} />
+              <div>
+                <p className="text-white font-semibold font-display">{modeConfig.label}</p>
+                <p className="text-white/40 text-xs">{arenaConfig?.label}</p>
               </div>
-              {duel.stake !== '0' && (
-                <div className="rounded-full bg-arena-gold/10 border border-arena-gold/30 px-3 py-1">
-                  <p className="text-arena-gold text-sm font-semibold">₦{duel.stake}</p>
-                </div>
-              )}
             </div>
 
             <p className="text-white/50 text-sm">{modeConfig.description}</p>

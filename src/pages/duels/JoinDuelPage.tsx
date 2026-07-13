@@ -115,12 +115,6 @@ export function JoinDuelPage() {
               <span className="text-white text-sm font-medium">{arenaConfig?.label}</span>
             </div>
           </div>
-          <div className="flex items-center justify-between px-4 py-3">
-            <span className="text-white/50 text-sm">Stake</span>
-            <span className="text-white text-sm font-medium">
-              {duel.stake === '0' ? 'Free' : `₦${duel.stake}`}
-            </span>
-          </div>
           {modeConfig.timerSeconds && (
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-white/50 text-sm">Time per question</span>

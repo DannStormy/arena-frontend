@@ -113,9 +113,6 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
             >
               ₦{Number(tournament.prizeFirst).toLocaleString()}
             </span>
-            <span className="text-xs" style={{ color: EMBER.textTertiary }}>
-              Entry: ₦{Number(tournament.entryFee).toLocaleString()}
-            </span>
           </div>
         </div>
       </div>

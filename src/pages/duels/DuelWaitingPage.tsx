@@ -196,19 +196,6 @@ export function DuelWaitingPage() {
               ))}
             </span>
           </div>
-
-          {activeDuel.stake !== '0' && (
-            <span
-              className="clip-chip inline-block px-4 py-1.5 font-display font-semibold text-sm"
-              style={{
-                background: 'rgba(232,137,59,0.12)',
-                color:      EMBER.accent,
-                boxShadow:  'inset 0 0 0 1px rgba(232,137,59,0.35)',
-              }}
-            >
-              ₦{activeDuel.stake} stake
-            </span>
-          )}
         </div>
       </div>
 
