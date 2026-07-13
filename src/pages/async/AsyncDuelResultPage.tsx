@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ProgressionReveal } from '@/components/common/ProgressionReveal';
 import { ShareButton } from '@/components/share/ShareButton';
 import { EMBER } from '@/lib/ember';
+import { pickQuip } from '@/lib/quips';
 import type {
   AsyncDuelProgressionSnapshot,
   AsyncDuelResult,
@@ -101,6 +102,9 @@ export function AsyncDuelResultPage() {
       ? 'the ghost'
       : 'my opponent';
   const duelOutcome = data.isTie ? 'draw' : iWon ? 'win' : 'loss';
+  // Quip slot — breezy line under the verdict, seeded on the code so it holds
+  // across re-renders. Fill the lines in src/lib/quips.ts.
+  const quip = pickQuip(data.isTie ? 'tie' : iWon ? 'win' : 'loss', data.code);
   const shareBadge = data.isTie ? 'Dead heat' : iWon ? 'Victory' : 'Got clipped';
   const shareKicker = iWon
     ? `I beat ${opponentLabel}`
@@ -133,6 +137,11 @@ export function AsyncDuelResultPage() {
         >
           {outcome}
         </p>
+        {quip && (
+          <p className="mt-1 text-center font-display text-sm" style={{ color: EMBER.textTertiary }}>
+            {quip}
+          </p>
+        )}
 
         {/* Score row — me vs them */}
         <div className="mt-8 flex items-stretch">

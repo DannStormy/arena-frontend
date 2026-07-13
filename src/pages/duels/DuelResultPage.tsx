@@ -13,6 +13,7 @@ import { useDuelStore } from '@/stores/duel.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { disconnectDuelSocket } from '@/lib/duel-socket';
 import { EMBER } from '@/lib/ember';
+import { pickQuip, type QuipContext } from '@/lib/quips';
 import { type DuelCompletePayload } from '@/types/duel.types';
 import type { TournamentArena } from '@/types/tournament.types';
 
@@ -404,6 +405,11 @@ export function DuelResultPage() {
     pageBg       = LOSS_BG;
   }
 
+  // Quip slot — a breezy one-liner under the verdict. Seeded on the duel id so
+  // it stays put across re-renders. Fill the lines in src/lib/quips.ts.
+  const quipContext: QuipContext = isTie ? 'tie' : iWon || theyForfeited ? 'win' : 'loss';
+  const quip = pickQuip(quipContext, id);
+
   const handleShare = async () => {
     const outcome = iWon ? 'won' : isTie ? 'tied' : 'lost';
     const text    = `I just ${outcome} a duel on Arena! ${myScore} vs ${theirScore}`;
@@ -432,6 +438,11 @@ export function DuelResultPage() {
             >
               {outcomeLabel}
             </p>
+            {quip && (
+              <p className="font-display" style={{ fontSize: 13, color: EMBER.textTertiary }}>
+                {quip}
+              </p>
+            )}
             {suddenDeathRounds > 0 && !isTie && (
               <p className="font-display flex items-center justify-center gap-1.5" style={{ ...LABEL, color: EMBER.accent }}>
                 <Zap className="h-3 w-3" /> Sudden death
