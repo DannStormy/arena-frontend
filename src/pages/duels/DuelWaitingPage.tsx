@@ -6,6 +6,7 @@ import { ArenaIcon } from '@/lib/arena-icons';
 import { EMBER } from '@/lib/ember';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { pickQuip } from '@/lib/quips';
 import { useDuelSocket } from '@/hooks/use-duel-socket';
 import { useDuelByCode } from '@/hooks/use-duels';
 import { DUEL_MODE_CONFIG, type Duel, type DuelReadyPayload } from '@/types/duel.types';
@@ -19,6 +20,9 @@ export function DuelWaitingPage() {
 
   const [activeDuel, setActiveDuel] = useState<Duel | undefined>(duelFromState);
   const [navigating, setNavigating] = useState(false);
+
+  // Quip slot — seeded on the code so the line holds steady through the wait.
+  const waitQuip = pickQuip('loading', code ?? 'wait');
 
   const goToGame = (duel: Duel) => {
     if (navigating) return;
@@ -196,6 +200,14 @@ export function DuelWaitingPage() {
               ))}
             </span>
           </div>
+
+          {/* Quip slot — a breezy line for the wait, seeded on the code so it
+              holds while matchmaking. Fill the lines in src/lib/quips.ts. */}
+          {waitQuip && (
+            <p className="text-xs" style={{ color: EMBER.textTertiary }}>
+              {waitQuip}
+            </p>
+          )}
         </div>
       </div>
 

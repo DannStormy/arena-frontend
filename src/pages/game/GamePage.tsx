@@ -9,6 +9,7 @@ import { CountdownBar } from '@/components/game/CountdownBar';
 import { QuestionCard } from '@/components/game/QuestionCard';
 import { OptionButton } from '@/components/game/OptionButton';
 import { EMBER } from '@/lib/ember';
+import { pickQuip } from '@/lib/quips';
 import type { GameType } from '@/types/tournament.types';
 
 // Both modes now use ember — one hot look across the whole app.
@@ -161,6 +162,12 @@ export function GamePage() {
   const prizes   = [tournament?.prizeFirst, tournament?.prizeSecond, tournament?.prizeThird];
   const myPrize  = myRank && myRank <= 3 ? (prizes[myRank - 1] ?? null) : null;
 
+  // Quip slot — a breezy correct/wrong line during the reveal beat. Seeded on
+  // the question id so it holds steady for the whole feedback window (no
+  // flicker). Fill the lines in src/lib/quips.ts.
+  const answeredRight = feedbackVisible && selectedIndex !== null && selectedIndex === correctIndex;
+  const feedbackQuip  = feedbackVisible ? pickQuip(answeredRight ? 'correct' : 'wrong', question?.id ?? 0) : null;
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col min-h-svh" style={{ background: EMBER.base }}>
@@ -187,6 +194,14 @@ export function GamePage() {
           <>
             <div className="flex-1 px-4 pt-6 pb-4 flex flex-col justify-center">
               <QuestionCard content={question.content} modeAccent={modeAccent} />
+              {feedbackQuip && (
+                <p
+                  className="mt-3 text-center font-display text-sm animate-result-reveal"
+                  style={{ color: answeredRight ? EMBER.accentBright : EMBER.textTertiary }}
+                >
+                  {feedbackQuip}
+                </p>
+              )}
             </div>
 
             <div className="px-4 pb-6 space-y-2.5">
