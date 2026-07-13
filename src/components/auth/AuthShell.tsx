@@ -1,5 +1,58 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { BRAND_NAME, Logo } from '@/components/common/Logo';
+
+// Hand-tuned ember motes — every field is varied (start-x spread across the
+// width, size 2–5px, SLOW 8–13s rise, staggered delay, alternating sway
+// direction, and a low peak opacity) so the field reads as sparse, calm
+// embers, never a synced fountain. Kept to 12 for a barely-there density.
+const EMBER_MOTES: ReadonlyArray<{
+  x: string;
+  size: number;
+  dur: number;
+  delay: number;
+  sway: string;
+  peak: number;
+}> = [
+  { x: '8%', size: 3, dur: 11, delay: 0, sway: '10px', peak: 0.5 },
+  { x: '17%', size: 2, dur: 13, delay: 4.5, sway: '-8px', peak: 0.36 },
+  { x: '26%', size: 4, dur: 9, delay: 1.8, sway: '12px', peak: 0.55 },
+  { x: '35%', size: 2.5, dur: 12, delay: 6.4, sway: '-11px', peak: 0.42 },
+  { x: '45%', size: 3.5, dur: 10, delay: 2.9, sway: '9px', peak: 0.5 },
+  { x: '53%', size: 2, dur: 13, delay: 8, sway: '-7px', peak: 0.34 },
+  { x: '62%', size: 5, dur: 8, delay: 2.3, sway: '13px', peak: 0.46 },
+  { x: '69%', size: 3, dur: 11.5, delay: 5.6, sway: '-10px', peak: 0.48 },
+  { x: '77%', size: 2.5, dur: 12.5, delay: 1, sway: '10px', peak: 0.4 },
+  { x: '85%', size: 4, dur: 9.5, delay: 7.1, sway: '-12px', peak: 0.52 },
+  { x: '91%', size: 2, dur: 13, delay: 3.6, sway: '8px', peak: 0.32 },
+  { x: '13%', size: 3.5, dur: 10.5, delay: 9, sway: '-9px', peak: 0.44 },
+];
+
+// Atmospheric ember layer behind the auth content — soft embers slowly lifting
+// off an unseen calm fire (the CALM end of Arena's fire). z-0, pointer-events
+// none, overflow-hidden so motes never cause scroll or block taps.
+function EmberField() {
+  return (
+    <div className="ember-field" aria-hidden>
+      <div className="ember-coal-glow" />
+      {EMBER_MOTES.map((m, i) => (
+        <span
+          key={i}
+          className="ember-mote"
+          style={
+            {
+              '--x': m.x,
+              '--size': `${m.size}px`,
+              '--dur': `${m.dur}s`,
+              '--delay': `${m.delay}s`,
+              '--sway': m.sway,
+              '--peak': m.peak,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </div>
+  );
+}
 
 // A subtle, static ember sunburst behind the shield — echoes the ShareCard
 // ray-burst motif (§10) without any animation cost. Masked to a soft radial fade.
@@ -79,6 +132,9 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <div className="hero-room-light" />
         <div className="hero-room-drift" />
       </div>
+
+      {/* Atmospheric ember-mote field — soft embers drifting up off a calm fire */}
+      <EmberField />
 
       <div className="relative z-10 mx-auto flex min-h-svh max-w-sm flex-col justify-center px-5 py-10">
         <AuthHero />

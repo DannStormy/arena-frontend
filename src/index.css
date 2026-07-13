@@ -252,6 +252,20 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: translateY(-18px)  scale(0.3); opacity: 0;    }
 }
 
+/* Auth ambient ember-mote field — soft embers lifting off an unseen calm fire
+   ("the calm before the storm"). One monotonic upward rise with a gentle L/R
+   sway; fades in near the bottom, out near the top. Per-mote CSS vars
+   (--x/--size/--dur/--delay/--sway/--peak) desync every mote so the field
+   never reads as a synced fountain. Transform + opacity only, GPU-cheap. */
+@keyframes ember-mote-rise {
+  0%   { transform: translate3d(0, 0, 0);                            opacity: 0;                    }
+  12%  { transform: translate3d(var(--sway), -10svh, 0);             opacity: var(--peak);          }
+  40%  { transform: translate3d(calc(var(--sway) * -1), -42svh, 0);  opacity: var(--peak);          }
+  70%  { transform: translate3d(var(--sway), -72svh, 0);             opacity: var(--peak);          }
+  90%  { transform: translate3d(0, -92svh, 0);                       opacity: calc(var(--peak) * 0.45); }
+  100% { transform: translate3d(0, -104svh, 0);                      opacity: 0;                    }
+}
+
 .hero-room-light {
   position: absolute;
   inset: -80px -40px -100px -40px;
@@ -274,6 +288,52 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.7;
   background: radial-gradient(32% 28% at 35% 60%, rgba(232,137,59,0.10), transparent 72%);
   animation: ember-drift 21s ease-in-out infinite;
+}
+
+/* ── Auth ember-mote field ────────────────────────────── */
+
+/* Full-shell atmospheric layer that sits BEHIND the auth content (z-0). Clips
+   rising motes so they never spawn a scrollbar. */
+.ember-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Faint warm coal-glow along the bottom edge — the unseen fire the embers lift
+   off. Deliberately low-contrast so it never competes with the form. */
+.ember-coal-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  pointer-events: none;
+  background: radial-gradient(
+    130% 100% at 50% 100%,
+    rgba(232, 137, 59, 0.13),
+    rgba(232, 137, 59, 0.04) 42%,
+    transparent 72%
+  );
+}
+
+/* A single ember mote — a soft warm dot with a gentle bloom. Size/start-x/
+   timing all come from per-mote CSS vars set inline. */
+.ember-mote {
+  position: absolute;
+  bottom: -8px;
+  left: var(--x);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 9999px;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 50%, #ffe7b4 0%, #f0b05a 45%, rgba(240, 176, 90, 0) 100%);
+  box-shadow: 0 0 6px 1px rgba(240, 176, 90, 0.5);
+  filter: blur(0.4px);
+  will-change: transform, opacity;
+  animation: ember-mote-rise var(--dur) linear var(--delay) infinite;
 }
 
 /* ── Animation utilities ──────────────────────────────── */
@@ -524,9 +584,16 @@ h1, h2, h3, h4, h5, h6 {
   .animate-ember-flicker-a,
   .animate-ember-flicker-b,
   .animate-ember-spark,
+  .ember-mote,
   .hero-room-light,
   .hero-room-drift {
     animation: none;
+  }
+
+  /* Motes never resolve their fade-in without the animation, so they collapse
+     to invisible — the calm coal-glow alone carries the warmth. */
+  .ember-mote {
+    opacity: 0;
   }
 
   /* Buttons: instant state changes (color/filter still active), no movement or glow */
