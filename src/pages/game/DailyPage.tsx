@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, X } from 'lucide-react';
+import { Brain, CalendarDays, X } from 'lucide-react';
 import { useValidateAnswer } from '@/hooks/use-challenges';
 import { useCompleteDaily, useDaily, useDailyLeaderboard } from '@/hooks/use-daily';
 import type { DailyResult, DailyCompleteResponse, SoloXpSnapshot } from '@/hooks/use-daily';
 import { ChallengePlayer } from '@/components/game/ChallengePlayer';
+import { MemoryPlayer } from '@/components/game/MemoryPlayer';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ShareButton } from '@/components/share/ShareButton';
 import { ResultCelebration, tierFromAccuracy } from '@/components/common/ResultCelebration';
@@ -31,6 +32,24 @@ export function DailyPage() {
 
   const handleValidate = useCallback(
     async (challenge: Challenge, answer: string, elapsedMs: number) => {
+      if (!data) throw new Error('no daily set');
+      const result = await validate.mutateAsync({
+        matchSeed: data.matchSeed,
+        mode: data.mode,
+        difficulty: data.difficulty,
+        index: challenge.index,
+        answer,
+        elapsedMs,
+      });
+      return { correct: result.correct, score: result.score };
+    },
+    [data, validate],
+  );
+
+  // Memory-mode validation — same call, but the answer is the tapped tile
+  // sequence (number[]) instead of a numeric string.
+  const memoryValidate = useCallback(
+    async (challenge: Challenge, answer: number[], elapsedMs: number) => {
       if (!data) throw new Error('no daily set');
       const result = await validate.mutateAsync({
         matchSeed: data.matchSeed,
@@ -85,23 +104,41 @@ export function DailyPage() {
     );
   }
 
-  // ── Playing — delegate to the shared ChallengePlayer ─────────────────────────
+  // ── Playing — pick the player for today's rotating mode ──────────────────────
   if (phase === 'playing') {
     return (
       <div className="flex h-[100dvh] flex-col overflow-hidden" style={{ background: EMBER.base }}>
-        <ChallengePlayer
-          challenges={data.challenges}
-          accent={ACCENT}
-          onValidate={handleValidate}
-          onComplete={handleComplete}
-          onQuit={() => navigate('/')}
-          submitting={completeDaily.isPending}
-        />
+        {data.mode === 'memory' ? (
+          <MemoryPlayer
+            challenges={data.challenges}
+            accent={ACCENT}
+            onValidate={memoryValidate}
+            onComplete={handleComplete}
+            onQuit={() => navigate('/')}
+            submitting={completeDaily.isPending}
+          />
+        ) : (
+          <ChallengePlayer
+            challenges={data.challenges}
+            accent={ACCENT}
+            onValidate={handleValidate}
+            onComplete={handleComplete}
+            onQuit={() => navigate('/')}
+            submitting={completeDaily.isPending}
+          />
+        )}
       </div>
     );
   }
 
   // ── Intro / start screen ─────────────────────────────────────────────────────
+  const isMemory = data.mode === 'memory';
+  const introAccent = isMemory ? EMBER.mode.streak : ACCENT;
+  const IntroIcon = isMemory ? Brain : CalendarDays;
+  const introBlurb = isMemory
+    ? 'Watch the lights, tap them back. One shot today.'
+    : 'One shot. Everyone gets the same set today.';
+
   return (
     <div
       className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6"
@@ -119,13 +156,13 @@ export function DailyPage() {
         className="mb-6 flex items-center justify-center"
         style={{ width: 72, height: 72, background: 'rgba(232,137,59,0.13)' }}
       >
-        <CalendarDays size={34} style={{ color: ACCENT }} />
+        <IntroIcon size={34} style={{ color: introAccent }} />
       </div>
       <h1 className="font-display text-2xl font-bold" style={{ color: EMBER.textPrimary }}>
         Arena Daily
       </h1>
       <p className="mt-2 max-w-xs text-center text-sm" style={{ color: EMBER.textSecondary }}>
-        One shot. Everyone gets the same set today.
+        {introBlurb}
       </p>
       <button
         onClick={() => setPhase('playing')}
