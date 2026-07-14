@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarDays, X } from 'lucide-react';
 import { useValidateAnswer } from '@/hooks/use-challenges';
 import { useCompleteDaily, useDaily, useDailyLeaderboard } from '@/hooks/use-daily';
-import type { DailyResult } from '@/hooks/use-daily';
+import type { DailyResult, DailyCompleteResponse, SoloXpSnapshot } from '@/hooks/use-daily';
 import { ChallengePlayer } from '@/components/game/ChallengePlayer';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ShareButton } from '@/components/share/ShareButton';
-import { JumpingLights } from '@/components/common/JumpingLights';
+import { ResultCelebration, tierFromAccuracy } from '@/components/common/ResultCelebration';
+import { XpLoader } from '@/components/common/XpLoader';
 import { EMBER } from '@/lib/ember';
 import type { Challenge } from '@/types/challenge.types';
 import type { AsyncDuelAnswerInput } from '@/types/async-duel.types';
@@ -24,7 +25,7 @@ export function DailyPage() {
 
   const [phase, setPhase] = useState<Phase>('intro');
   // Snapshot of the freshly-scored run — shown on the results view after submit.
-  const [justPlayed, setJustPlayed] = useState<DailyResult | null>(null);
+  const [justPlayed, setJustPlayed] = useState<DailyCompleteResponse | null>(null);
 
   const data = daily.data;
 
@@ -74,7 +75,14 @@ export function DailyPage() {
 
   // ── Results view (fresh submit OR already-played today) ──────────────────────
   if (result) {
-    return <DailyResultView result={result} total={data.challenges.length} onDone={() => navigate('/')} />;
+    return (
+      <DailyResultView
+        result={result}
+        progression={justPlayed?.progression ?? null}
+        total={data.challenges.length}
+        onDone={() => navigate('/')}
+      />
+    );
   }
 
   // ── Playing — delegate to the shared ChallengePlayer ─────────────────────────
@@ -134,10 +142,12 @@ export function DailyPage() {
 
 function DailyResultView({
   result,
+  progression,
   total,
   onDone,
 }: {
   result: DailyResult;
+  progression: SoloXpSnapshot | null;
   total: number;
   onDone: () => void;
 }) {
@@ -145,7 +155,7 @@ function DailyResultView({
   const { score, correctCount, rank, totalPlayers, streak } = result;
 
   const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-  const tone = accuracy >= 60 ? 'win' : accuracy >= 30 ? 'neutral' : 'loss';
+  const tier = tierFromAccuracy(accuracy);
   const streakLabel = `${streak}-day streak`;
 
   const topEntries = leaderboard.data?.entries.slice(0, 5) ?? [];
@@ -153,7 +163,18 @@ function DailyResultView({
   return (
     <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
       <div className="flex min-h-full flex-col items-center justify-center px-6 py-8">
-        <JumpingLights tone={tone} bars={9} height={76} className="mb-6" />
+        <ResultCelebration tier={tier} className="mb-6" />
+        {progression && (
+          <XpLoader
+            className="mb-6 w-full max-w-xs"
+            level={progression.levelAfter}
+            fromInto={progression.levelAfter > progression.levelBefore ? 0 : progression.intoLevelBefore}
+            toInto={progression.intoLevelAfter}
+            span={progression.levelSpanAfter}
+            gained={progression.xpAwarded}
+            leveledUp={progression.levelAfter > progression.levelBefore}
+          />
+        )}
         <p
           className="font-display text-xs font-semibold uppercase tracking-[0.12em]"
           style={{ color: EMBER.textTertiary }}

@@ -56,6 +56,58 @@ interface Fx {
   shake: boolean;
   brokeComboFrom?: number;
   timedOut: boolean;
+  /** Points flew to the HUD (so the in-place +N is suppressed). */
+  traveled: boolean;
+}
+
+/**
+ * A "+N" token that physically travels from the answer area up into the HUD
+ * score. Positions are viewport coords (the token renders position:fixed);
+ * tx/ty is the translate delta to the HUD score's centre.
+ */
+interface Flyer {
+  id: number;
+  score: number;
+  x: number;
+  y: number;
+  tx: number;
+  ty: number;
+}
+
+/** HUD score absorbs the arriving points — a spring scale pulse (WAAPI). */
+function playBump(el: HTMLElement | null) {
+  if (!el) return;
+  try {
+    el.animate(
+      [
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.32)', offset: 0.4 },
+        { transform: 'scale(1)' },
+      ],
+      { duration: 340, easing: 'cubic-bezier(0.34,1.56,0.64,1)' },
+    );
+  } catch {
+    /* WAAPI unsupported — no-op */
+  }
+}
+
+/** Reactive recoil on a wrong/timed-out answer — a sharp knock-back (WAAPI). */
+function playKnock(el: HTMLElement | null) {
+  if (!el) return;
+  try {
+    el.animate(
+      [
+        { transform: 'translate(0,0) scale(1)' },
+        { transform: 'translate(-4px,3px) scale(0.86)', offset: 0.22 },
+        { transform: 'translate(4px,0) scale(0.96)', offset: 0.5 },
+        { transform: 'translate(-2px,0) scale(1)', offset: 0.78 },
+        { transform: 'translate(0,0) scale(1)' },
+      ],
+      { duration: 320, easing: 'cubic-bezier(0.36,0.07,0.19,0.97)' },
+    );
+  } catch {
+    /* WAAPI unsupported — no-op */
+  }
 }
 
 export interface ChallengePlayerProps {
@@ -91,9 +143,13 @@ export function ChallengePlayer({
   const [displayScore, setDisplayScore] = useState(0); // tweened toward `score`
   const [combo, setCombo] = useState(0);
   const [fx, setFx] = useState<Fx | null>(null);
+  const [flyer, setFlyer] = useState<Flyer | null>(null);
   const [timeFrac, setTimeFrac] = useState(1);
   const [muted, setMuted] = useState(() => sfx.isMuted());
 
+  const hudScoreRef = useRef<HTMLParagraphElement | null>(null); // HUD score (travel target)
+  const sourceRef = useRef<HTMLDivElement | null>(null); // answer area (travel source)
+  const flyerRef = useRef<HTMLSpanElement | null>(null); // the travelling "+N" token
   const shownAtRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const lockedRef = useRef(false); // guards double-submit per challenge
@@ -137,6 +193,48 @@ export function ChallengePlayer({
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [score]);
+
+  // Fly the earned "+N" from the answer area up into the HUD score; on arrival
+  // the HUD absorbs the points (bump + count-up begins). Motion-only, GPU
+  // transforms; only ever set when reduced-motion is off (see submit()).
+  useEffect(() => {
+    if (!flyer) return;
+    const el = flyerRef.current;
+    if (!el || typeof el.animate !== 'function') {
+      // No WAAPI — bank the points immediately so nothing is lost.
+      setScore((s) => s + flyer.score);
+      setFlyer(null);
+      return;
+    }
+    let cancelled = false;
+    const pts = flyer.score;
+    const anim = el.animate(
+      [
+        { transform: 'translate(-50%, 0) scale(0.9)', opacity: 0, offset: 0 },
+        { transform: 'translate(-50%, -12px) scale(1.15)', opacity: 1, offset: 0.16 },
+        {
+          transform: `translate(calc(-50% + ${flyer.tx}px), ${flyer.ty}px) scale(0.5)`,
+          opacity: 0.85,
+          offset: 1,
+        },
+      ],
+      { duration: 560, easing: 'cubic-bezier(0.4,0.1,0.7,0.4)', fill: 'forwards' },
+    );
+    anim.onfinish = () => {
+      if (cancelled) return;
+      setScore((s) => s + pts); // count-up starts as the points land
+      playBump(hudScoreRef.current);
+      setFlyer(null);
+    };
+    return () => {
+      cancelled = true;
+      try {
+        anim.cancel();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, [flyer]);
 
   const vibrate = useCallback((pattern: number | number[]) => {
     try {
@@ -197,10 +295,35 @@ export function ChallengePlayer({
         setCombo(nextCombo);
 
         setFeedback(result);
-        setScore((s) => s + result.score);
+        const fxId = (fxIdRef.current += 1);
+
+        // On a correct answer with motion enabled, the earned points TRAVEL from
+        // the answer area to the HUD score and are banked on arrival. Otherwise
+        // (wrong, reduced-motion, or unmeasurable) they land immediately.
+        let traveled = false;
+        if (result.correct && !rm) {
+          const srcRect = sourceRef.current?.getBoundingClientRect();
+          const dstRect = hudScoreRef.current?.getBoundingClientRect();
+          if (srcRect && dstRect) {
+            traveled = true;
+            const startX = srcRect.left + srcRect.width / 2;
+            const startY = srcRect.top;
+            const endX = dstRect.left + dstRect.width / 2;
+            const endY = dstRect.top + dstRect.height / 2;
+            setFlyer({
+              id: fxId,
+              score: result.score,
+              x: startX,
+              y: startY,
+              tx: endX - startX,
+              ty: endY - startY,
+            });
+          }
+        }
+        if (!traveled) setScore((s) => s + result.score);
 
         setFx({
-          id: (fxIdRef.current += 1),
+          id: fxId,
           correct: result.correct,
           score: result.score,
           combo: nextCombo,
@@ -208,12 +331,16 @@ export function ChallengePlayer({
           shake: !result.correct && !rm,
           brokeComboFrom: !result.correct && prevCombo >= 2 ? prevCombo : undefined,
           timedOut,
+          traveled,
         });
 
         if (result.correct) {
           sfx.correct(nextCombo);
           vibrate(18);
         } else {
+          // Reactive recoil — the HUD score knocks back (input still shakes via
+          // the screen-shake + turns red).
+          if (!rm) playKnock(hudScoreRef.current);
           if (timedOut) sfx.timeout();
           else sfx.wrong();
           vibrate([28, 34, 28]);
@@ -343,6 +470,30 @@ export function ChallengePlayer({
         />
       )}
 
+      {/* The "+N" token in flight from the answer area up to the HUD score.
+          Fixed-positioned (viewport coords) and driven by WAAPI in an effect;
+          the initial transform/opacity match the animation's first keyframe so
+          it never flashes before the animation starts. */}
+      {flyer && (
+        <span
+          ref={flyerRef}
+          key={`fly-${flyer.id}`}
+          aria-hidden
+          className="pointer-events-none fixed z-30 font-display text-2xl font-black tabular-nums"
+          style={{
+            left: flyer.x,
+            top: flyer.y,
+            color: GOLD,
+            textShadow: '0 0 10px rgba(255,201,63,0.55)',
+            transform: 'translate(-50%, 0) scale(0.9)',
+            opacity: 0,
+            willChange: 'transform, opacity',
+          }}
+        >
+          +{flyer.score}
+        </span>
+      )}
+
       {/* Top bar — quit + progress + mute + score */}
       <div className="flex items-center justify-between px-4 pt-4">
         {onQuit ? (
@@ -376,8 +527,14 @@ export function ChallengePlayer({
           </button>
           {onValidate ? (
             <p
+              ref={hudScoreRef}
               className="font-display text-lg font-bold tabular-nums"
-              style={{ color: accent, minWidth: '3ch', textAlign: 'right' }}
+              style={{
+                color: accent,
+                minWidth: '3ch',
+                textAlign: 'right',
+                transformOrigin: 'right center',
+              }}
             >
               {displayScore.toLocaleString()}
             </p>
@@ -459,8 +616,9 @@ export function ChallengePlayer({
           </div>
         </div>
 
-        {/* Answer input — pops on correct, emits +N + particles */}
-        <div className="relative mt-8">
+        {/* Answer input — pops on correct, emits +N + particles.
+            sourceRef is the launch point for the travelling "+N". */}
+        <div ref={sourceRef} className="relative mt-8">
           {/* Particle burst */}
           {fx && fx.particles > 0 && (
             <div
@@ -484,8 +642,9 @@ export function ChallengePlayer({
             </div>
           )}
 
-          {/* +N floats up from the answer */}
-          {fx?.correct && (
+          {/* +N floats up in place — only when the points DIDN'T travel to the
+              HUD (reduced-motion / unmeasurable fallback). */}
+          {fx?.correct && !fx.traveled && (
             <span className="pointer-events-none absolute -top-3 left-1/2 z-10 -translate-x-1/2">
               <span
                 key={`plus-${fx.id}`}

@@ -59,9 +59,10 @@ function RayBurst({ color }: { color: string }) {
   const wedges = 24;
   const step = 360 / wedges;
   const paths: string[] = [];
+  // Narrower wedges (thin rays) read calmer than fat sunburst blades.
   for (let i = 0; i < wedges; i += 2) {
-    const a0 = ((i * step - step * 0.4) * Math.PI) / 180;
-    const a1 = ((i * step + step * 0.4) * Math.PI) / 180;
+    const a0 = ((i * step - step * 0.2) * Math.PI) / 180;
+    const a1 = ((i * step + step * 0.2) * Math.PI) / 180;
     const x0 = cx + r * Math.cos(a0);
     const y0 = cy + r * Math.sin(a0);
     const x1 = cx + r * Math.cos(a1);
@@ -78,7 +79,7 @@ function RayBurst({ color }: { color: string }) {
         top: 60,
         left: '50%',
         transform: 'translateX(-50%)',
-        opacity: 0.16,
+        opacity: 0.08,
         pointerEvents: 'none',
       }}
       aria-hidden="true"

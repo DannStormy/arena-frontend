@@ -5,13 +5,18 @@ import { usePracticeSet, useValidateAnswer } from '@/hooks/use-challenges';
 import { ChallengePlayer } from '@/components/game/ChallengePlayer';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ShareButton } from '@/components/share/ShareButton';
-import { JumpingLights } from '@/components/common/JumpingLights';
+import { ResultCelebration, tierFromAccuracy } from '@/components/common/ResultCelebration';
+import { XpLoader } from '@/components/common/XpLoader';
+import { useMyProgression } from '@/hooks/use-progression';
 import { EMBER } from '@/lib/ember';
 import type { Challenge, ChallengeSetResponse } from '@/types/challenge.types';
 
 type Phase = 'idle' | 'playing' | 'results';
 
 const ACCENT = EMBER.mode.blitz; // amber — speed math burns hot/fast
+// Mirrors arena-api SOLO_CHALLENGE_XP_PER_CORRECT — for the results XP-bar label
+// (the authoritative XP still lives server-side; this only estimates the gain).
+const SOLO_XP_PER_CORRECT = 2;
 
 export function SpeedMathPage() {
   const navigate = useNavigate();
@@ -22,6 +27,10 @@ export function SpeedMathPage() {
   const [set, setSet] = useState<ChallengeSetResponse | null>(null);
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+
+  // Level snapshot for the results XP bar — fetched once we reach the results
+  // screen (by then the per-answer solo-XP awards have landed).
+  const myProg = useMyProgression(phase === 'results');
 
   // Live accumulators the ChallengePlayer feeds via onValidate; snapshotted into
   // state on completion for the results screen.
@@ -109,13 +118,29 @@ export function SpeedMathPage() {
   // ── Results screen ─────────────────────────────────────────────────────────
   if (phase === 'results') {
     const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-    // Tone the celebration by how it went — a strong round burns bright.
-    const tone = accuracy >= 60 ? 'win' : accuracy >= 30 ? 'neutral' : 'loss';
+    // Tier the celebration by how it went — it should read as EARNED.
+    const tier = tierFromAccuracy(accuracy);
+    // XP bar: fill toward the current level, estimating this run's gain so the
+    // fill animates up from where the run started.
+    const lvl = myProg.data?.level;
+    const gained = correctCount * SOLO_XP_PER_CORRECT;
+    const span = lvl ? (lvl.xpToNext != null ? lvl.intoLevel + lvl.xpToNext : Math.max(1, lvl.intoLevel)) : 0;
     return (
       <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
         <div className="flex min-h-full flex-col items-center justify-center px-6 py-8">
-        {/* Animated jumping-lights celebration */}
-        <JumpingLights tone={tone} bars={9} height={76} className="mb-6" />
+        {/* Outcome-tiered celebration hero */}
+        <ResultCelebration tier={tier} className="mb-6" />
+        {lvl && (
+          <XpLoader
+            className="mb-6 w-full max-w-xs"
+            level={lvl.number}
+            fromInto={Math.max(0, lvl.intoLevel - gained)}
+            toInto={lvl.intoLevel}
+            span={span}
+            gained={gained}
+            leveledUp={lvl.intoLevel - gained < 0}
+          />
+        )}
         <p
           className="font-display text-xs font-semibold uppercase tracking-[0.12em]"
           style={{ color: EMBER.textTertiary }}

@@ -32,9 +32,25 @@ export interface DailyResponse {
   result: DailyResult | null;
 }
 
-/** POST /daily/complete response — the scored run plus the played-flag. */
+/** Before→after LEVEL snapshot for the results XP bar (from POST /daily/complete
+ *  and /progression/me-derived solo). Level ledger only — never season rank. */
+export interface SoloXpSnapshot {
+  xpBefore: number;
+  xpAfter: number;
+  xpAwarded: number;
+  levelBefore: number;
+  levelAfter: number;
+  intoLevelBefore: number;
+  intoLevelAfter: number;
+  levelSpanBefore: number;
+  levelSpanAfter: number;
+}
+
+/** POST /daily/complete response — the scored run plus the played-flag and the
+ *  XP snapshot (present on a first completion, null on a one-shot replay). */
 export interface DailyCompleteResponse extends DailyResult {
   alreadyPlayed: boolean;
+  progression: SoloXpSnapshot | null;
 }
 
 export interface DailyLeaderboardEntry {

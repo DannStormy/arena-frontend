@@ -604,6 +604,58 @@ h1, h2, h3, h4, h5, h6 {
   animation: jl-bounce var(--jl-dur, 0.8s) ease-in-out var(--jl-delay, 0s) infinite;
 }
 
+/* ── Result celebration (outcome-tiered results hero) ──────
+   Ember star-burst / calm glow / muted coal. Only transform + opacity animate
+   (GPU-composited) so it holds 60fps on low-end Android. Per-spark --rc-* vars
+   desync every spark. See ResultCelebration.tsx. */
+.rc {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.rc-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+.rc-glow-breathe {
+  animation: hero-glow-breathe 3.2s ease-in-out infinite;
+}
+
+/* Initial pop of the whole 'great' burst on mount. */
+@keyframes rc-burst {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.rc-burst {
+  animation: rc-burst 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* A twinkling 4-point ember spark. transform-origin centre so it pulses in place. */
+@keyframes rc-twinkle {
+  0%, 100% { transform: translate(-50%, -50%) scale(var(--rc-min, 0.45)); opacity: var(--rc-omin, 0.35); }
+  50%      { transform: translate(-50%, -50%) scale(var(--rc-max, 1));    opacity: 1; }
+}
+.rc-spark {
+  position: absolute;
+  border-radius: 1px;
+  transform: translate(-50%, -50%) scale(var(--rc-min, 0.45));
+  transform-origin: center;
+  clip-path: polygon(
+    50% 0%, 58% 42%, 100% 50%, 58% 58%,
+    50% 100%, 42% 58%, 0% 50%, 42% 42%
+  );
+  will-change: transform, opacity;
+  animation: rc-twinkle var(--rc-dur, 1.4s) ease-in-out var(--rc-delay, 0s) infinite;
+}
+
 /* ── Reactive control press (keypad / option / tiles) ──────
    Firm, unmistakable pressed state: a snappy squash + an ember/gold flash on
    background + border. Stylesheet !important beats the element's inline base
@@ -669,6 +721,9 @@ h1, h2, h3, h4, h5, h6 {
   .mind-breathe,
   .ember-mote,
   .jl-bar,
+  .rc-spark,
+  .rc-glow-breathe,
+  .rc-burst,
   .hero-room-light,
   .hero-room-drift {
     animation: none;
@@ -678,6 +733,17 @@ h1, h2, h3, h4, h5, h6 {
      equalizer shape holds without any bounce. */
   .jl-bar {
     transform: scaleY(calc(var(--jl-peak, 0.9) * 0.7));
+  }
+
+  /* Result celebration collapses to a calm static state — sparks hold at a lit
+     resting size, no twinkle / burst / breathe. */
+  .rc-spark {
+    transform: translate(-50%, -50%) scale(calc(var(--rc-max, 1) * 0.82));
+    opacity: 0.72;
+  }
+  .rc-burst {
+    transform: none;
+    opacity: 1;
   }
 
   /* Reactive keys still give an instant (motionless) press flash. */
