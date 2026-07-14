@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Flag, Share2, AlertTriangle, Trophy, Zap, ChevronDown, ChevronUp, LayoutList } from 'lucide-react';
+import { Flag, Share2, AlertTriangle, ChevronDown, ChevronUp, LayoutList } from 'lucide-react';
 import { useGameStore } from '@/stores/game.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,6 +9,7 @@ import { ProgressionReveal } from '@/components/common/ProgressionReveal';
 import { useSessionQuestions } from '@/hooks/use-game-session';
 import { useTournament, useTournamentLeaderboard } from '@/hooks/use-tournaments';
 import { Particles } from '@/components/common/Particles';
+import { JumpingLights } from '@/components/common/JumpingLights';
 import { EMBER } from '@/lib/ember';
 import { cn } from '@/lib/utils';
 import type { GameQuestion } from '@/types/game.types';
@@ -110,8 +111,13 @@ export function GameResultPage() {
     }
   }
 
+  // Celebration tone — a strong solo run burns bright; rank 1 always wins.
+  const tone = myRank === 1 ? 'win' : accuracy >= 60 ? 'win' : accuracy >= 30 ? 'neutral' : 'loss';
+
   return (
-    <div className="relative min-h-svh" style={{ background: EMBER.base }}>
+    // Fixed frame — the page (address bar) never scrolls; long content (expanded
+    // breakdown / progression) scrolls inside this region instead.
+    <div className="relative h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
       <Particles />
 
       <div className="relative z-10 mx-auto w-full max-w-[420px] px-4 pt-10 pb-12 flex flex-col gap-5">
@@ -121,11 +127,8 @@ export function GameResultPage() {
           className="flex flex-col items-center gap-3 -mx-4 px-4 pt-8 pb-7 rounded-b-3xl"
           style={{ background: `linear-gradient(to bottom, ${accent}1A, transparent)` }}
         >
-          <span className="animate-result-reveal" style={{ color: accent }}>
-            {gameType === 'last_man_standing'
-              ? <Trophy className="h-12 w-12" />
-              : <Zap    className="h-12 w-12" />}
-          </span>
+          {/* Animated jumping-lights celebration (replaces the static icon) */}
+          <JumpingLights tone={tone} bars={9} height={68} className="animate-result-reveal" />
 
           {myRank !== null && (
             <div className="text-center animate-result-reveal">

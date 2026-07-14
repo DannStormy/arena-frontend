@@ -74,20 +74,23 @@ function HeroSunburst() {
 
 // The shared branded splash: big curl mark + wordmark + hype value-line + a faint
 // "live" signal. Identical on both auth pages so the entry reads as one arcade.
+// The hero shrinks to fit a short viewport: the tall MindEnergy constellation is
+// hidden below 720px tall, and the brand-lockup margins tighten — so the login
+// AND the taller register form always fit one screen without page scroll.
 function AuthHero() {
   return (
-    <div className="relative mb-7 flex flex-col items-center text-center">
+    <div className="relative mb-7 flex shrink-0 flex-col items-center text-center [@media(max-height:720px)]:mb-4">
       {/* Brand lockup */}
-      <div className="relative mb-4 flex flex-col items-center">
+      <div className="relative mb-4 flex flex-col items-center [@media(max-height:720px)]:mb-2">
         <HeroSunburst />
         <Logo
           variant="mark"
           size={72}
-          className="relative drop-shadow-[0_6px_20px_rgba(232,137,59,0.45)]"
+          className="relative drop-shadow-[0_6px_20px_rgba(232,137,59,0.45)] [@media(max-height:720px)]:scale-75"
         />
         <Wordmark
           height={40}
-          className="relative mt-3 drop-shadow-[0_2px_10px_rgba(232,137,59,0.30)]"
+          className="relative mt-3 drop-shadow-[0_2px_10px_rgba(232,137,59,0.30)] [@media(max-height:720px)]:mt-1.5 [@media(max-height:720px)]:h-8"
         />
         <span className="relative mt-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-arena-text-tertiary">
           The mind-sport arena
@@ -95,8 +98,9 @@ function AuthHero() {
       </div>
 
       {/* MindEnergy — an animated neural constellation (a sharp mind firing)
-         in place of the old headline/sub/chip. Warm ember firelight only. */}
-      <MindEnergy className="mt-1 w-full max-w-[300px]" />
+         in place of the old headline/sub/chip. Warm ember firelight only.
+         Hidden on short viewports to guarantee the form fits one screen. */}
+      <MindEnergy className="mt-1 w-full max-w-[300px] [@media(max-height:720px)]:hidden" />
       <span className="sr-only">
         Arena — the mind-sport arena. The sharpest mind wins.
       </span>
@@ -111,7 +115,9 @@ function AuthHero() {
  */
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-svh bg-arena-bg">
+    // Fixed to exactly one viewport — the page itself never scrolls, so the
+    // primary action (Sign in / Create account) can never drop off-screen.
+    <div className="relative h-[100dvh] overflow-hidden bg-arena-bg">
       {/* Ambient ember room-light (reused from index.css), clipped to the frame */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="hero-room-light" />
@@ -121,10 +127,12 @@ export function AuthShell({ children }: { children: ReactNode }) {
       {/* Atmospheric ember-mote field — soft embers drifting up off a calm fire */}
       <EmberField />
 
-      <div className="relative z-10 mx-auto flex min-h-svh max-w-sm flex-col justify-center px-5 py-10">
+      {/* Inner column centers the content and is the ONLY region allowed to
+          shrink/scroll, and only if a very short viewport truly overflows. */}
+      <div className="relative z-10 mx-auto flex h-full min-h-0 max-w-sm flex-col justify-center overflow-y-auto px-5 py-6 [@media(max-height:720px)]:py-4">
         <AuthHero />
-        <div className="animate-slide-up relative w-full">
-          <div className="hero-card-surface clip-card relative border border-arena-border bg-arena-surface/80 p-6 backdrop-blur-sm">
+        <div className="animate-slide-up relative w-full shrink-0">
+          <div className="hero-card-surface clip-card relative border border-arena-border bg-arena-surface/80 p-6 backdrop-blur-sm [@media(max-height:720px)]:p-5">
             {children}
           </div>
         </div>

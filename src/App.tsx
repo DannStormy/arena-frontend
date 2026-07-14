@@ -16,6 +16,7 @@ import { TournamentLeaderboardPage } from '@/pages/tournament/TournamentLeaderbo
 import { GamePage } from '@/pages/game/GamePage';
 import { GameResultPage } from '@/pages/game/GameResultPage';
 import { SpeedMathPage } from '@/pages/game/SpeedMathPage';
+import { MemoryPage } from '@/pages/game/MemoryPage';
 import { WalletPage } from '@/pages/wallet/WalletPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { LeaderboardPage } from '@/pages/leaderboard/LeaderboardPage';
@@ -69,6 +70,7 @@ export function App() {
             </Route>
 
             <Route path="/play/speed-math" element={<SpeedMathPage />} />
+            <Route path="/play/memory" element={<MemoryPage />} />
             <Route path="/game/:sessionId" element={<GamePage />} />
             <Route path="/game/:sessionId/result" element={<GameResultPage />} />
             <Route path="/duels/create" element={<CreateDuelPage />} />

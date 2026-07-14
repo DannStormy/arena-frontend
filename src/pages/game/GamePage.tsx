@@ -170,7 +170,9 @@ export function GamePage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col min-h-svh" style={{ background: EMBER.base }}>
+    // Fixed to one viewport: the page never scrolls, so the answer options stay
+    // on-screen. Only the question region shrinks/scrolls if a prompt is long.
+    <div className="flex flex-col h-[100dvh] overflow-hidden" style={{ background: EMBER.base }}>
 
       {/* Solo HUD — score + game type + question progress + standing */}
       <TournamentHUD
@@ -188,11 +190,10 @@ export function GamePage() {
       {/* Countdown bar — display only, bound to timeLeft above */}
       <CountdownBar timeLeft={timeLeft} timerMax={10} modeAccent={modeAccent} />
 
-      {/* ── Scrollable content ──────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        {question && (
+      {/* ── Content ──────────────────────────────────────────────────────── */}
+      {question && (
           <>
-            <div className="flex-1 px-4 pt-6 pb-4 flex flex-col justify-center">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-6 pb-4 flex flex-col justify-center">
               <QuestionCard content={question.content} modeAccent={modeAccent} />
               {feedbackQuip && (
                 <p
@@ -204,7 +205,7 @@ export function GamePage() {
               )}
             </div>
 
-            <div className="px-4 pb-6 space-y-2.5">
+            <div className="shrink-0 px-4 pb-6 pt-2 space-y-2.5">
               {question.options.map((option, i) => {
                 const isSelected = selectedIndex === i;
                 const isCorrect  = feedbackVisible && correctIndex === i;
@@ -226,7 +227,6 @@ export function GamePage() {
             </div>
           </>
         )}
-      </div>
 
     </div>
   );

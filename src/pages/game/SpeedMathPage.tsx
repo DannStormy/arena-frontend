@@ -5,6 +5,7 @@ import { usePracticeSet, useValidateAnswer } from '@/hooks/use-challenges';
 import { ChallengePlayer } from '@/components/game/ChallengePlayer';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ShareButton } from '@/components/share/ShareButton';
+import { JumpingLights } from '@/components/common/JumpingLights';
 import { EMBER } from '@/lib/ember';
 import type { Challenge, ChallengeSetResponse } from '@/types/challenge.types';
 
@@ -70,7 +71,7 @@ export function SpeedMathPage() {
   if (phase === 'idle') {
     return (
       <div
-        className="flex min-h-svh flex-col items-center justify-center px-6"
+        className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6"
         style={{ background: EMBER.base }}
       >
         <button
@@ -96,7 +97,7 @@ export function SpeedMathPage() {
         <button
           onClick={() => void startSet()}
           disabled={practiceSet.isPending}
-          className="clip-card mt-8 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+          className="press-cta clip-card mt-8 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white disabled:opacity-60"
           style={{ background: 'linear-gradient(150deg, #F0B05A, #C2541E)' }}
         >
           {practiceSet.isPending ? <LoadingSpinner size="sm" /> : 'Start'}
@@ -108,11 +109,13 @@ export function SpeedMathPage() {
   // ── Results screen ─────────────────────────────────────────────────────────
   if (phase === 'results') {
     const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    // Tone the celebration by how it went — a strong round burns bright.
+    const tone = accuracy >= 60 ? 'win' : accuracy >= 30 ? 'neutral' : 'loss';
     return (
-      <div
-        className="flex min-h-svh flex-col items-center justify-center px-6"
-        style={{ background: EMBER.base }}
-      >
+      <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+        <div className="flex min-h-full flex-col items-center justify-center px-6 py-8">
+        {/* Animated jumping-lights celebration */}
+        <JumpingLights tone={tone} bars={9} height={76} className="mb-6" />
         <p
           className="font-display text-xs font-semibold uppercase tracking-[0.12em]"
           style={{ color: EMBER.textTertiary }}
@@ -168,7 +171,7 @@ export function SpeedMathPage() {
         <button
           onClick={() => void startSet()}
           disabled={practiceSet.isPending}
-          className="clip-card mt-3 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+          className="press-cta clip-card mt-3 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white disabled:opacity-60"
           style={{ background: 'linear-gradient(150deg, #F0B05A, #C2541E)' }}
         >
           {practiceSet.isPending ? (
@@ -186,6 +189,7 @@ export function SpeedMathPage() {
         >
           Done
         </button>
+        </div>
       </div>
     );
   }
@@ -193,14 +197,14 @@ export function SpeedMathPage() {
   // ── Playing — delegate to the shared ChallengePlayer ────────────────────────
   if (!set) {
     return (
-      <div className="flex min-h-svh items-center justify-center" style={{ background: EMBER.base }}>
+      <div className="flex h-[100dvh] items-center justify-center" style={{ background: EMBER.base }}>
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
+    <div className="flex h-[100dvh] flex-col overflow-hidden" style={{ background: EMBER.base }}>
       <ChallengePlayer
         challenges={set.challenges}
         accent={ACCENT}

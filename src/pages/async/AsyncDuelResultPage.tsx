@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ProgressionReveal } from '@/components/common/ProgressionReveal';
 import { ShareButton } from '@/components/share/ShareButton';
+import { JumpingLights } from '@/components/common/JumpingLights';
 import { EMBER } from '@/lib/ember';
 import { pickQuip } from '@/lib/quips';
 import type {
@@ -122,17 +123,22 @@ export function AsyncDuelResultPage() {
       ? `Dead heat with ${opponentLabel} ${me.score}–${them.score} on Arena — settle it: ${challengeUrl}`
       : `${opponentLabel} beat me ${them.score}–${me.score} on Arena. Run it back: ${challengeUrl}`;
 
+  const lightsTone = iWon ? 'win' : iLost ? 'loss' : 'neutral';
+
   return (
-    <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
-      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col px-5 pb-8 pt-10">
+    // Fixed frame — no accidental page scroll; content scrolls inside if needed.
+    <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+      <div className="mx-auto flex min-h-full w-full max-w-sm flex-col px-5 pb-8 pt-10">
         <p
           className="text-center font-display text-xs font-semibold uppercase tracking-[0.14em]"
           style={{ color: EMBER.textTertiary }}
         >
           {isGhost ? 'Ghost match' : 'Duel complete'}
         </p>
+        {/* Animated jumping-lights celebration */}
+        <JumpingLights tone={lightsTone} bars={9} height={60} className="mt-4" />
         <p
-          className="mt-2 text-center font-display text-4xl font-bold"
+          className="mt-4 text-center font-display text-4xl font-bold"
           style={{ color: outcomeColor }}
         >
           {outcome}
@@ -258,8 +264,8 @@ function WaitingScreen({
   };
 
   return (
-    <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
-      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col px-5 pb-8 pt-10">
+    <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+      <div className="mx-auto flex min-h-full w-full max-w-sm flex-col px-5 pb-8 pt-10">
         <p
           className="text-center font-display text-xs font-semibold uppercase tracking-[0.14em]"
           style={{ color: EMBER.textTertiary }}
@@ -415,7 +421,7 @@ function resolutionLabel(r: string): string {
 function Centered({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="flex min-h-svh flex-col items-center justify-center gap-3 px-6 text-center"
+      className="flex h-[100dvh] flex-col items-center justify-center gap-3 px-6 text-center"
       style={{ background: EMBER.base }}
     >
       {children}

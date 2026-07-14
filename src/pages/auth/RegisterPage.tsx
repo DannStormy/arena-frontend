@@ -59,7 +59,7 @@ export function RegisterPage() {
 
   return (
     <AuthShell>
-      <div className="mb-5">
+      <div className="mb-5 [@media(max-height:720px)]:mb-3">
         <h2 className="font-display text-xl font-bold text-arena-text-primary">Create your account</h2>
         <p className="mt-0.5 text-sm text-arena-text-secondary">
           Free to play. First points in 30 seconds.

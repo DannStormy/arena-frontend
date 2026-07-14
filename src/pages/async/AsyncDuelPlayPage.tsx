@@ -105,7 +105,7 @@ export function AsyncDuelPlayPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col" style={{ background: EMBER.base }}>
+    <div className="flex h-[100dvh] flex-col overflow-hidden" style={{ background: EMBER.base }}>
       <ChallengePlayer
         challenges={set.challenges}
         accent={getEmberModeAccent(set.mode)}

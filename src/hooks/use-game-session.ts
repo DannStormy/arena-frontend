@@ -56,6 +56,25 @@ export function useReportQuestion() {
   });
 }
 
+/**
+ * Start a solo (no-tournament) trivia session. POST /game-sessions/solo returns
+ * the same StartSessionResponseDto shape as the tournament start (a sessionId +
+ * first question payload); the caller navigates to /game/:sessionId. Modelled as
+ * a mutation — it's an imperative "deal me a solo game" action.
+ */
+export function useStartSoloSession() {
+  return useMutation({
+    mutationFn: (vars: { category?: string } = {}) =>
+      api
+        .post<{ id: string; totalQuestions: number }>(
+          '/game-sessions/solo',
+          vars.category ? { category: vars.category } : {},
+        )
+        .then((r) => r.data),
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to start trivia')),
+  });
+}
+
 export function useSubmitAnswer(sessionId: string) {
   return useMutation({
     mutationFn: async ({

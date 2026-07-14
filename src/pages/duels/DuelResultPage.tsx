@@ -6,6 +6,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ReportQuestionPicker } from '@/components/common/ReportQuestionPicker';
 import { Particles } from '@/components/common/Particles';
+import { JumpingLights, type JumpingLightsTone } from '@/components/common/JumpingLights';
 import { ProgressionReveal } from '@/components/common/ProgressionReveal';
 import { TierBadge } from '@/components/common/TierBadge';
 import { useDuel } from '@/hooks/use-duels';
@@ -319,7 +320,7 @@ export function DuelResultPage() {
 
   if (!result && isLoading) {
     return (
-      <div className="flex min-h-svh items-center justify-center" style={{ background: '#08080D' }}>
+      <div className="flex h-[100dvh] items-center justify-center" style={{ background: '#08080D' }}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -410,6 +411,13 @@ export function DuelResultPage() {
   const quipContext: QuipContext = isTie ? 'tie' : iWon || theyForfeited ? 'win' : 'loss';
   const quip = pickQuip(quipContext, id);
 
+  // Jumping-lights tone tracks the verdict.
+  const lightsTone: JumpingLightsTone = isTie
+    ? 'neutral'
+    : iWon || theyForfeited
+      ? 'win'
+      : 'loss';
+
   const handleShare = async () => {
     const outcome = iWon ? 'won' : isTie ? 'tied' : 'lost';
     const text    = `I just ${outcome} a duel on Arena! ${myScore} vs ${theirScore}`;
@@ -422,13 +430,14 @@ export function DuelResultPage() {
   };
 
   return (
-    <div className="relative min-h-svh" style={{ background: pageBg }}>
+    <div className="relative h-[100dvh] overflow-y-auto" style={{ background: pageBg }}>
       <Particles />
 
       <div className="relative z-10 mx-auto w-full max-w-[420px] px-5 pt-safe-top pb-12 flex flex-col">
 
-        {/* ── Hero: icon + label + prize ────────────────────────────────── */}
+        {/* ── Hero: jumping lights + crest + label + prize ──────────────── */}
         <div className="flex flex-col items-center pt-16 pb-10 gap-4 text-center">
+          <JumpingLights tone={lightsTone} bars={9} height={56} className="animate-result-reveal" />
           <span className="animate-result-reveal">{outcomeIcon}</span>
 
           <div className="space-y-1.5">

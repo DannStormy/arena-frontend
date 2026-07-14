@@ -4,6 +4,7 @@ import { EmberFlame } from '@/components/common/EmberFlame';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EMBER } from '@/lib/ember';
 import * as sfx from '@/lib/sfx';
+import * as haptics from '@/lib/haptics';
 import { cn } from '@/lib/utils';
 import type { Challenge } from '@/types/challenge.types';
 import type { AsyncDuelAnswerInput } from '@/types/async-duel.types';
@@ -535,9 +536,12 @@ export function ChallengePlayer({
           </KeypadKey>
         </div>
         <button
-          onClick={() => void submit(input)}
+          onClick={() => {
+            haptics.confirm();
+            void submit(input);
+          }}
           disabled={!canSubmit || submitting}
-          className="clip-card mt-2 flex h-14 w-full items-center justify-center font-display text-base font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40"
+          className="press-cta clip-card mt-2 flex h-14 w-full items-center justify-center font-display text-base font-bold text-white disabled:opacity-40"
           style={{ background: 'linear-gradient(150deg, #F0B05A, #C2541E)' }}
         >
           {submitting ? <LoadingSpinner size="sm" /> : 'Submit'}
@@ -559,9 +563,13 @@ function KeypadKey({ children, onClick, disabled }: KeypadKeyProps) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => {
+        if (disabled) return;
+        haptics.tap();
+        onClick();
+      }}
       disabled={disabled}
-      className="clip-row flex h-14 items-center justify-center font-display text-2xl font-bold tabular-nums transition-all active:scale-[0.96] disabled:opacity-40"
+      className="press-key clip-row flex h-14 items-center justify-center font-display text-2xl font-bold tabular-nums disabled:opacity-40"
       style={{ background: EMBER.surfaceRaised, color: EMBER.textPrimary }}
     >
       {children}
