@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Ghost, Lightbulb, Swords, ChevronRight, Zap, Trophy } from 'lucide-react';
+import { Brain, Ghost, Lightbulb, Swords, ChevronRight, Zap, Trophy, CalendarDays } from 'lucide-react';
 import { useDuelHistory } from '@/hooks/use-duels';
 import { useUserStats } from '@/hooks/use-user';
 import { useStreak } from '@/hooks/use-streak';
+import { useDaily } from '@/hooks/use-daily';
 import { useStartSoloSession } from '@/hooks/use-game-session';
 import { useAuthStore } from '@/stores/auth.store';
 import { EMBER } from '@/lib/ember';
@@ -118,7 +119,10 @@ export function HomePage() {
   const { data: stats }        = useUserStats();
   const { data: history }      = useDuelHistory();
   const { data: streak }       = useStreak();
+  const { data: daily }        = useDaily();
   const solo = useStartSoloSession();
+
+  const dailyResult = daily?.alreadyPlayed ? daily.result : null;
 
   const initials    = (user?.username ?? '??').slice(0, 2).toUpperCase();
   const currentRank = stats?.seasonRank ?? user?.rank;
@@ -185,12 +189,12 @@ export function HomePage() {
           {currentRank && <TierBadge tier={currentRank} size="sm" />}
         </Link>
 
-        {/* ── HERO PLAY — Speed Math, the most-polished playable mode ──────── */}
+        {/* ── HERO PLAY — Arena Daily, the retention centrepiece ───────────── */}
         <div className="relative">
           <div className="hero-room-light" />
           <div className="hero-room-drift" />
           <Link
-            to="/play/speed-math"
+            to="/daily"
             className="press-cta animate-lobby-breathe clip-card relative block overflow-hidden select-none"
             style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)', minHeight: 150 }}
           >
@@ -206,25 +210,45 @@ export function HomePage() {
                   boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.28)',
                 }}
               >
-                No stakes · instant
+                One shot · today
               </span>
             </div>
 
             <div className="px-5 pt-6 pb-5">
               <div className="flex items-center gap-1.5 text-white/80">
-                <Zap className="h-4 w-4" />
-                <span className="font-display font-bold text-xs uppercase tracking-[0.14em]">Speed Math</span>
+                <CalendarDays className="h-4 w-4" />
+                <span className="font-display font-bold text-xs uppercase tracking-[0.14em]">Arena Daily</span>
               </div>
-              <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
-                Beat the clock.<br />Bank the points.
-              </p>
-              <p className="text-white/85 text-sm mt-1.5">Ten quick problems. Just you vs the timer.</p>
-              <span
-                className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-bold text-sm"
-                style={{ padding: '8px 16px', color: '#C2541E', background: '#fff' }}
-              >
-                Play <ChevronRight className="h-4 w-4" />
-              </span>
+
+              {dailyResult ? (
+                <>
+                  <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
+                    Daily done
+                  </p>
+                  <p className="text-white/85 text-sm mt-1.5">
+                    #{dailyResult.rank} of {dailyResult.totalPlayers.toLocaleString()} · {dailyResult.streak}-day streak
+                  </p>
+                  <span
+                    className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-semibold text-xs"
+                    style={{ padding: '7px 14px', color: '#fff', background: 'rgba(0,0,0,0.22)' }}
+                  >
+                    New challenge tomorrow
+                  </span>
+                </>
+              ) : (
+                <>
+                  <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
+                    Arena Daily
+                  </p>
+                  <p className="text-white/85 text-sm mt-1.5">One shot. Same set for everyone.</p>
+                  <span
+                    className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-bold text-sm"
+                    style={{ padding: '8px 16px', color: '#C2541E', background: '#fff' }}
+                  >
+                    Play <ChevronRight className="h-4 w-4" />
+                  </span>
+                </>
+              )}
             </div>
           </Link>
         </div>
@@ -239,6 +263,13 @@ export function HomePage() {
           </p>
 
           <div className="grid grid-cols-2 gap-2">
+            <ModeTile
+              to="/play/speed-math"
+              icon={<Zap className="h-4 w-4" />}
+              title="Speed Math"
+              sub="Beat the clock"
+              accent={EMBER.mode.blitz}
+            />
             <ModeTile
               to="/play/memory"
               icon={<Brain className="h-4 w-4" />}

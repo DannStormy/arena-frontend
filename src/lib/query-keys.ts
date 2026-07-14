@@ -22,6 +22,11 @@ export const queryKeys = {
     practice: (mode: string, difficulty: number) =>
       ['challenges', 'practice', mode, difficulty] as const,
   },
+  daily: {
+    all: ['daily'] as const,
+    today: ['daily', 'today'] as const,
+    leaderboard: ['daily', 'leaderboard'] as const,
+  },
   duels: {
     all: ['duels'] as const,
     history: ['duels', 'history'] as const,
