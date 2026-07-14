@@ -387,8 +387,10 @@ export function ChallengePlayer({
         </div>
       </div>
 
-      {/* Prompt + timer ring + input */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6">
+      {/* Prompt + timer ring + input. min-h-0 lets this region actually shrink
+          (and scroll internally on very short viewports) so the keypad+submit
+          footer below is never pushed off-screen. */}
+      <div className="flex flex-1 min-h-0 flex-col items-center justify-center overflow-y-auto px-6">
         {/* Combo zone (solo only) — reserved height to avoid layout shift */}
         {onValidate && (
           <div className="relative mb-2 flex h-8 items-center justify-center">
@@ -517,8 +519,12 @@ export function ChallengePlayer({
         </div>
       </div>
 
-      {/* Keypad */}
-      <div className="mx-auto w-full max-w-sm px-4 pb-6">
+      {/* Keypad + submit — a non-shrinking footer, always fully visible above
+          the home indicator (safe-area padding); it can never be clipped. */}
+      <div
+        className="shrink-0 mx-auto w-full max-w-sm px-4 pt-1"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      >
         <div className="grid grid-cols-3 gap-2">
           {keypad.map((d) => (
             <KeypadKey key={d} onClick={() => pressDigit(d)} disabled={!!feedback}>
