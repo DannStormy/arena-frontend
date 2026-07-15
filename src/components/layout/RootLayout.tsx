@@ -3,15 +3,30 @@ import { Home, Swords, Trophy, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth.store';
 import { useWallet } from '@/hooks/use-wallet';
+import { useOnline } from '@/hooks/use-online';
 import { Logo } from '@/components/common/Logo';
+import { OfflineBanner } from '@/components/common/OfflineBanner';
 
 interface NavItemProps {
   to: string;
   icon: React.ReactNode;
   label: string;
+  /** Route needs a connection — render inert + muted while offline. */
+  disabled?: boolean;
 }
 
-function NavItem({ to, icon, label }: NavItemProps) {
+function NavItem({ to, icon, label, disabled = false }: NavItemProps) {
+  if (disabled) {
+    return (
+      <div
+        aria-disabled
+        className="flex flex-col items-center gap-0.5 px-4 py-2 text-xs font-medium text-arena-text-tertiary opacity-40 cursor-not-allowed"
+      >
+        <span className="flex items-center justify-center rounded-xl p-1.5">{icon}</span>
+        <span>{label}</span>
+      </div>
+    );
+  }
   return (
     <NavLink
       to={to}
@@ -43,6 +58,7 @@ function NavItem({ to, icon, label }: NavItemProps) {
 
 export function RootLayout() {
   const user = useAuthStore((s) => s.user);
+  const online = useOnline();
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? '??';
   const { data: wallet } = useWallet();
 
@@ -70,13 +86,14 @@ export function RootLayout() {
       </header>
 
       <main className="flex-1 overflow-y-auto pt-14 pb-16">
+        <OfflineBanner />
         <Outlet />
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 flex justify-around border-t border-arena-border bg-arena-surface/90 backdrop-blur-md safe-area-bottom">
         <NavItem to="/" icon={<Home className="h-5 w-5" />} label="Home" />
-        <NavItem to="/duels" icon={<Swords className="h-5 w-5" />} label="Duels" />
-        <NavItem to="/leaderboard" icon={<Trophy className="h-5 w-5" />} label="Leaders" />
+        <NavItem to="/duels" icon={<Swords className="h-5 w-5" />} label="Duels" disabled={!online} />
+        <NavItem to="/leaderboard" icon={<Trophy className="h-5 w-5" />} label="Leaders" disabled={!online} />
         <NavItem to="/profile" icon={<User className="h-5 w-5" />} label="Profile" />
       </nav>
     </div>

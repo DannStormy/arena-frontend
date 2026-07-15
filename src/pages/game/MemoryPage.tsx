@@ -5,6 +5,7 @@ import { usePracticeSet, useValidateAnswer } from '@/hooks/use-challenges';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { JumpingLights } from '@/components/common/JumpingLights';
 import { MemoryPlayer } from '@/components/game/MemoryPlayer';
+import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { EMBER } from '@/lib/ember';
 import type { Challenge, ChallengeSetResponse } from '@/types/challenge.types';
 
@@ -78,6 +79,7 @@ export function MemoryPage() {
         className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6"
         style={{ background: EMBER.base }}
       >
+        <OfflineBanner floating />
         <button
           onClick={() => navigate('/')}
           className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center"

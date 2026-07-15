@@ -5,6 +5,7 @@ import { usePracticeSet, useValidateAnswer } from '@/hooks/use-challenges';
 import { ChallengePlayer } from '@/components/game/ChallengePlayer';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ShareButton } from '@/components/share/ShareButton';
+import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { ResultCelebration, tierFromAccuracy } from '@/components/common/ResultCelebration';
 import { XpLoader } from '@/components/common/XpLoader';
 import { useMyProgression } from '@/hooks/use-progression';
@@ -83,6 +84,7 @@ export function SpeedMathPage() {
         className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6"
         style={{ background: EMBER.base }}
       >
+        <OfflineBanner floating />
         <button
           onClick={() => navigate('/')}
           className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center"

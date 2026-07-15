@@ -5,8 +5,10 @@ import { useUserStats } from '@/hooks/use-user';
 import { useStreak } from '@/hooks/use-streak';
 import { useDaily } from '@/hooks/use-daily';
 import { useStartSoloSession } from '@/hooks/use-game-session';
+import { useOnline } from '@/hooks/use-online';
 import { useAuthStore } from '@/stores/auth.store';
 import { EMBER } from '@/lib/ember';
+import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { PageContainer } from '@/components/common/PageContainer';
 import { AvatarRing } from '@/components/common/AvatarRing';
@@ -65,6 +67,7 @@ function ModeTile({
   title,
   sub,
   accent,
+  disabled = false,
 }: {
   to?: string;
   onClick?: () => void;
@@ -73,6 +76,8 @@ function ModeTile({
   title: string;
   sub: string;
   accent: string;
+  /** Online-only mode with no connection — render inert + muted. */
+  disabled?: boolean;
 }) {
   const inner = (
     <>
@@ -87,7 +92,7 @@ function ModeTile({
         {title}
       </p>
       <p className="text-xs" style={{ color: EMBER.textTertiary }}>
-        {sub}
+        {disabled ? 'Online only' : sub}
       </p>
     </>
   );
@@ -95,6 +100,18 @@ function ModeTile({
   const className =
     'press-key clip-row relative flex flex-col justify-center gap-0.5 px-3.5 py-3 text-left';
   const style = { background: EMBER.surface };
+
+  if (disabled) {
+    return (
+      <div
+        aria-disabled
+        className={cn(className, 'cursor-not-allowed opacity-45')}
+        style={style}
+      >
+        {inner}
+      </div>
+    );
+  }
 
   if (onClick) {
     return (
@@ -114,6 +131,7 @@ function ModeTile({
 
 export function HomePage() {
   const navigate = useNavigate();
+  const online = useOnline();
   const user  = useAuthStore((s) => s.user);
   const myId  = user?.id ?? '';
   const { data: stats }        = useUserStats();
@@ -137,6 +155,35 @@ export function HomePage() {
 
   const recentDuels     = (history?.data ?? []).filter((d) => d.status === 'completed').slice(0, 5);
   const showRecentForm  = history !== undefined && recentDuels.length > 0;
+
+  // Shared leaderboard row body — the wrapper is a Link online, an inert div off.
+  const leaderboardBody = (
+    <>
+      <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: EMBER.accent }} />
+      <div className="flex items-center justify-center shrink-0" style={{ width: 28, height: 28, background: 'rgba(232,137,59,0.13)' }}>
+        <Trophy className="h-3.5 w-3.5" style={{ color: EMBER.accent }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
+          Leaderboard
+        </p>
+        <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
+          {!online
+            ? 'Online only'
+            : currentRank
+              ? `You're ${getTierDisplayName(normalizeTierName(currentRank))}${
+                  stats?.seasonPoints != null ? ` · ${stats.seasonPoints.toLocaleString()} pts` : ''
+                }`
+              : 'See where you rank this season'}
+        </p>
+      </div>
+      {currentRank ? (
+        <TierBadge tier={currentRank} size="sm" />
+      ) : (
+        <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
+      )}
+    </>
+  );
 
   // Start a solo trivia game, then hand off to the shared GamePage.
   const startTrivia = () => {
@@ -193,64 +240,90 @@ export function HomePage() {
         <div className="relative">
           <div className="hero-room-light" />
           <div className="hero-room-drift" />
-          <Link
-            to="/daily"
-            className="press-cta animate-lobby-breathe clip-card relative block overflow-hidden select-none"
-            style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)', minHeight: 150 }}
-          >
-            {/* Honest tag — no fabricated player counts */}
-            <div className="absolute top-3 right-3">
-              <span
-                className="clip-chip-sm inline-flex items-center gap-1.5 font-display font-bold uppercase tracking-wide"
-                style={{
-                  fontSize: 10,
-                  padding: '3px 8px',
-                  color: '#fff',
-                  background: 'rgba(0,0,0,0.26)',
-                  boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.28)',
-                }}
-              >
-                One shot · today
-              </span>
-            </div>
-
-            <div className="px-5 pt-6 pb-5">
-              <div className="flex items-center gap-1.5 text-white/80">
-                <CalendarDays className="h-4 w-4" />
-                <span className="font-display font-bold text-xs uppercase tracking-[0.14em]">Arena Daily</span>
+          {online ? (
+            <Link
+              to="/daily"
+              className="press-cta animate-lobby-breathe clip-card relative block overflow-hidden select-none"
+              style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)', minHeight: 150 }}
+            >
+              {/* Honest tag — no fabricated player counts */}
+              <div className="absolute top-3 right-3">
+                <span
+                  className="clip-chip-sm inline-flex items-center gap-1.5 font-display font-bold uppercase tracking-wide"
+                  style={{
+                    fontSize: 10,
+                    padding: '3px 8px',
+                    color: '#fff',
+                    background: 'rgba(0,0,0,0.26)',
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.28)',
+                  }}
+                >
+                  One shot · today
+                </span>
               </div>
 
-              {dailyResult ? (
-                <>
-                  <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
-                    Daily done
-                  </p>
-                  <p className="text-white/85 text-sm mt-1.5">
-                    #{dailyResult.rank} of {dailyResult.totalPlayers.toLocaleString()} · {dailyResult.streak}-day streak
-                  </p>
-                  <span
-                    className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-semibold text-xs"
-                    style={{ padding: '7px 14px', color: '#fff', background: 'rgba(0,0,0,0.22)' }}
-                  >
-                    New challenge tomorrow
-                  </span>
-                </>
-              ) : (
-                <>
-                  <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
-                    Arena Daily
-                  </p>
-                  <p className="text-white/85 text-sm mt-1.5">One shot. Same set for everyone.</p>
-                  <span
-                    className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-bold text-sm"
-                    style={{ padding: '8px 16px', color: '#C2541E', background: '#fff' }}
-                  >
-                    Play <ChevronRight className="h-4 w-4" />
-                  </span>
-                </>
-              )}
+              <div className="px-5 pt-6 pb-5">
+                <div className="flex items-center gap-1.5 text-white/80">
+                  <CalendarDays className="h-4 w-4" />
+                  <span className="font-display font-bold text-xs uppercase tracking-[0.14em]">Arena Daily</span>
+                </div>
+
+                {dailyResult ? (
+                  <>
+                    <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
+                      Daily done
+                    </p>
+                    <p className="text-white/85 text-sm mt-1.5">
+                      #{dailyResult.rank} of {dailyResult.totalPlayers.toLocaleString()} · {dailyResult.streak}-day streak
+                    </p>
+                    <span
+                      className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-semibold text-xs"
+                      style={{ padding: '7px 14px', color: '#fff', background: 'rgba(0,0,0,0.22)' }}
+                    >
+                      New challenge tomorrow
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
+                      Arena Daily
+                    </p>
+                    <p className="text-white/85 text-sm mt-1.5">One shot. Same set for everyone.</p>
+                    <span
+                      className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-bold text-sm"
+                      style={{ padding: '8px 16px', color: '#C2541E', background: '#fff' }}
+                    >
+                      Play <ChevronRight className="h-4 w-4" />
+                    </span>
+                  </>
+                )}
+              </div>
+            </Link>
+          ) : (
+            /* Offline — the Daily needs the server's shared set; show it inert. */
+            <div
+              aria-disabled
+              className="clip-card relative block overflow-hidden select-none opacity-60"
+              style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)', minHeight: 150 }}
+            >
+              <div className="px-5 pt-6 pb-5">
+                <div className="flex items-center gap-1.5 text-white/80">
+                  <CalendarDays className="h-4 w-4" />
+                  <span className="font-display font-bold text-xs uppercase tracking-[0.14em]">Arena Daily</span>
+                </div>
+                <p className="font-display font-bold text-white leading-[1.05] mt-2" style={{ fontSize: 30 }}>
+                  Arena Daily
+                </p>
+                <p className="text-white/85 text-sm mt-1.5">Reconnect to play today's set.</p>
+                <span
+                  className="clip-chip-sm mt-4 inline-flex items-center gap-1.5 font-display font-semibold text-xs"
+                  style={{ padding: '7px 14px', color: '#fff', background: 'rgba(0,0,0,0.22)' }}
+                >
+                  Needs connection
+                </span>
+              </div>
             </div>
-          </Link>
+          )}
         </div>
 
         {/* ── Playable modes — everything here plays right now ────────────── */}
@@ -280,6 +353,7 @@ export function HomePage() {
             <ModeTile
               onClick={startTrivia}
               loading={solo.isPending}
+              disabled={!online}
               icon={<Lightbulb className="h-4 w-4" />}
               title="Trivia"
               sub="Solo · beat the clock"
@@ -287,6 +361,7 @@ export function HomePage() {
             />
             <ModeTile
               to="/async/new?intent=quick"
+              disabled={!online}
               icon={<Ghost className="h-4 w-4" />}
               title="Quick match"
               sub="Beat a ghost run"
@@ -294,6 +369,7 @@ export function HomePage() {
             />
             <ModeTile
               to="/async/new?intent=friend"
+              disabled={!online}
               icon={<Swords className="h-4 w-4" />}
               title="Challenge a friend"
               sub="Share a link · async"
@@ -337,36 +413,24 @@ export function HomePage() {
 
         {streak && <StreakBanner streak={streak} />}
 
-        {/* ── Leaderboard ─────────────────────────────────────────────────── */}
-        <Link
-          to="/leaderboard"
-          className="clip-row relative flex items-center gap-3 px-3.5 py-2.5 active:opacity-90 transition-opacity"
-          style={{ background: EMBER.surface }}
-        >
-          <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: EMBER.accent }} />
-          <div className="flex items-center justify-center shrink-0" style={{ width: 28, height: 28, background: 'rgba(232,137,59,0.13)' }}>
-            <Trophy className="h-3.5 w-3.5" style={{ color: EMBER.accent }} />
+        {/* ── Leaderboard — online only ───────────────────────────────────── */}
+        {online ? (
+          <Link
+            to="/leaderboard"
+            className="clip-row relative flex items-center gap-3 px-3.5 py-2.5 active:opacity-90 transition-opacity"
+            style={{ background: EMBER.surface }}
+          >
+            {leaderboardBody}
+          </Link>
+        ) : (
+          <div
+            aria-disabled
+            className="clip-row relative flex items-center gap-3 px-3.5 py-2.5 cursor-not-allowed opacity-45"
+            style={{ background: EMBER.surface }}
+          >
+            {leaderboardBody}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold" style={{ color: EMBER.textPrimary }}>
-              Leaderboard
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: EMBER.textTertiary }}>
-              {currentRank
-                ? `You're ${getTierDisplayName(normalizeTierName(currentRank))}${
-                    stats?.seasonPoints != null
-                      ? ` · ${stats.seasonPoints.toLocaleString()} pts`
-                      : ''
-                  }`
-                : 'See where you rank this season'}
-            </p>
-          </div>
-          {currentRank ? (
-            <TierBadge tier={currentRank} size="sm" />
-          ) : (
-            <ChevronRight className="h-4 w-4 shrink-0" style={{ color: EMBER.textTertiary }} />
-          )}
-        </Link>
+        )}
 
         {/* ── Recent form ─────────────────────────────────────────────────── */}
         {showRecentForm && (
