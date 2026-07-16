@@ -24,9 +24,36 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      /* Pre-React boot loader — a calm ember-flame breath, shown instantly while
+         the app JS downloads (matters on slow connections). React replaces #root
+         on mount. Mirrors .arena-boot-flame in index.css. */
+      @keyframes arenaBootBreathe {
+        0%, 100% { transform: scale(0.94); opacity: 0.82; filter: drop-shadow(0 0 12px rgba(232,137,59,0.35)); }
+        50%      { transform: scale(1.06); opacity: 1;    filter: drop-shadow(0 0 26px rgba(240,176,90,0.6));  }
+      }
+      #arena-boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #0A0A0F; }
+      #arena-boot svg { animation: arenaBootBreathe 1.6s ease-in-out infinite; transform-origin: center; }
+      @media (prefers-reduced-motion: reduce) { #arena-boot svg { animation: none; filter: drop-shadow(0 0 16px rgba(240,176,90,0.45)); } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="arena-boot">
+        <svg width="72" height="85" viewBox="0 0 56 66" fill="none" role="status" aria-label="Loading Arena">
+          <defs>
+            <linearGradient id="bootFlame" x1="0.2" y1="0.05" x2="0.75" y2="1">
+              <stop offset="0%" stop-color="#FFD23F" />
+              <stop offset="42%" stop-color="#F0B05A" />
+              <stop offset="78%" stop-color="#E8893B" />
+              <stop offset="100%" stop-color="#C2541E" />
+            </linearGradient>
+          </defs>
+          <path d="M31 3 C 39 15, 47 25, 44 40 C 41.5 52.5, 30 60, 19.5 55.5 C 11 51.8, 8.5 41.5, 14.5 35.5 C 19.5 30.5, 27 32, 27.5 39.5 C 30.5 37, 31 30.5, 26.5 26 C 34.5 21, 33.5 12, 31 3 Z" fill="url(#bootFlame)" />
+          <path d="M33 9 C 39 18, 43.5 26, 41.5 36" stroke="#FFF3D8" stroke-opacity="0.55" stroke-width="2" stroke-linecap="round" fill="none" />
+        </svg>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

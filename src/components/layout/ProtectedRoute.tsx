@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { BrandedLoader } from '@/components/common/BrandedLoader';
 
 interface Props {
   adminOnly?: boolean;
@@ -12,7 +12,7 @@ export function ProtectedRoute({ adminOnly }: Props) {
   const user = useAuthStore((s) => s.user);
 
   if (isHydrating) {
-    return <LoadingSpinner />;
+    return <BrandedLoader />;
   }
 
   if (!isAuthenticated) {

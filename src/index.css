@@ -390,6 +390,17 @@ h1, h2, h3, h4, h5, h6 {
 .mind-flare   { animation: mind-flare   5s ease-out    infinite; }
 .mind-breathe { animation: mind-breathe 4s ease-in-out infinite; }
 
+/* Branded boot/hydration loader — a calm ember-flame breath (mirrors the inline
+   pre-React loader in index.html so there's no flash when React mounts). */
+@keyframes arena-flame-breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.82; filter: drop-shadow(0 0 12px rgba(232,137,59,0.35)); }
+  50%      { transform: scale(1.06); opacity: 1;    filter: drop-shadow(0 0 26px rgba(240,176,90,0.6));  }
+}
+.arena-boot-flame { animation: arena-flame-breathe 1.6s ease-in-out infinite; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  .arena-boot-flame { animation: none; filter: drop-shadow(0 0 16px rgba(240,176,90,0.45)); }
+}
+
 /* ── VS slash divider ────────────────────────────────── */
 
 .vs-slash-line {
