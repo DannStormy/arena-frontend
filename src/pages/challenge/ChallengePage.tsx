@@ -9,6 +9,7 @@ import { ResultCelebration, tierFromAccuracy } from '@/components/common/ResultC
 import { useAuthStore } from '@/stores/auth.store';
 import { EMBER } from '@/lib/ember';
 import type { Challenge, ChallengeSetResponse } from '@/types/challenge.types';
+import { HOOK_COPY } from '@/lib/hook-copy';
 
 /**
  * PUBLIC viral-hook funnel — no signup, no auth, no backend. The whole thing
@@ -35,15 +36,10 @@ const DIFFICULTY = 4;
 // Honest score bands. Max is COUNT × 1000 = 10,000; a correct-but-slow answer
 // floors at 400, so an all-correct run lands comfortably above these thresholds.
 // Each label describes the SCORE, not a rank against anyone else.
-const TIERS: ReadonlyArray<{ label: string; min: number }> = [
-  { label: 'Lightning', min: 7500 },
-  { label: 'Fast', min: 5500 },
-  { label: 'Sharp', min: 3000 },
-  { label: 'Warming up', min: 0 },
-];
-
+// Tier labels + thresholds live in src/lib/hook-copy.ts (owner-editable).
 function tierForScore(score: number): string {
-  return (TIERS.find((t) => score >= t.min) ?? TIERS[TIERS.length - 1]).label;
+  const tiers = HOOK_COPY.tiers;
+  return (tiers.find((t) => score >= t.min) ?? tiers[tiers.length - 1]).label;
 }
 
 function freshSeed(): string {
@@ -151,42 +147,32 @@ export function ChallengePage() {
           className="font-display text-xs font-semibold uppercase tracking-[0.14em]"
           style={{ color: EMBER.textTertiary }}
         >
-          {isIncoming ? 'You were challenged' : 'Arena Challenge'}
+          {isIncoming ? HOOK_COPY.intro.eyebrowIncoming : HOOK_COPY.intro.eyebrowFresh}
         </p>
 
-        {/* Placeholder hook copy — plain and honest; the owner will voice it later. */}
         <h1
           className="mt-3 max-w-xs text-center font-display text-3xl font-bold leading-tight"
           style={{ color: EMBER.textPrimary }}
         >
-          How fast is your brain?
+          {HOOK_COPY.intro.headline}
         </h1>
 
-        {isIncoming ? (
-          <p className="mt-3 max-w-xs text-center text-sm" style={{ color: EMBER.textSecondary }}>
-            {challengerName ?? 'Someone'} scored{' '}
-            <span style={{ color: EMBER.accentBright, fontWeight: 700 }}>
-              {challengerScore!.toLocaleString()}
-            </span>
-            . Beat it — same 10 questions.
-          </p>
-        ) : (
-          <p className="mt-3 max-w-xs text-center text-sm" style={{ color: EMBER.textSecondary }}>
-            10 quick problems against the clock. See where your score lands, then
-            dare a friend to beat it.
-          </p>
-        )}
+        <p className="mt-3 max-w-xs text-center text-sm" style={{ color: EMBER.textSecondary }}>
+          {isIncoming
+            ? HOOK_COPY.intro.taunt(challengerName ?? HOOK_COPY.intro.someone, challengerScore!)
+            : HOOK_COPY.intro.blurbFresh}
+        </p>
 
         <button
           onClick={() => start()}
           className="press-cta clip-card mt-8 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white"
           style={{ background: 'linear-gradient(150deg, #F0B05A, #C2541E)' }}
         >
-          {isIncoming ? 'Beat their score' : 'Take the test'}
+          {isIncoming ? HOOK_COPY.intro.startIncoming : HOOK_COPY.intro.startFresh}
         </button>
 
         <p className="mt-4 text-xs" style={{ color: EMBER.textTertiary }}>
-          No signup. Plays instantly.
+          {HOOK_COPY.intro.footnote}
         </p>
       </div>
     );
@@ -209,11 +195,11 @@ export function ChallengePage() {
         : null;
     const verdict =
       outcome === 'win'
-        ? { label: 'You won', color: EMBER.win }
+        ? { label: HOOK_COPY.result.verdict.win, color: EMBER.win }
         : outcome === 'loss'
-          ? { label: 'You lost', color: EMBER.lossInk }
+          ? { label: HOOK_COPY.result.verdict.loss, color: EMBER.lossInk }
           : outcome === 'tie'
-            ? { label: 'Tied', color: EMBER.textSecondary }
+            ? { label: HOOK_COPY.result.verdict.tie, color: EMBER.textSecondary }
             : null;
 
     // The share link replays the SAME seed this player just played, so the friend
@@ -243,7 +229,7 @@ export function ChallengePage() {
               className="font-display text-xs font-semibold uppercase tracking-[0.12em]"
               style={{ color: EMBER.textTertiary }}
             >
-              Your score
+              {HOOK_COPY.result.yourScore}
             </p>
           )}
 
@@ -266,8 +252,11 @@ export function ChallengePage() {
 
           {isIncoming && challengerScore != null && (
             <p className="mt-4 text-sm" style={{ color: EMBER.textSecondary }}>
-              You {score.toLocaleString()} · {challengerName ?? 'Challenger'}{' '}
-              {challengerScore.toLocaleString()}
+              {HOOK_COPY.result.headToHead(
+                score,
+                challengerName ?? HOOK_COPY.result.challengerFallback,
+                challengerScore,
+              )}
             </p>
           )}
 
@@ -296,21 +285,21 @@ export function ChallengePage() {
             <ShareButton
               preview
               fileName="arena-challenge"
-              label="Challenge a friend"
-              shareText={`I scored ${score.toLocaleString()} on Arena. Beat me.`}
+              label={HOOK_COPY.share.label}
+              shareText={HOOK_COPY.share.text(score)}
               shareUrl={shareLink}
               card={{
                 variant: 'speed_math',
                 outcome: 'solo',
-                eyebrow: 'Challenge',
-                kicker: 'I scored',
+                eyebrow: HOOK_COPY.share.cardEyebrow,
+                kicker: HOOK_COPY.share.cardKicker,
                 headline: score.toLocaleString(),
                 subhead: scoreTier,
                 stats: [
                   { label: 'Correct', value: `${correctCount}/${total}` },
                   { label: 'Accuracy', value: `${accuracy}%` },
                 ],
-                cta: 'Beat me.',
+                cta: HOOK_COPY.share.cardCta,
               }}
             />
           </div>
@@ -321,7 +310,7 @@ export function ChallengePage() {
             className="press-cta clip-card mt-3 flex h-14 w-full max-w-xs items-center justify-center gap-2 font-display text-base font-bold text-white"
             style={{ background: 'linear-gradient(150deg, #E8893B, #C2541E)' }}
           >
-            {isAuthenticated ? 'Keep playing' : 'Save your rank · play daily'}
+            {isAuthenticated ? HOOK_COPY.result.ctaSaveAuthed : HOOK_COPY.result.ctaSaveGuest}
           </button>
 
           <button
@@ -329,7 +318,7 @@ export function ChallengePage() {
             className="mt-3 text-sm font-medium"
             style={{ color: EMBER.textTertiary }}
           >
-            Play again
+            {HOOK_COPY.result.playAgain}
           </button>
         </div>
       </div>
