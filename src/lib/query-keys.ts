@@ -11,6 +11,7 @@ export const queryKeys = {
   },
   leaderboard: {
     global: (arena?: string) => ['leaderboard', arena ?? 'all'] as const,
+    level: (page: number, limit: number) => ['leaderboard', 'level', page, limit] as const,
   },
   game: {
     session: (id: string) => ['game-sessions', id] as const,
