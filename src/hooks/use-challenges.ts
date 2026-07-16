@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { generateSet, validateLocal } from '@/lib/challenge-engine';
+import { enqueueOfflineXp } from '@/lib/offline-xp-queue';
 import { getErrorMessage } from '@/lib/utils';
 import type {
   ChallengeSetResponse,
@@ -71,7 +72,7 @@ export function useValidateAnswer() {
         return res.data;
       } catch (err) {
         if (isOfflineError(err)) {
-          return validateLocal({
+          const result = validateLocal({
             matchSeed: data.matchSeed,
             mode: data.mode,
             difficulty: data.difficulty,
@@ -79,6 +80,10 @@ export function useValidateAnswer() {
             answer: data.answer,
             elapsedMs: data.elapsedMs,
           });
+          // Bank correct answers — their XP syncs (server-authoritatively) on
+          // reconnect via drainOfflineXp(). Wrong answers earn nothing anyway.
+          if (result.correct) enqueueOfflineXp(data);
+          return result;
         }
         throw err;
       }

@@ -9,6 +9,7 @@ import { OfflineBanner } from '@/components/common/OfflineBanner';
 import { ResultCelebration, tierFromAccuracy } from '@/components/common/ResultCelebration';
 import { XpLoader } from '@/components/common/XpLoader';
 import { useMyProgression } from '@/hooks/use-progression';
+import { useOnline } from '@/hooks/use-online';
 import { EMBER } from '@/lib/ember';
 import type { Challenge, ChallengeSetResponse } from '@/types/challenge.types';
 
@@ -32,6 +33,7 @@ export function SpeedMathPage() {
   // Level snapshot for the results XP bar — fetched once we reach the results
   // screen (by then the per-answer solo-XP awards have landed).
   const myProg = useMyProgression(phase === 'results');
+  const online = useOnline();
 
   // Live accumulators the ChallengePlayer feeds via onValidate; snapshotted into
   // state on completion for the results screen.
@@ -142,6 +144,11 @@ export function SpeedMathPage() {
             gained={gained}
             leveledUp={lvl.intoLevel - gained < 0}
           />
+        )}
+        {!online && (
+          <p className="mb-6 text-center text-xs" style={{ color: EMBER.textTertiary }}>
+            XP banked — syncs when you're back online.
+          </p>
         )}
         <p
           className="font-display text-xs font-semibold uppercase tracking-[0.12em]"

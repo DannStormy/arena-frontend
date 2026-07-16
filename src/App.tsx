@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useOfflineXpSync } from '@/hooks/use-offline-xp-sync';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -49,11 +50,18 @@ const queryClient = new QueryClient({
   },
 });
 
+/** Drains banked offline XP on reconnect. Rendered inside the providers. */
+function OfflineXpSync() {
+  useOfflineXpSync();
+  return null;
+}
+
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Toaster position="top-center" theme="dark" richColors />
+        <OfflineXpSync />
         <Routes>
           <Route element={<AuthRoute />}>
             <Route path="/login" element={<LoginPage />} />
