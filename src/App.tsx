@@ -38,6 +38,7 @@ import { ChallengePreviewPage } from '@/pages/duels/ChallengePreviewPage';
 import { AsyncDuelStartPage } from '@/pages/async/AsyncDuelStartPage';
 import { AsyncDuelPlayPage } from '@/pages/async/AsyncDuelPlayPage';
 import { AsyncDuelResultPage } from '@/pages/async/AsyncDuelResultPage';
+import { ChallengePage } from '@/pages/challenge/ChallengePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +98,10 @@ export function App() {
               <Route path="/admin/progression" element={<AdminProgressionConfigPage />} />
             </Route>
           </Route>
+
+          {/* PUBLIC viral hook — instant, no-signup client challenge. Works
+              logged-out AND logged-in (fully client-side, no backend). */}
+          <Route path="/c" element={<ChallengePage />} />
 
           <Route path="/duels/:code" element={<ChallengePreviewPage />} />
 

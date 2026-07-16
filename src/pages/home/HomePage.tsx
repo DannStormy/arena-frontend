@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Ghost, Lightbulb, Swords, ChevronRight, Zap, Trophy, CalendarDays } from 'lucide-react';
+import { Brain, Ghost, Lightbulb, Swords, ChevronRight, Zap, Trophy, CalendarDays, Gauge } from 'lucide-react';
 import { useDuelHistory } from '@/hooks/use-duels';
 import { useUserStats } from '@/hooks/use-user';
 import { useStreak } from '@/hooks/use-streak';
@@ -374,6 +374,13 @@ export function HomePage() {
               title="Challenge a friend"
               sub="Share a link · async"
               accent={EMBER.accent}
+            />
+            <ModeTile
+              to="/c"
+              icon={<Gauge className="h-4 w-4" />}
+              title="Brain sprint"
+              sub="No-signup · dare a friend"
+              accent={EMBER.mode.blitz}
             />
           </div>
         </div>
