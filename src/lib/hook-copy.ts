@@ -23,7 +23,7 @@ export const HOOK_COPY = {
       `${name} scored ${score.toLocaleString()}. Beat it — same 10 questions.`,
     startFresh: 'Take the test',
     startIncoming: 'Beat their score',
-    footnote: 'No signup. Plays instantly.',
+    footnote: 'No signup to play. Plays instantly.',
     someone: 'Someone', // fallback when the challenger has no name
   },
   result: {
