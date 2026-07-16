@@ -117,6 +117,70 @@ export function Wordmark({ height = 20, className }: { height?: number; classNam
   );
 }
 
+/**
+ * The TORCH lockup — the flame CROWNS the capital "A" so the A reads as a lit
+ * torch/pillar and "Arena" stays fully legible: one integrated logotype, not a
+ * mark hanging beside/above the word. A single self-contained SVG (flame +
+ * wordmark share one coordinate space), so it scales as a unit and serializes
+ * cleanly in the html-to-image export. `capHeight` is the wordmark cap height
+ * in px; the flame headroom scales with it. Geometry mirrors the OG lockup.
+ */
+export function TorchLockup({
+  capHeight = 20,
+  className,
+}: {
+  capHeight?: number;
+  className?: string;
+}) {
+  const id = useId().replace(/:/g, '');
+  // Combined box: wordmark occupies (0..401.76, 0..100); the flame sits above
+  // the A's apex, needing ~64u of headroom above the cap line.
+  const VB_Y = -64;
+  const VB_H = 164;
+  return (
+    <svg
+      width={(capHeight * WORDMARK_VB_W) / WORDMARK_VB_H}
+      height={(capHeight * VB_H) / WORDMARK_VB_H}
+      viewBox={`0 ${VB_Y} ${WORDMARK_VB_W} ${VB_H}`}
+      fill="none"
+      role="img"
+      aria-label={BRAND_NAME}
+      className={className}
+    >
+      <defs>
+        <linearGradient id={`tl-word-${id}`} x1="0" y1="0.12" x2="1" y2="0.9">
+          <stop offset="0%" stopColor={EMBER_DEEP} />
+          <stop offset="38%" stopColor={EMBER} />
+          <stop offset="70%" stopColor={AMBER} />
+          <stop offset="100%" stopColor={GOLD} />
+        </linearGradient>
+        <linearGradient id={`tl-flame-${id}`} x1="0.2" y1="0.05" x2="0.75" y2="1">
+          <stop offset="0%" stopColor={GOLD} />
+          <stop offset="42%" stopColor={AMBER} />
+          <stop offset="78%" stopColor={EMBER} />
+          <stop offset="100%" stopColor={EMBER_DEEP} />
+        </linearGradient>
+      </defs>
+      {/* Flame crowning the capital A (apex ≈ x42,y2 in the wordmark box) */}
+      <g transform="translate(13.85, -63.08) scale(1.0154)">
+        <path
+          d="M31 3 C 39 15, 47 25, 44 40 C 41.5 52.5, 30 60, 19.5 55.5 C 11 51.8, 8.5 41.5, 14.5 35.5 C 19.5 30.5, 27 32, 27.5 39.5 C 30.5 37, 31 30.5, 26.5 26 C 34.5 21, 33.5 12, 31 3 Z"
+          fill={`url(#tl-flame-${id})`}
+        />
+        <path
+          d="M33 9 C 39 18, 43.5 26, 41.5 36"
+          stroke={WHITEHOT}
+          strokeOpacity="0.55"
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </g>
+      <path d={ARENA_PATH} fill={`url(#tl-word-${id})`} />
+    </svg>
+  );
+}
+
 export function Logo({ variant = 'full', size, className }: LogoProps) {
   if (variant === 'mark') {
     return (
@@ -126,19 +190,7 @@ export function Logo({ variant = 'full', size, className }: LogoProps) {
     );
   }
 
-  // Full lockup — curl mark + Fraunces wordmark, warm ember. `size` sets the
-  // mark height; the wordmark cap height and gap scale off it.
-  const markH = size ?? 30;
-  const markSize = (markH * 56) / 66;
-  const wordH = markH * 0.5;
-  return (
-    <span
-      className={`inline-flex items-center ${className ?? ''}`}
-      style={{ gap: markH * 0.24 }}
-      aria-label={BRAND_NAME}
-    >
-      <CurlMark size={markSize} />
-      <Wordmark height={wordH} />
-    </span>
-  );
+  // Full lockup — the torch: flame crowning the A. `size` historically set the
+  // mark height; here it maps to a comparable overall size via the cap height.
+  return <TorchLockup capHeight={(size ?? 30) * 0.5} className={className} />;
 }

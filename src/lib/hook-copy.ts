@@ -15,13 +15,13 @@ export const HOOK_COPY = {
   intro: {
     eyebrowFresh: 'Arena Challenge',
     eyebrowIncoming: 'You were challenged',
-    headline: 'How fast is your brain?',
+    headline: 'Train your mind.',
     blurbFresh:
-      '10 quick problems against the clock. See where your score lands, then dare a friend to beat it.',
+      '10 quick drills against the clock — math, memory, patterns. Fire your neurons, see where you land, then dare a friend to beat it.',
     /** Shown when arriving via a friend's link. name = who challenged you. */
     taunt: (name: string, score: number) =>
       `${name} scored ${score.toLocaleString()}. Beat it — same 10 questions.`,
-    startFresh: 'Take the test',
+    startFresh: 'Start training',
     startIncoming: 'Beat their score',
     footnote: 'No signup to play. Plays instantly.',
     someone: 'Someone', // fallback when the challenger has no name

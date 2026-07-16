@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Logo, Wordmark } from '@/components/common/Logo';
+import { TorchLockup } from '@/components/common/Logo';
 import { MindEnergy } from '@/components/common/MindEnergy';
 
 // Hand-tuned ember motes — every field is varied (start-x spread across the
@@ -83,17 +83,12 @@ function AuthHero() {
       {/* Brand lockup */}
       <div className="relative mb-4 flex flex-col items-center [@media(max-height:720px)]:mb-2">
         <HeroSunburst />
-        <Logo
-          variant="mark"
-          size={72}
-          className="relative drop-shadow-[0_6px_20px_rgba(232,137,59,0.45)] [@media(max-height:720px)]:scale-75"
+        <TorchLockup
+          capHeight={52}
+          className="relative drop-shadow-[0_6px_20px_rgba(232,137,59,0.42)] [@media(max-height:720px)]:scale-[0.8]"
         />
-        <Wordmark
-          height={40}
-          className="relative mt-3 drop-shadow-[0_2px_10px_rgba(232,137,59,0.30)] [@media(max-height:720px)]:mt-1.5 [@media(max-height:720px)]:h-8"
-        />
-        <span className="relative mt-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-arena-text-tertiary">
-          The mind-sport arena
+        <span className="relative mt-3 text-[11px] font-medium uppercase tracking-[0.22em] text-arena-text-tertiary [@media(max-height:720px)]:mt-1.5">
+          Train your mind
         </span>
       </div>
 

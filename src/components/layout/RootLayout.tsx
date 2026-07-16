@@ -69,7 +69,7 @@ export function RootLayout() {
   return (
     <div className="flex flex-col min-h-svh bg-arena-bg">
       <header className="fixed top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-arena-surface/90 backdrop-blur-md border-b border-arena-border safe-area-top">
-        <Logo variant="full" />
+        <Logo variant="full" size={36} />
         <Link to="/profile" className="flex items-center gap-2.5">
           {balanceDisplay && (
             <span className="font-display font-bold text-arena-gold text-sm tabular-nums">
