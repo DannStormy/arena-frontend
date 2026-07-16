@@ -16,7 +16,9 @@ export class MathGenerator implements ChallengeGenerator {
   readonly type = 'math' as const;
 
   generate(rng: SeededRng, difficulty: number, index: number): GeneratedChallenge {
-    const level = clampDifficulty(difficulty);
+    // Ramp UP within a run (mirrors arena-api): base difficulty climbs ~0.6/level
+    // per question toward the hard cap, so a set ends genuinely challenging.
+    const level = clampDifficulty(difficulty + Math.floor(index * 0.6));
     const op = rng.pick(this.opsFor(level));
     const { expression, answer } = this.build(rng, level, op);
 

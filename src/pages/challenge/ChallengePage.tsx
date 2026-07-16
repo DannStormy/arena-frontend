@@ -31,7 +31,7 @@ type Phase = 'intro' | 'playing' | 'results';
 
 const ACCENT = EMBER.mode.blitz; // amber — the sprint burns hot/fast
 const COUNT = 10;
-const DIFFICULTY = 4;
+const DIFFICULTY = 6;
 
 // Honest score bands. Max is COUNT × 1000 = 10,000; a correct-but-slow answer
 // floors at 400, so an all-correct run lands comfortably above these thresholds.

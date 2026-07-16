@@ -17,7 +17,7 @@ type Phase = 'idle' | 'playing' | 'results';
 const ACCENT = EMBER.mode.blitz; // amber — speed math burns hot/fast
 // Mirrors arena-api SOLO_CHALLENGE_XP_PER_CORRECT — for the results XP-bar label
 // (the authoritative XP still lives server-side; this only estimates the gain).
-const SOLO_XP_PER_CORRECT = 2;
+const SOLO_XP_PER_CORRECT = 30;
 
 export function SpeedMathPage() {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export function SpeedMathPage() {
     const data = await practiceSet.mutateAsync({
       mode: 'speed_math',
       count: 10,
-      difficulty: 3,
+      difficulty: 6,
     });
     scoreRef.current = 0;
     correctRef.current = 0;
