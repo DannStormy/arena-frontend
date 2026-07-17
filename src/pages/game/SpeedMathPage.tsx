@@ -83,7 +83,7 @@ export function SpeedMathPage() {
   if (phase === 'idle') {
     return (
       <div
-        className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6"
+        className="relative flex h-[100svh] flex-col items-center justify-center overflow-hidden px-6"
         style={{ background: EMBER.base }}
       >
         <OfflineBanner floating />
@@ -130,7 +130,7 @@ export function SpeedMathPage() {
     const gained = correctCount * SOLO_XP_PER_CORRECT;
     const span = lvl ? (lvl.xpToNext != null ? lvl.intoLevel + lvl.xpToNext : Math.max(1, lvl.intoLevel)) : 0;
     return (
-      <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+      <div className="h-[100svh] overflow-y-auto" style={{ background: EMBER.base }}>
         <div className="flex min-h-full flex-col items-center justify-center px-6 py-8">
         {/* Outcome-tiered celebration hero */}
         <ResultCelebration tier={tier} className="mb-6" />
@@ -231,14 +231,14 @@ export function SpeedMathPage() {
   // ── Playing — delegate to the shared ChallengePlayer ────────────────────────
   if (!set) {
     return (
-      <div className="flex h-[100dvh] items-center justify-center" style={{ background: EMBER.base }}>
+      <div className="flex h-[100svh] items-center justify-center" style={{ background: EMBER.base }}>
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden" style={{ background: EMBER.base }}>
+    <div className="flex h-[100svh] flex-col overflow-hidden" style={{ background: EMBER.base }}>
       <ChallengePlayer
         challenges={set.challenges}
         accent={ACCENT}

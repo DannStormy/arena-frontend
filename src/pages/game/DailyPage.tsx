@@ -82,7 +82,7 @@ export function DailyPage() {
   // ── Loading ────────────────────────────────────────────────────────────────
   if (daily.isLoading || !data) {
     return (
-      <div className="flex h-[100dvh] items-center justify-center" style={{ background: EMBER.base }}>
+      <div className="flex h-[100svh] items-center justify-center" style={{ background: EMBER.base }}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -107,7 +107,7 @@ export function DailyPage() {
   // ── Playing — pick the player for today's rotating mode ──────────────────────
   if (phase === 'playing') {
     return (
-      <div className="flex h-[100dvh] flex-col overflow-hidden" style={{ background: EMBER.base }}>
+      <div className="flex h-[100svh] flex-col overflow-hidden" style={{ background: EMBER.base }}>
         {data.mode === 'memory' ? (
           <MemoryPlayer
             challenges={data.challenges}
@@ -141,7 +141,7 @@ export function DailyPage() {
 
   return (
     <div
-      className="relative flex h-[100dvh] flex-col items-center justify-center overflow-hidden px-6"
+      className="relative flex h-[100svh] flex-col items-center justify-center overflow-hidden px-6"
       style={{ background: EMBER.base }}
     >
       <button
@@ -198,7 +198,7 @@ function DailyResultView({
   const topEntries = leaderboard.data?.entries.slice(0, 5) ?? [];
 
   return (
-    <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+    <div className="h-[100svh] overflow-y-auto" style={{ background: EMBER.base }}>
       <div className="flex min-h-full flex-col items-center justify-center px-6 py-8">
         <ResultCelebration tier={tier} className="mb-6" />
         {progression && (

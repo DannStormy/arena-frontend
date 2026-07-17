@@ -8,7 +8,7 @@ import { EMBER } from '@/lib/ember';
 export function BrandedLoader() {
   return (
     <div
-      className="flex h-[100dvh] w-full items-center justify-center"
+      className="flex h-[100svh] w-full items-center justify-center"
       style={{ background: EMBER.base }}
     >
       <svg

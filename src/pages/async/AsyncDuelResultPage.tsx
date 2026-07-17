@@ -127,7 +127,7 @@ export function AsyncDuelResultPage() {
 
   return (
     // Fixed frame — no accidental page scroll; content scrolls inside if needed.
-    <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+    <div className="h-[100svh] overflow-y-auto" style={{ background: EMBER.base }}>
       <div className="mx-auto flex min-h-full w-full max-w-sm flex-col px-5 pb-8 pt-10">
         <p
           className="text-center font-display text-xs font-semibold uppercase tracking-[0.14em]"
@@ -264,7 +264,7 @@ function WaitingScreen({
   };
 
   return (
-    <div className="h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+    <div className="h-[100svh] overflow-y-auto" style={{ background: EMBER.base }}>
       <div className="mx-auto flex min-h-full w-full max-w-sm flex-col px-5 pb-8 pt-10">
         <p
           className="text-center font-display text-xs font-semibold uppercase tracking-[0.14em]"
@@ -421,7 +421,7 @@ function resolutionLabel(r: string): string {
 function Centered({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="flex h-[100dvh] flex-col items-center justify-center gap-3 px-6 text-center"
+      className="flex h-[100svh] flex-col items-center justify-center gap-3 px-6 text-center"
       style={{ background: EMBER.base }}
     >
       {children}

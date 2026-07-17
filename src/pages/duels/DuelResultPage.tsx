@@ -320,7 +320,7 @@ export function DuelResultPage() {
 
   if (!result && isLoading) {
     return (
-      <div className="flex h-[100dvh] items-center justify-center" style={{ background: '#08080D' }}>
+      <div className="flex h-[100svh] items-center justify-center" style={{ background: '#08080D' }}>
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -430,7 +430,7 @@ export function DuelResultPage() {
   };
 
   return (
-    <div className="relative h-[100dvh] overflow-y-auto" style={{ background: pageBg }}>
+    <div className="relative h-[100svh] overflow-y-auto" style={{ background: pageBg }}>
       <Particles />
 
       <div className="relative z-10 mx-auto w-full max-w-[420px] px-5 pt-safe-top pb-12 flex flex-col">

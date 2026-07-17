@@ -172,7 +172,7 @@ export function GamePage() {
   return (
     // Fixed to one viewport: the page never scrolls, so the answer options stay
     // on-screen. Only the question region shrinks/scrolls if a prompt is long.
-    <div className="flex flex-col h-[100dvh] overflow-hidden" style={{ background: EMBER.base }}>
+    <div className="flex flex-col h-[100svh] overflow-hidden" style={{ background: EMBER.base }}>
 
       {/* Solo HUD — score + game type + question progress + standing */}
       <TournamentHUD

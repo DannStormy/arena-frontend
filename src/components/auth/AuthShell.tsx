@@ -112,7 +112,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
   return (
     // Fixed to exactly one viewport — the page itself never scrolls, so the
     // primary action (Sign in / Create account) can never drop off-screen.
-    <div className="relative h-[100dvh] overflow-hidden bg-arena-bg">
+    <div className="relative h-[100svh] overflow-hidden bg-arena-bg">
       {/* Ambient ember room-light (reused from index.css), clipped to the frame */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="hero-room-light" />

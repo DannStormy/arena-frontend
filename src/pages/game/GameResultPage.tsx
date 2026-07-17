@@ -117,7 +117,7 @@ export function GameResultPage() {
   return (
     // Fixed frame — the page (address bar) never scrolls; long content (expanded
     // breakdown / progression) scrolls inside this region instead.
-    <div className="relative h-[100dvh] overflow-y-auto" style={{ background: EMBER.base }}>
+    <div className="relative h-[100svh] overflow-y-auto" style={{ background: EMBER.base }}>
       <Particles />
 
       <div className="relative z-10 mx-auto w-full max-w-[420px] px-4 pt-10 pb-12 flex flex-col gap-5">
