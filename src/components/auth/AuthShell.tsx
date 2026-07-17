@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { TorchLockup } from '@/components/common/Logo';
+import { ArchaicLockup } from '@/components/common/Logo';
 import { MindEnergy } from '@/components/common/MindEnergy';
 
 // Hand-tuned ember motes — every field is varied (start-x spread across the
@@ -83,8 +83,8 @@ function AuthHero() {
       {/* Brand lockup */}
       <div className="relative mb-4 flex flex-col items-center [@media(max-height:720px)]:mb-2">
         <HeroSunburst />
-        <TorchLockup
-          capHeight={52}
+        <ArchaicLockup
+          capHeight={46}
           className="relative drop-shadow-[0_6px_20px_rgba(232,137,59,0.42)] [@media(max-height:720px)]:scale-[0.8]"
         />
         <span className="relative mt-3 text-[11px] font-medium uppercase tracking-[0.22em] text-arena-text-tertiary [@media(max-height:720px)]:mt-1.5">
