@@ -372,7 +372,7 @@ export function HomePage() {
               disabled={!online}
               icon={<Swords className="h-4 w-4" />}
               title="Challenge a friend"
-              sub="Share a link · async"
+              sub="Share a link · play anytime"
               accent={EMBER.accent}
             />
             <ModeTile
