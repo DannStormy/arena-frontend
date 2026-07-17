@@ -31,6 +31,26 @@ function isOfflineError(err: unknown): boolean {
  */
 const OFFLINE_SEED_PREFIX = 'offline:';
 
+const PRACTICE_MAX_RETRIES = 5;
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+/** Practice-retry backoff: ~1.5s → 9.5s per attempt, ~27s total across 5 tries. */
+const practiceRetryDelayMs = (attempt: number) => Math.min(1500 + attempt * 2000, 9500);
+
+/**
+ * A transient cold-start signature worth retrying: a network-level failure
+ * (connection refused/reset while the instance boots) or a gateway/unavailable
+ * status the platform returns during wake-up. A plain 4xx is authoritative and
+ * must never be retried.
+ */
+function isColdStartError(err: unknown): boolean {
+  if (isOfflineError(err)) return true;
+  if (axios.isAxiosError(err) && err.response) {
+    const s = err.response.status;
+    return s === 502 || s === 503 || s === 504;
+  }
+  return false;
+}
+
 /**
  * Fetch a fresh solo practice set. Modelled as a mutation because it is an
  * imperative "deal me a new round" action (like useCreateDuel), not cacheable
@@ -46,25 +66,38 @@ export function usePracticeSet() {
       const mode = data.mode ?? 'speed_math';
       const count = data.count ?? 10;
       const difficulty = data.difficulty ?? 3;
-      try {
-        const res = await api.post<ChallengeSetResponse>('/challenges/practice', {
-          mode,
-          count,
-          difficulty,
-        });
-        return res.data;
-      } catch (err) {
-        if (isOfflineError(err)) {
-          // Offline fallback — a client seed, prefixed so validation stays local
-          // and is never sent to the server (which can't reproduce it).
-          return generateSet({
-            matchSeed: OFFLINE_SEED_PREFIX + crypto.randomUUID(),
+
+      // Render's free tier sleeps; the first request after idle can fail at the
+      // network layer (or return 502/503/504) while the instance wakes. Retry
+      // with backoff so a cold start lands a real SERVER set (server-scored,
+      // real XP) instead of dropping to an offline run that cannot award XP.
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const res = await api.post<ChallengeSetResponse>('/challenges/practice', {
             mode,
             count,
             difficulty,
           });
+          return res.data;
+        } catch (err) {
+          const coldStart = isColdStartError(err);
+          if (coldStart && attempt < PRACTICE_MAX_RETRIES) {
+            await sleep(practiceRetryDelayMs(attempt));
+            continue;
+          }
+          // Server still unreachable after retries (or genuinely offline) → play
+          // on-device. The seed is prefixed so validation stays local and is
+          // never sent to the server (which can't reproduce it).
+          if (coldStart) {
+            return generateSet({
+              matchSeed: OFFLINE_SEED_PREFIX + crypto.randomUUID(),
+              mode,
+              count,
+              difficulty,
+            });
+          }
+          throw err; // a real 4xx (bad request / auth) — surface it
         }
-        throw err;
       }
     },
     onError: (err) => {
