@@ -24,6 +24,14 @@ function isOfflineError(err: unknown): boolean {
 }
 
 /**
+ * Marks a matchSeed for a set generated ON-DEVICE (offline fallback). The server
+ * cannot reproduce a client-random seed, so answers for such a set MUST be
+ * validated by the same on-device engine — never POSTed to the server, which
+ * would re-derive different challenges and score every answer 0.
+ */
+const OFFLINE_SEED_PREFIX = 'offline:';
+
+/**
  * Fetch a fresh solo practice set. Modelled as a mutation because it is an
  * imperative "deal me a new round" action (like useCreateDuel), not cacheable
  * read state — replaying should always hit the server for a new matchSeed.
@@ -47,8 +55,14 @@ export function usePracticeSet() {
         return res.data;
       } catch (err) {
         if (isOfflineError(err)) {
-          // Offline fallback — a client seed, never sent to the server.
-          return generateSet({ matchSeed: crypto.randomUUID(), mode, count, difficulty });
+          // Offline fallback — a client seed, prefixed so validation stays local
+          // and is never sent to the server (which can't reproduce it).
+          return generateSet({
+            matchSeed: OFFLINE_SEED_PREFIX + crypto.randomUUID(),
+            mode,
+            count,
+            difficulty,
+          });
         }
         throw err;
       }
@@ -67,24 +81,31 @@ export function usePracticeSet() {
 export function useValidateAnswer() {
   return useMutation({
     mutationFn: async (data: ValidateAnswerRequest): Promise<ValidationResult> => {
+      const validateOnDevice = (): ValidationResult => {
+        const result = validateLocal({
+          matchSeed: data.matchSeed,
+          mode: data.mode,
+          difficulty: data.difficulty,
+          index: data.index,
+          answer: data.answer,
+          elapsedMs: data.elapsedMs,
+        });
+        // Bank correct answers — their XP syncs (server-authoritatively) on
+        // reconnect via drainOfflineXp(). Wrong answers earn nothing anyway.
+        if (result.correct) enqueueOfflineXp(data);
+        return result;
+      };
+
+      // A set born offline carries a client-only seed the server can't
+      // reproduce; validating it online scores every answer 0. Keep it on the
+      // same on-device engine that generated it, regardless of connectivity.
+      if (data.matchSeed.startsWith(OFFLINE_SEED_PREFIX)) return validateOnDevice();
+
       try {
         const res = await api.post<ValidationResult>('/challenges/validate', data);
         return res.data;
       } catch (err) {
-        if (isOfflineError(err)) {
-          const result = validateLocal({
-            matchSeed: data.matchSeed,
-            mode: data.mode,
-            difficulty: data.difficulty,
-            index: data.index,
-            answer: data.answer,
-            elapsedMs: data.elapsedMs,
-          });
-          // Bank correct answers — their XP syncs (server-authoritatively) on
-          // reconnect via drainOfflineXp(). Wrong answers earn nothing anyway.
-          if (result.correct) enqueueOfflineXp(data);
-          return result;
-        }
+        if (isOfflineError(err)) return validateOnDevice();
         throw err;
       }
     },
