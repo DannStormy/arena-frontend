@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios';
 import { api } from '@/lib/api';
 import type { ValidateAnswerRequest } from '@/types/challenge.types';
 
@@ -9,7 +10,8 @@ import type { ValidateAnswerRequest } from '@/types/challenge.types';
  * when the connection returns. The server re-derives each challenge from the
  * seed and awards idempotently (keyed on matchSeed:index), so this can never
  * fake XP (the server re-checks every answer) and never double-counts (a
- * half-finished sync just resumes).
+ * half-finished sync just resumes). Offline seeds are client-made, so the server
+ * caps the XP they can earn per day.
  */
 const KEY = 'arena_xp_queue_v1';
 const MAX = 100; // cap so a long offline stretch can't bloat localStorage
@@ -62,8 +64,10 @@ export async function drainOfflineXp(): Promise<number> {
       if (q.length === 0) break;
       try {
         await api.post('/challenges/validate', q[0]);
-      } catch {
-        break; // offline again / server error — retry later, queue intact
+      } catch (err) {
+        // A 4xx means this item will never be accepted; drop it so it can't block the rest.
+        const status = isAxiosError(err) ? err.response?.status : undefined;
+        if (!status || status >= 500) break;
       }
       const after = read();
       after.shift(); // the item we just synced is still the oldest

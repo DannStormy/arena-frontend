@@ -30,6 +30,7 @@ const bankSchema = z.object({
   bankCode: z.string().min(1, 'Select a bank'),
   bankAccountNumber: z.string().length(10, 'Account number must be 10 digits'),
   bankAccountName: z.string().min(2, 'Enter account name'),
+  password: z.string().min(1, 'Enter your password to confirm'),
 });
 
 type BankFormData = z.infer<typeof bankSchema>;
@@ -56,6 +57,7 @@ export function ProfilePage() {
       bankCode: user?.bankCode ?? '',
       bankAccountNumber: user?.bankAccountNumber ?? '',
       bankAccountName: user?.bankAccountName ?? '',
+      password: '',
     },
   });
 
@@ -65,6 +67,7 @@ export function ProfilePage() {
         bankCode: user.bankCode ?? '',
         bankAccountNumber: user.bankAccountNumber ?? '',
         bankAccountName: user.bankAccountName ?? '',
+        password: '',
       });
     }
   }, [user, reset]);
@@ -607,6 +610,20 @@ export function ProfilePage() {
                   <p className="mt-1 text-xs text-arena-red">{errors.bankAccountName.message}</p>
                 )
               )}
+            </div>
+
+            <div>
+              <Input
+                {...register('password')}
+                type="password"
+                autoComplete="current-password"
+                placeholder="Your password, to confirm"
+                className="h-11 bg-arena-elev border-arena-border text-white placeholder:text-arena-text-tertiary focus-visible:ring-[#C6DCE8]/40 focus-visible:border-[#A9C5D6]/60"
+              />
+              {errors.password && <p className="mt-1 text-xs text-arena-red">{errors.password.message}</p>}
+              <p className="mt-1 text-xs text-arena-text-tertiary">
+                Prize payouts pause for 48 hours after you change bank details.
+              </p>
             </div>
 
             <Button

@@ -23,7 +23,7 @@ export function useOfflineXpSync(): void {
       if (cancelled || n <= 0) return;
       // Level/XP moved server-side — refresh anything reading progression.
       void queryClient.invalidateQueries({ queryKey: ['progression'] });
-      toast.success(`Synced ${n} offline answer${n === 1 ? '' : 's'} — XP added to your level.`);
+      toast.success(`Synced ${n} offline answer${n === 1 ? '' : 's'}. Offline XP is capped daily.`);
     });
     return () => {
       cancelled = true;

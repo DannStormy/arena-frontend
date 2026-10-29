@@ -25,6 +25,7 @@ interface BankDetailsInput {
   bankCode: string;
   bankAccountNumber: string;
   bankAccountName: string;
+  password: string;
 }
 
 export interface UserStats {
@@ -70,9 +71,11 @@ export function useUpdateBankDetails() {
 
   return useMutation({
     mutationFn: (data: BankDetailsInput) =>
-      api.patch('/users/me/bank-details', data).then((r) => r.data),
-    onSuccess: (_, variables) => {
-      updateUser(variables);
+      api
+        .patch<{ success: true; bankAccountName: string }>('/users/me/bank-details', data)
+        .then((r) => r.data),
+    onSuccess: (res, { bankCode, bankAccountNumber }) => {
+      updateUser({ bankCode, bankAccountNumber, bankAccountName: res.bankAccountName });
       toast.success('Bank details saved');
     },
     onError: (err) => toast.error(getErrorMessage(err, 'Failed to save bank details')),

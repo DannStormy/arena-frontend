@@ -49,7 +49,6 @@ export interface SubmitAsyncDuelRequest {
 export interface AsyncDuelSetResponse {
   id: string;
   code: string;
-  matchSeed: string;
   mode: ChallengeMode;
   difficulty: number;
   matchType: AsyncDuelMatchType;
